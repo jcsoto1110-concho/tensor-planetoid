@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { database } from '@/lib/database';
 import { encryptFile } from '@/lib/encryption';
+import { supabase } from '@/lib/supabase';
 
 export interface DocEmployee {
     id: string; // Cédula
@@ -77,15 +77,32 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [dbEmployees, dbDocuments, dbLogs] = await Promise.all([
-                database.getEmployees(),
-                database.getDocuments(),
-                database.getAuditLogs()
-            ]);
+
+            // Fetch employees
+            const { data: dbEmployees, error: empError } = await supabase
+                .from('employees')
+                .select('*');
+
+            if (empError) throw empError;
+
+            // Fetch documents
+            const { data: dbDocuments, error: docError } = await supabase
+                .from('documents')
+                .select('*');
+
+            if (docError) throw docError;
+
+            // Fetch audit logs
+            const { data: dbLogs, error: logError } = await supabase
+                .from('audit_logs')
+                .select('*')
+                .order('timestamp', { ascending: false });
+
+            if (logError) throw logError;
 
             // Map employees and attach documents
-            const mappedEmployees: DocEmployee[] = dbEmployees.map(emp => {
-                const empDocs = dbDocuments
+            const mappedEmployees: DocEmployee[] = (dbEmployees || []).map(emp => {
+                const empDocs = (dbDocuments || [])
                     .filter(doc => doc.employee_id === emp.id)
                     .map(doc => ({
                         id: doc.id,
@@ -98,7 +115,7 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
                         approvedBy: doc.approved_by,
                         approvedAt: doc.approved_date,
                         rejectedBy: doc.rejected_by,
-                        rejectedAt: doc.approved_date, // Using approved_date for rejection timestamp too
+                        rejectedAt: doc.approved_date,
                         comments: doc.comments || doc.rejection_reason
                     }));
 
@@ -119,7 +136,7 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
             });
 
             // Map audit logs
-            const mappedLogs: AuditLog[] = dbLogs.map(log => ({
+            const mappedLogs: AuditLog[] = (dbLogs || []).map(log => ({
                 id: log.id,
                 timestamp: log.timestamp,
                 user: log.user_name,
@@ -140,24 +157,17 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const addAuditLog = async (action: AuditLog['action'], entity: AuditLog['entity'], details: string, entityId?: string) => {
         try {
-            await database.addAuditLog({
+            await supabase.from('audit_logs').insert({
                 action,
-                entityType: entity,
+                entity_type: entity,
                 description: details,
-                userName: 'Sistema', // TODO: Replace with actual user
-                entityId
+                user_name: 'Sistema', // TODO: Replace with actual user
+                entity_id: entityId,
+                timestamp: new Date().toISOString()
             });
+
             // Refresh logs
-            const logs = await database.getAuditLogs();
-            setAuditLogs(logs.map(log => ({
-                id: log.id,
-                timestamp: log.timestamp,
-                user: log.user_name,
-                action: log.action as any,
-                entity: log.entity_type as any,
-                entityId: log.entity_id,
-                details: log.description
-            })));
+            loadData();
         } catch (error) {
             console.error('Error adding audit log:', error);
         }
@@ -165,7 +175,7 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const addEmployee = async (emp: DocEmployee) => {
         try {
-            await database.createEmployee({
+            const { error } = await supabase.from('employees').insert({
                 id: emp.id,
                 codigo_sap: emp.codigo_sap,
                 name: emp.name,
@@ -179,6 +189,8 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
                 pais: emp.pais
             });
 
+            if (error) throw error;
+
             setEmployees(prev => [...prev, emp]);
             await addAuditLog('CREATE', 'EMPLOYEE', `Empleado creado: ${emp.name} ${emp.apellido} (${emp.id})`, emp.id);
         } catch (error) {
@@ -189,25 +201,47 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const addDocumentToEmployee = async (employeeId: string, doc: DocFile | { file: File; fileName: string; type: string; id: string; uploadDate: string }) => {
         try {
-            let encryptedData: string | undefined;
             let fileToUpload: File;
+            let fileUrl: string = '';
 
             if ('file' in doc) {
                 fileToUpload = doc.file;
-                // Encrypt file content for storage/url
-                encryptedData = await encryptFile(doc.file);
+
+                // Upload to Supabase Storage
+                const filePath = `${employeeId}/${Date.now()}_${doc.fileName}`;
+                const { data, error: uploadError } = await supabase.storage
+                    .from('employee-documents')
+                    .upload(filePath, fileToUpload);
+
+                if (uploadError) throw uploadError;
+
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('employee-documents')
+                    .getPublicUrl(filePath);
+
+                fileUrl = publicUrl;
             } else {
-                // Should not happen in new flow, but handle gracefully
                 console.error('File object missing for upload');
                 return;
             }
 
-            const newDoc = await database.uploadDocument({
-                file: fileToUpload,
-                employeeId,
-                uploadedBy: 'Sistema',
-                encryptedData // Pass encrypted data URL
-            });
+            // Save metadata to database
+            const { data: newDoc, error: dbError } = await supabase
+                .from('documents')
+                .insert({
+                    file_name: doc.fileName,
+                    file_type: doc.type,
+                    file_url: fileUrl,
+                    employee_id: employeeId,
+                    uploaded_by: 'Sistema',
+                    status: 'PENDING',
+                    upload_date: new Date().toISOString()
+                })
+                .select()
+                .single();
+
+            if (dbError) throw dbError;
 
             // Update local state
             setEmployees(prev => prev.map(emp => {
@@ -278,7 +312,7 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
             if (id && name && apellido) {
                 try {
-                    await database.createEmployee({
+                    const { error } = await supabase.from('employees').insert({
                         id: String(id),
                         codigo_sap: codigo_sap ? String(codigo_sap) : undefined,
                         name: name,
@@ -291,7 +325,8 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
                         responsable: responsable,
                         pais: pais
                     });
-                    count++;
+
+                    if (!error) count++;
                 } catch (e) {
                     console.warn(`Skipping duplicate or invalid employee: ${id}`);
                 }
@@ -305,17 +340,14 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
     };
 
     const massDeleteEmployees = async (data: any[]) => {
-        // Not implemented for DB yet to avoid accidental mass deletion
         console.warn('Mass delete not implemented for production DB');
     };
 
     const loadDemoData = () => {
-        // No-op in production mode
         console.log('Demo data loading disabled in production mode');
     };
 
     const clearAllData = () => {
-        // No-op in production mode
         console.log('Clear data disabled in production mode');
     };
 
@@ -333,11 +365,16 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const approvePendingDocument = async (employeeId: string, docId: string, approvedBy: string, comments?: string) => {
         try {
-            await database.approveDocument({
-                documentId: docId,
-                approvedBy,
-                comments
-            });
+            const { error } = await supabase.from('documents')
+                .update({
+                    status: 'APPROVED',
+                    approved_by: approvedBy,
+                    approved_date: new Date().toISOString(),
+                    comments: comments
+                })
+                .eq('id', docId);
+
+            if (error) throw error;
 
             setEmployees(prev => prev.map(emp => {
                 if (emp.id === employeeId) {
@@ -368,11 +405,16 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const rejectPendingDocument = async (employeeId: string, docId: string, rejectedBy: string, comments?: string) => {
         try {
-            await database.rejectDocument({
-                documentId: docId,
-                rejectedBy,
-                reason: comments || 'Sin razón especificada'
-            });
+            const { error } = await supabase.from('documents')
+                .update({
+                    status: 'REJECTED',
+                    rejected_by: rejectedBy,
+                    approved_date: new Date().toISOString(), // Using same field for rejection date
+                    rejection_reason: comments
+                })
+                .eq('id', docId);
+
+            if (error) throw error;
 
             setEmployees(prev => prev.map(emp => {
                 if (emp.id === employeeId) {
