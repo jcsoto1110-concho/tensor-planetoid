@@ -1,23 +1,33 @@
-import Link from "next/link";
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to Zero Paper
+    router.push('/zero-paper');
+  }, [router]);
+
   return (
-    <main style={{
+    <div style={{
+      minHeight: '100vh',
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      minHeight: '100vh',
-      gap: '2rem'
+      backgroundColor: '#0f172a'
     }}>
-      <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>Sistema de Reservas y Viajes</h1>
-      <p style={{ color: 'var(--muted)' }}>Portal de Gestión de Viajes Corporativos</p>
-
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <Link href="/login" className="btn btn-primary">
-          Ingresar al Portal
-        </Link>
+      <div style={{ textAlign: 'center', color: 'white' }}>
+        <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Redirigiendo a Zero Paper...</h1>
+        <div style={{ fontSize: '1rem', opacity: 0.7 }}>
+          Si no eres redirigido automáticamente,{' '}
+          <a href="/zero-paper" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+            haz clic aquí
+          </a>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
