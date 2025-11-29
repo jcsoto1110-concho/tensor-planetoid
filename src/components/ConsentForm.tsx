@@ -6,11 +6,12 @@ import { CheckSquare, FileSignature, Calendar, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface ConsentFormProps {
-    employeeId: string;
-    employeeName: string;
-    employeeCedula: string;
-    country: Country;
+    employeeId?: string;
+    employeeName?: string;
+    employeeCedula?: string;
+    country?: Country;
     onConsentGiven?: (consentData: any) => void;
+    onSubmitted?: () => void;
 }
 
 const consentTexts = {
@@ -77,15 +78,25 @@ Conforme a la Ley N° 19.628 sobre Protección de la Vida Privada de Chile.`
     }
 };
 
-export function ConsentForm({ employeeId, employeeName, employeeCedula, country, onConsentGiven }: ConsentFormProps) {
+export default function ConsentForm({
+    employeeId = '',
+    employeeName = '',
+    employeeCedula = '',
+    country = 'ecuador',
+    onConsentGiven,
+    onSubmitted
+}: ConsentFormProps) {
     const [agreed, setAgreed] = useState(false);
     const [privacyRead, setPrivacyRead] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedCountry, setSelectedCountry] = useState<Country>(country);
+    const [cedula, setCedula] = useState(employeeCedula);
+    const [name, setName] = useState(employeeName);
 
-    const consent = consentTexts[country];
+    const consent = consentTexts[selectedCountry];
     const processedText = consent.text
-        .replace('{employeeName}', employeeName)
-        .replace('{employeeCedula}', employeeCedula);
+        .replace('{employeeName}', name || 'N/A')
+        .replace('{employeeCedula}', cedula || 'N/A');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,15 +109,13 @@ export function ConsentForm({ employeeId, employeeName, employeeCedula, country,
         setIsSubmitting(true);
 
         const consentData = {
-            employee_id: employeeId,
-            employee_name: employeeName,
-            employee_cedula: employeeCedula,
-            country,
+            employee_cedula: cedula || employeeCedula,
+            country: selectedCountry,
             consent_date: new Date().toISOString(),
-            expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 año
             consent_text: processedText,
-            ip_address: 'N/A', // En producción, obtener IP real
-            status: 'active'
+            ip_address: 'N/A',
+            user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A',
+            accepted: true
         };
 
         // Guardar en Supabase
@@ -124,6 +133,10 @@ export function ConsentForm({ employeeId, employeeName, employeeCedula, country,
 
         if (onConsentGiven) {
             onConsentGiven(data[0]);
+        }
+
+        if (onSubmitted) {
+            onSubmitted();
         }
 
         alert('✅ Consentimiento registrado exitosamente');
@@ -157,7 +170,7 @@ export function ConsentForm({ employeeId, employeeName, employeeCedula, country,
                         {consent.title}
                     </h2>
                     <p style={{ color: '#64748b', margin: '0.25rem 0 0 0', fontSize: '0.875rem' }}>
-                        Protección de Datos Personales - {country.toUpperCase()}
+                        Protección de Datos Personales - {selectedCountry.toUpperCase()}
                     </p>
                 </div>
             </div>
@@ -192,11 +205,11 @@ export function ConsentForm({ employeeId, employeeName, employeeCedula, country,
                 }}>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Empleado</div>
-                        <div style={{ fontWeight: '600', color: '#0f172a' }}>{employeeName}</div>
+                        <div style={{ fontWeight: '600', color: '#0f172a' }}>{name || 'N/A'}</div>
                     </div>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Cédula/DNI/RUT</div>
-                        <div style={{ fontWeight: '600', color: '#0f172a' }}>{employeeCedula}</div>
+                        <div style={{ fontWeight: '600', color: '#0f172a' }}>{cedula || 'N/A'}</div>
                     </div>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Fecha</div>

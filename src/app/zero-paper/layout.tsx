@@ -57,13 +57,14 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     const pendingCount = getPendingDocuments().length;
 
     const isLoginPage = pathname === '/zero-paper/login';
+    const isEmployeePage = pathname === '/zero-paper/employee-login' || pathname === '/zero-paper/employee-portal';
 
     // Protect routes
     useEffect(() => {
-        if (!isAuthenticated && !isLoginPage) {
+        if (!isAuthenticated && !isLoginPage && !isEmployeePage) {
             router.push('/zero-paper/login');
         }
-    }, [isAuthenticated, isLoginPage, router]);
+    }, [isAuthenticated, isLoginPage, isEmployeePage, router]);
 
     // Redirect APPROVER to approvals page
     useEffect(() => {
@@ -72,8 +73,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         }
     }, [currentUser, pathname, router]);
 
-    // Show login page without layout
-    if (isLoginPage) {
+    // Show login page and employee pages without layout
+    if (isLoginPage || isEmployeePage) {
         return <>{children}</>;
     }
 

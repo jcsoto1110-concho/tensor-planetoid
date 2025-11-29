@@ -1,6 +1,6 @@
 'use client';
 
-import { ConsentForm } from '@/components/ConsentForm';
+import ConsentForm from '@/components/ConsentForm';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 

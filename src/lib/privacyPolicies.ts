@@ -168,16 +168,29 @@ Plazo de respuesta: 2 días hábiles`
     }
 };
 
-export function getPrivacyPolicy(country: Country, companyConfig: any) {
+export function getPrivacyPolicy(country: Country, companyConfig?: {
+    companyName?: string;
+    ruc?: string;
+    dpoEmail?: string;
+    privacyEmail?: string;
+}) {
     const policy = privacyPolicies[country];
+
+    // Default company config
+    const config = {
+        companyName: companyConfig?.companyName || 'Grupo Marathon',
+        ruc: companyConfig?.ruc || 'N/A',
+        dpoEmail: companyConfig?.dpoEmail || 'privacidad@grupomarathon.com',
+        privacyEmail: companyConfig?.privacyEmail || 'privacidad@grupomarathon.com'
+    };
 
     // Reemplazar variables en el contenido
     const processContent = (content: string) => {
         return content
-            .replace('{companyName}', companyConfig.companyName)
-            .replace('{ruc}', companyConfig.ruc)
-            .replace('{dpoEmail}', companyConfig.dpoEmail)
-            .replace('{privacyEmail}', companyConfig.privacyEmail);
+            .replace('{companyName}', config.companyName)
+            .replace('{ruc}', config.ruc)
+            .replace('{dpoEmail}', config.dpoEmail)
+            .replace('{privacyEmail}', config.privacyEmail);
     };
 
     return {

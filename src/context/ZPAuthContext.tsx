@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { authenticateWithExternalService } from '@/lib/externalAuth';
 import { supabase } from '@/lib/supabase';
 
-export type UserRole = 'UPLOADER' | 'APPROVER' | 'ADMIN';
+export type UserRole = 'UPLOADER' | 'APPROVER' | 'ADMIN' | 'EMPLOYEE';
 
 export interface ZPUser {
     id: string;
@@ -17,6 +17,7 @@ export interface ZPUser {
 interface ZPAuthContextType {
     currentUser: ZPUser | null;
     login: (cedula: string, password: string) => Promise<boolean>;
+    loginEmployee: (cedula: string, password: string) => Promise<boolean>;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -119,6 +120,58 @@ export function ZPAuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const loginEmployee = async (cedula: string, password: string): Promise<boolean> => {
+        try {
+            console.log('🔐 Intentando autenticar empleado:', cedula);
+
+            // 1. Autenticar con servicio externo
+            const authResult = await authenticateWithExternalService(cedula, password);
+
+            if (!authResult.success) {
+                console.error('❌ Autenticación WS falló:', authResult.error);
+                alert(`Error de autenticación: ${authResult.error}`);
+                return false;
+            }
+
+            console.log('✅ Autenticación WS exitosa');
+
+            // 2. Buscar empleado en la tabla employees
+            const { data: employeeData, error: employeeError } = await supabase
+                .from('employees')
+                .select('*')
+                .eq('id', cedula)
+                .single();
+
+            if (employeeError || !employeeData) {
+                console.error('❌ Empleado no encontrado en BD:', employeeError);
+                alert(`No se encontró un empleado con cédula ${cedula} en el sistema. Contacte a RRHH.`);
+                return false;
+            }
+
+            console.log('✅ Empleado encontrado:', employeeData.name, employeeData.apellido);
+
+            // 3. Crear objeto de usuario con rol EMPLOYEE
+            const user: ZPUser = {
+                id: cedula,
+                username: cedula,
+                name: `${employeeData.name} ${employeeData.apellido}`,
+                role: 'EMPLOYEE',
+                cedula: cedula
+            };
+
+            // 4. Guardar en localStorage y estado
+            setCurrentUser(user);
+            localStorage.setItem('zp_current_user', JSON.stringify(user));
+
+            console.log('✅ Login de empleado exitoso');
+            return true;
+        } catch (error) {
+            console.error('❌ Error inesperado en login de empleado:', error);
+            alert('Error inesperado al iniciar sesión. Intente nuevamente.');
+            return false;
+        }
+    };
+
     const logout = () => {
         setCurrentUser(null);
         localStorage.removeItem('zp_current_user');
@@ -144,6 +197,7 @@ export function ZPAuthProvider({ children }: { children: ReactNode }) {
         <ZPAuthContext.Provider value={{
             currentUser,
             login,
+            loginEmployee,
             logout,
             isAuthenticated: currentUser !== null
         }}>

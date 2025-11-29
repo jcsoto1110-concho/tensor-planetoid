@@ -203,12 +203,13 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
         try {
             let fileToUpload: File;
             let fileUrl: string = '';
+            let filePath: string = '';
 
             if ('file' in doc) {
                 fileToUpload = doc.file;
 
                 // Upload to Supabase Storage
-                const filePath = `${employeeId}/${Date.now()}_${doc.fileName}`;
+                filePath = `${employeeId}/${Date.now()}_${doc.fileName}`;
                 const { data, error: uploadError } = await supabase.storage
                     .from('employee-documents')
                     .upload(filePath, fileToUpload);
@@ -233,6 +234,8 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
                     file_name: doc.fileName,
                     file_type: doc.type,
                     file_url: fileUrl,
+                    file_path: filePath, // Added missing field
+                    is_encrypted: false, // Default value
                     employee_id: employeeId,
                     uploaded_by: 'Sistema',
                     status: 'PENDING',
@@ -262,9 +265,9 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
             await addAuditLog('ADD_DOCUMENT', 'DOCUMENT', `Documento cargado: ${doc.fileName}`, newDoc.id);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error uploading document:', error);
-            alert('Error al subir documento');
+            alert(`Error al subir documento: ${error.message || JSON.stringify(error)}`);
         }
     };
 
