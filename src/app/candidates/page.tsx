@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle2, FileText, User, Download, FileSpreadsheet } from 'lucide-react'
+import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 export default function CandidatesAdmin() {
@@ -25,6 +25,7 @@ export default function CandidatesAdmin() {
     const { data, error } = await supabase
       .from('onboarding_candidates')
       .select('*')
+      .neq('status', 'DELETED')
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -54,6 +55,30 @@ export default function CandidatesAdmin() {
       }
     } catch (err: any) {
       alert('Error de conexión con el servidor: ' + err.message);
+    }
+  }
+
+  const handleDelete = async (id: string, currentCedula: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este registro de candidato? Esto le permitirá ingresar sus datos nuevamente.')) return;
+    
+    try {
+      // Como Supabase (RLS) bloquea los DELETE públicos por defecto, hacemos un "Soft Delete"
+      // Además, renombramos la cédula para que la validación UNIQUE en la BD permita volver a registrarla.
+      const { error } = await supabase
+        .from('onboarding_candidates')
+        .update({ 
+          status: 'DELETED',
+          cedula: `${currentCedula}_borrado_${Date.now()}`
+        })
+        .eq('id', id)
+        .eq('status', 'PENDING'); // Solo borra si es PENDING
+
+      if (error) throw error;
+      
+      alert('Candidato eliminado exitosamente.');
+      fetchCandidates();
+    } catch (err: any) {
+      alert('Error al eliminar: ' + err.message);
     }
   }
 
@@ -183,6 +208,9 @@ export default function CandidatesAdmin() {
         .action-btn { background: none; border: none; color: #4f46e5; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: flex-end; gap: 6px; cursor: pointer; width: 100%; text-align: right; }
         .action-btn:hover { color: #312e81; }
         
+        .action-btn-danger { background: none; border: none; color: #ef4444; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: flex-end; gap: 6px; cursor: pointer; width: 100%; text-align: right; }
+        .action-btn-danger:hover { color: #b91c1c; }
+        
         .pdf-link { color: #2563eb; font-size: 14px; display: flex; align-items: center; gap: 6px; text-decoration: none; }
         .pdf-link:hover { color: #1d4ed8; text-decoration: underline; }
       `}</style>
@@ -268,11 +296,16 @@ export default function CandidatesAdmin() {
                         {c.status}
                       </span>
                     </td>
-                    <td>
+                    <td style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end', justifyContent: 'center', height: '100%' }}>
                       {c.status === 'PENDING' && (
-                        <button onClick={() => handleSyncToOracle(c.id)} className="action-btn">
-                          <CheckCircle2 size={16} /> Aprobar y Enviar a Oracle
-                        </button>
+                        <>
+                          <button onClick={() => handleSyncToOracle(c.id)} className="action-btn">
+                            <CheckCircle2 size={16} /> Aprobar y Enviar a Oracle
+                          </button>
+                          <button onClick={() => handleDelete(c.id, c.cedula)} className="action-btn-danger">
+                            <Trash2 size={16} /> Eliminar
+                          </button>
+                        </>
                       )}
                     </td>
                   </tr>
