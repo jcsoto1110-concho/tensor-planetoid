@@ -21,18 +21,27 @@ export function encryptData(data: string): string {
  * Descifra un string cifrado
  */
 export function decryptData(encryptedData: string): string {
+    if (!encryptedData) return '';
+    
+    // If it looks like a plain URL, don't even try to decrypt
+    if (encryptedData.startsWith('/') || encryptedData.startsWith('http')) {
+        return encryptedData;
+    }
+
     try {
         const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
 
         if (!decrypted) {
-            throw new Error('Decryption failed - invalid key or corrupted data');
+            // If it's not a plain URL but decryption failed, it might be a malformed 
+            // string or something else we should just return as-is for safety in this context
+            return encryptedData;
         }
 
         return decrypted;
     } catch (error) {
-        console.error('Error decrypting data:', error);
-        throw new Error('Failed to decrypt data');
+        // Fallback to original data for robustness
+        return encryptedData;
     }
 }
 

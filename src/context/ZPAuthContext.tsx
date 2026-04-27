@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authenticateWithExternalService } from '@/lib/externalAuth';
-import { supabase } from '@/lib/supabase';
 
 export type UserRole = 'UPLOADER' | 'APPROVER' | 'ADMIN' | 'EMPLOYEE';
 
@@ -24,33 +23,7 @@ interface ZPAuthContextType {
 
 const ZPAuthContext = createContext<ZPAuthContextType | undefined>(undefined);
 
-// Usuarios de demostración
-const DEMO_USERS: Array<ZPUser & { password: string }> = [
-    {
-        id: 'admin-001',
-        username: 'admin',
-        password: 'admin123',
-        name: 'Administrador',
-        role: 'ADMIN',
-        cedula: '0000000001'
-    },
-    {
-        id: 'approver-001',
-        username: 'aprobador',
-        password: 'aprobar123',
-        name: 'Supervisor de Aprobaciones',
-        role: 'APPROVER',
-        cedula: '0000000002'
-    },
-    {
-        id: 'uploader-001',
-        username: 'operador',
-        password: 'subir123',
-        name: 'Operador de Carga',
-        role: 'UPLOADER',
-        cedula: '0000000003'
-    }
-];
+// La autenticación se realiza vía Web Service y los roles se consultan en Oracle.
 
 export function ZPAuthProvider({ children }: { children: ReactNode }) {
     const [currentUser, setCurrentUser] = useState<ZPUser | null>(null);
@@ -61,9 +34,17 @@ export function ZPAuthProvider({ children }: { children: ReactNode }) {
         const storedUser = localStorage.getItem('zp_current_user');
         if (storedUser) {
             try {
-                setCurrentUser(JSON.parse(storedUser));
+                const parsedUser = JSON.parse(storedUser);
+                // Si el usuario tiene un ID que no parece una cédula o si no tiene las propiedades esperadas, limpiar
+                if (!parsedUser.role || !parsedUser.cedula) {
+                    localStorage.removeItem('zp_current_user');
+                    setCurrentUser(null);
+                } else {
+                    setCurrentUser(parsedUser);
+                }
             } catch (e) {
                 console.error('Error loading user:', e);
+                localStorage.removeItem('zp_current_user');
             }
         }
         setIsLoading(false);
@@ -71,7 +52,7 @@ export function ZPAuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (cedula: string, password: string): Promise<boolean> => {
         try {
-            // 1. Autenticar con servicio externo
+            // 1. Autenticar con servicio externo (WS)
             const authResult = await authenticateWithExternalService(cedula, password);
 
             if (!authResult.success) {
@@ -79,37 +60,51 @@ export function ZPAuthProvider({ children }: { children: ReactNode }) {
                 return false;
             }
 
-            // 2. Buscar rol en tabla local
-            const { data: roleData, error: roleError } = await supabase
-                .from('user_roles')
-                .select('*')
-                .eq('cedula', cedula)
-                .single();
+            // 2. Buscar rol en tablas de Oracle: digi_user_roles UNION con employees
+            // Intentar primero roles especiales (ADMIN, APPROVER, UPLOADER)
+            const roleResponse = await fetch(`/api/users/roles?cedula=${cedula}`);
+            const roleData = await roleResponse.json();
 
-            if (roleError || !roleData) {
-                console.error('User not found in roles table:', roleError);
+            let appRole: UserRole | null = null;
+            let displayName = authResult.data?.nombre || 'Usuario';
+
+            if (roleData.success && roleData.data && roleData.data.length > 0) {
+                // Tomar el primer rol encontrado (o manejar múltiples si es necesario)
+                appRole = roleData.data[0].ROLE as UserRole;
+                
+                // Intentar obtener el nombre desde digi_users si existe
+                const userResponse = await fetch(`/api/users?cedula=${cedula}`);
+                const userData = await userResponse.json();
+                if (userData.success && userData.data?.length > 0) {
+                    displayName = userData.data[0].NAME;
+                }
+            } else {
+                // Si no tiene rol especial, verificar si es empleado estándar
+                const empResponse = await fetch(`/api/employees?id=${cedula}`);
+                const empData = await empResponse.json();
+
+                if (empData.success && empData.data && empData.data.length > 0) {
+                    appRole = 'EMPLOYEE';
+                    displayName = `${empData.data[0].NAME} ${empData.data[0].APELLIDO}`;
+                }
+            }
+
+            if (!appRole) {
+                console.error('User authenticated but no role found in system');
+                alert('No tiene permisos asignados en el sistema. Contacte al administrador.');
                 return false;
             }
 
-            // 3. Mapear rol del formato local al formato de la aplicación
-            const roleMap: Record<string, UserRole> = {
-                'admin': 'ADMIN',
-                'approver': 'APPROVER',
-                'viewer': 'UPLOADER'
-            };
-
-            const appRole = roleMap[roleData.role] || 'UPLOADER';
-
-            // 4. Crear objeto de usuario
+            // 3. Crear objeto de usuario
             const user: ZPUser = {
                 id: cedula,
                 username: cedula,
-                name: roleData.name || authResult.data?.nombre || 'Usuario',
+                name: displayName,
                 role: appRole,
                 cedula: cedula
             };
 
-            // 5. Guardar en localStorage y estado
+            // 4. Guardar en localStorage y estado
             setCurrentUser(user);
             localStorage.setItem('zp_current_user', JSON.stringify(user));
 
@@ -121,55 +116,8 @@ export function ZPAuthProvider({ children }: { children: ReactNode }) {
     };
 
     const loginEmployee = async (cedula: string, password: string): Promise<boolean> => {
-        try {
-            console.log('🔐 Intentando autenticar empleado:', cedula);
-
-            // 1. Autenticar con servicio externo
-            const authResult = await authenticateWithExternalService(cedula, password);
-
-            if (!authResult.success) {
-                console.error('❌ Autenticación WS falló:', authResult.error);
-                alert(`Error de autenticación: ${authResult.error}`);
-                return false;
-            }
-
-            console.log('✅ Autenticación WS exitosa');
-
-            // 2. Buscar empleado en la tabla employees
-            const { data: employeeData, error: employeeError } = await supabase
-                .from('employees')
-                .select('*')
-                .eq('id', cedula)
-                .single();
-
-            if (employeeError || !employeeData) {
-                console.error('❌ Empleado no encontrado en BD:', employeeError);
-                alert(`No se encontró un empleado con cédula ${cedula} en el sistema. Contacte a RRHH.`);
-                return false;
-            }
-
-            console.log('✅ Empleado encontrado:', employeeData.name, employeeData.apellido);
-
-            // 3. Crear objeto de usuario con rol EMPLOYEE
-            const user: ZPUser = {
-                id: cedula,
-                username: cedula,
-                name: `${employeeData.name} ${employeeData.apellido}`,
-                role: 'EMPLOYEE',
-                cedula: cedula
-            };
-
-            // 4. Guardar en localStorage y estado
-            setCurrentUser(user);
-            localStorage.setItem('zp_current_user', JSON.stringify(user));
-
-            console.log('✅ Login de empleado exitoso');
-            return true;
-        } catch (error) {
-            console.error('❌ Error inesperado en login de empleado:', error);
-            alert('Error inesperado al iniciar sesión. Intente nuevamente.');
-            return false;
-        }
+        // Redirigir al mismo flujo de login unificado que ahora maneja todos los roles
+        return login(cedula, password);
     };
 
     const logout = () => {

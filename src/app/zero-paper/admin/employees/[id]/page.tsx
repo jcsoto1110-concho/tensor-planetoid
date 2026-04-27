@@ -14,8 +14,8 @@ export default function EmployeeDetailPage() {
     const [selectedDoc, setSelectedDoc] = useState<DocFile | null>(null);
     const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null);
 
-    // Filter to show only approved documents
-    const approvedDocuments = employee?.documents.filter(doc => doc.status === 'APPROVED') || [];
+    // Show approved AND pending documents (don't show rejected)
+    const visibleDocuments = (employee?.documents || []).filter(doc => doc.status !== 'REJECTED');
 
     // Decrypt document when selected
     useEffect(() => {
@@ -112,7 +112,7 @@ export default function EmployeeDetailPage() {
                     }}>
                         <div style={{ textAlign: 'center' }}>
                             <FileText size={32} style={{ marginBottom: '0.5rem' }} />
-                            <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{approvedDocuments.length}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{visibleDocuments.length}</div>
                             <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Documentos</div>
                         </div>
                     </div>
@@ -250,11 +250,11 @@ export default function EmployeeDetailPage() {
                         fontSize: '0.875rem',
                         fontWeight: '600'
                     }}>
-                        {approvedDocuments.length} archivo{approvedDocuments.length !== 1 ? 's' : ''}
+                        {visibleDocuments.length} archivo{visibleDocuments.length !== 1 ? 's' : ''}
                     </div>
                 </div>
 
-                {approvedDocuments.length === 0 ? (
+                {visibleDocuments.length === 0 ? (
                     <div style={{
                         padding: '4rem',
                         textAlign: 'center',
@@ -272,7 +272,7 @@ export default function EmployeeDetailPage() {
                         gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                         gap: '1.5rem'
                     }}>
-                        {approvedDocuments.map(doc => (
+                        {visibleDocuments.map(doc => (
                             <div
                                 key={doc.id}
                                 onClick={() => setSelectedDoc(doc)}
@@ -304,6 +304,21 @@ export default function EmployeeDetailPage() {
                                     position: 'relative',
                                     overflow: 'hidden'
                                 }}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '0.75rem',
+                                        right: '0.75rem',
+                                        padding: '0.25rem 0.5rem',
+                                        borderRadius: '6px',
+                                        fontSize: '0.65rem',
+                                        fontWeight: '800',
+                                        backgroundColor: doc.status === 'PENDING' ? '#f59e0b' : '#10b981',
+                                        color: 'white',
+                                        zIndex: 10,
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }}>
+                                        {doc.status}
+                                    </div>
                                     {doc.type === 'image' ? (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img

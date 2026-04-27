@@ -1,4 +1,5 @@
 import { Country } from '@/types/dataProtection';
+export type { Country };
 
 export const privacyPolicies = {
     ecuador: {
@@ -174,7 +175,7 @@ export function getPrivacyPolicy(country: Country, companyConfig?: {
     dpoEmail?: string;
     privacyEmail?: string;
 }) {
-    const policy = privacyPolicies[country];
+    const policy = (privacyPolicies as any)[country];
 
     // Default company config
     const config = {
@@ -196,7 +197,7 @@ export function getPrivacyPolicy(country: Country, companyConfig?: {
     return {
         ...policy,
         sections: Object.fromEntries(
-            Object.entries(policy.sections).map(([key, section]) => [
+            Object.entries(policy.sections).map(([key, section]: [string, any]) => [
                 key,
                 {
                     ...section,

@@ -1,0 +1,334 @@
+'use client'
+
+import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { UploadCloud, CheckCircle2, AlertCircle, Plus, Trash2, Check, FileCheck } from 'lucide-react'
+
+const WELCOME_TEXT = `A nombre de SUPERDEPORTE S.A. es un placer darte la bienvenida, esperamos que disfrutes con nosotros de nuestra actividad favorita, el deporte. Estamos orgullosos de ofrecer la mejor experiencia deportiva a nuestros consumidores a través de una asesoría del más alto nivel. Nos caracterizamos por ser un equipo que juega fuerte, que juega para ganar, sin excusas, siempre obedeciendo las reglas del juego. Estamos convencidos que tus competencias nos llevarán a lograr las metas que nos hemos propuesto. Eres parte de esta comunidad de apasionados por el deporte, dispuestos a transformar su entorno y contagiar esta pasión, volviéndose dueños del resultado y siempre trabajando hacia un mismo objetivo.`
+
+const REQUIRED_DOCS = [
+  "Hoja de vida actualizada",
+  "2 fotocopias de tamaño carnet",
+  "2 fotocopias de cédula de identidad y papeleta de votación",
+  "Certificado de antecedentes penales",
+  "Carnet de vacunación (3 dosis)",
+  "Certificados de trabajos anteriores",
+  "Acta de grado o copia de título",
+  "Partida de matrimonio (si aplica)",
+  "Copia de cédula del cónyuge",
+  "Partida de nacimiento (hijos)",
+  "Certificado de cuenta Produbanco"
+]
+
+const TABS = [
+  { id: 1, label: 'Bienvenida' },
+  { id: 2, label: 'Personales' },
+  { id: 3, label: 'Familiares' },
+  { id: 4, label: 'Estudios' },
+  { id: 5, label: 'Documentos' },
+]
+
+export default function OnboardingTabs() {
+  const [activeTab, setActiveTab] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [isSuccess, setIsSuccess] = useState(false)
+
+  const [formData, setFormData] = useState({
+    consentimiento: false, tratamiento: 'Sr.', nombres: '', apellido1: '', apellido2: '', ciudad_nacimiento: '', fecha_nacimiento: '', estado_civil: 'Soltera/o', nacionalidad: 'ECUADOR', cedula: '', banco_produbanco: '', tipo_cuenta: 'Cuenta de Ahorros', ciudad_residencia: '', direccion: '', telefono: '', celular: '', email: ''
+  })
+  const [conyuge, setConyuge] = useState({ tiene: false, nombres: '', apellidos: '', fecha_nacimiento: '', nacionalidad: 'Ecuador', ciudad_nacimiento: '', cedula: '' })
+  const [hijos, setHijos] = useState<any[]>([])
+  const [estudio, setEstudio] = useState({ nivel: 'Secundaria', titulo: '', institucion: '', fecha_inicio: '', fecha_fin: '' })
+
+  const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value.toUpperCase() }))
+  }
+
+  const handleConyugeChange = (e: any) => {
+    const { name, value } = e.target
+    setConyuge(prev => ({ ...prev, [name]: value.toUpperCase() }))
+  }
+
+  const handleEstudioChange = (e: any) => {
+    const { name, value } = e.target
+    setEstudio(prev => ({ ...prev, [name]: value.toUpperCase() }))
+  }
+
+  const handleSubmit = async () => {
+    if (!formData.consentimiento) { setActiveTab(1); setError('Debes aceptar el consentimiento en la pestaña de Bienvenida.'); return }
+    if (!file) { setActiveTab(5); setError('Debes subir el archivo PDF consolidado.'); return }
+
+    setLoading(true)
+    setError('')
+
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${formData.cedula}_documentos.${fileExt}`
+      const { error: uploadError } = await supabase.storage.from('candidate-documents').upload(fileName, file, { upsert: true })
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage.from('candidate-documents').getPublicUrl(fileName)
+
+      const payload = {
+        cedula: formData.cedula, nombres: formData.nombres, apellidos: `${formData.apellido1} ${formData.apellido2}`.trim(),
+        email: formData.email.toLowerCase(), telefono: formData.celular || formData.telefono,
+        datos_personales: { tratamiento: formData.tratamiento, ciudad_nacimiento: formData.ciudad_nacimiento, fecha_nacimiento: formData.fecha_nacimiento, estado_civil: formData.estado_civil, nacionalidad: formData.nacionalidad, ciudad_residencia: formData.ciudad_residencia, direccion: formData.direccion, telefono_fijo: formData.telefono },
+        datos_bancarios: { banco: 'PRODUBANCO', tipo_cuenta: formData.tipo_cuenta, numero_cuenta: formData.banco_produbanco },
+        cargas_familiares: { conyuge: conyuge.tiene ? conyuge : null, hijos },
+        estudios: [estudio], documento_pdf_url: publicUrl, status: 'PENDING'
+      }
+
+      const { error: dbError } = await supabase.from('onboarding_candidates').insert([payload])
+      if (dbError) throw dbError
+      setIsSuccess(true)
+    } catch (err: any) {
+      setError(err.message || 'Error al guardar la información')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (isSuccess) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textAlign: 'center', maxWidth: '400px' }}>
+          <Check style={{ color: '#10b981', width: '64px', height: '64px', margin: '0 auto 20px' }} />
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 10px', color: '#111827' }}>Expediente Recibido</h2>
+          <p style={{ color: '#6b7280', margin: 0, lineHeight: '1.5' }}>Tu información ha sido registrada exitosamente. Recursos Humanos se pondrá en contacto contigo muy pronto.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <style>{`
+        .onboarding-container { font-family: system-ui, -apple-system, sans-serif; background-color: #f3f4f6; min-height: 100vh; color: #1f2937; }
+        .onboarding-header { background-color: #002f6c; color: white; padding: 16px 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .onboarding-title { margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+        .onboarding-subtitle { margin: 4px 0 0; font-size: 13px; color: #93c5fd; }
+        .onboarding-main { max-width: 1000px; margin: 32px auto; padding: 0 16px; }
+        .onboarding-card { background-color: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #e5e7eb; }
+        
+        .tabs-container { display: flex; overflow-x: auto; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb; }
+        .tab-btn { flex: 1; min-width: 120px; padding: 16px; border: none; background: transparent; font-size: 14px; font-weight: 600; cursor: pointer; color: #6b7280; position: relative; transition: color 0.2s; }
+        .tab-btn:hover { color: #111827; background-color: #f3f4f6; }
+        .tab-btn.active { color: #002f6c; background-color: white; }
+        .tab-indicator { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background-color: #002f6c; }
+        
+        .content-area { padding: 40px; }
+        .error-box { background-color: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 16px; border-radius: 6px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px; font-size: 14px; }
+        
+        .section-title { font-size: 20px; font-weight: bold; margin: 0 0 24px; color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+        
+        .grid-1 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+        
+        .form-group { display: flex; flex-direction: column; }
+        .form-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 6px; }
+        .form-input { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #1f2937; transition: border-color 0.2s; }
+        .form-input:focus { outline: none; border-color: #002f6c; box-shadow: 0 0 0 3px rgba(0, 47, 108, 0.1); }
+        
+        .btn-primary { background-color: #002f6c; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background-color 0.2s; }
+        .btn-primary:hover { background-color: #001f4a; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .btn-secondary { background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 10px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
+        .btn-secondary:hover { background-color: #e5e7eb; }
+        
+        .actions-bar { margin-top: 40px; display: flex; justify-content: flex-end; }
+        
+        .req-box { background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 24px; border-radius: 8px; margin-bottom: 32px; }
+        .req-title { color: #1e3a8a; font-weight: bold; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
+        
+        .upload-area { border: 2px dashed #d1d5db; border-radius: 8px; padding: 48px; text-align: center; cursor: pointer; background-color: #f9fafb; transition: all 0.2s; }
+        .upload-area:hover { background-color: #f3f4f6; border-color: #9ca3af; }
+        .upload-area.has-file { border-color: #10b981; background-color: #ecfdf5; }
+      `}</style>
+
+      <div className="onboarding-container">
+        <header className="onboarding-header">
+          <h1 className="onboarding-title">SUPERDEPORTE S.A.</h1>
+          <p className="onboarding-subtitle">Ficha de Ingreso de Personal</p>
+        </header>
+
+        <main className="onboarding-main">
+          <div className="onboarding-card">
+            
+            {/* TABS */}
+            <div className="tabs-container">
+              {TABS.map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}>
+                  {tab.label}
+                  {activeTab === tab.id && <div className="tab-indicator" />}
+                </button>
+              ))}
+            </div>
+
+            <div className="content-area">
+              {error && (
+                <div className="error-box">
+                  <AlertCircle size={20} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* TAB 1 */}
+              {activeTab === 1 && (
+                <div>
+                  <h2 className="section-title">Bienvenido/a al equipo</h2>
+                  <p style={{ color: '#4b5563', lineHeight: 1.6, marginBottom: '32px' }}>{WELCOME_TEXT}</p>
+
+                  <div className="req-box">
+                    <div className="req-title"><FileCheck size={20} /> Requisitos Obligatorios</div>
+                    <p style={{ color: '#1e40af', fontSize: '14px', marginBottom: '16px' }}>Deberás escanear todos estos documentos y unirlos en <strong>un único archivo PDF</strong>.</p>
+                    <div className="grid-2" style={{ color: '#1e3a8a', fontSize: '13px' }}>
+                      {REQUIRED_DOCS.map((doc, i) => <div key={i}>• {doc}</div>)}
+                    </div>
+                  </div>
+
+                  <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '16px', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer' }}>
+                    <input type="checkbox" name="consentimiento" checked={formData.consentimiento} onChange={handleChange} style={{ marginTop: '4px', width: '18px', height: '18px' }} />
+                    <span style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}>Autorizo el tratamiento de mis datos personales para el proceso de selección y futuras oportunidades laborales en Superdeporte S.A. *</span>
+                  </label>
+
+                  <div className="actions-bar"><button onClick={() => setActiveTab(2)} className="btn-primary">Siguiente</button></div>
+                </div>
+              )}
+
+              {/* TAB 2 */}
+              {activeTab === 2 && (
+                <div>
+                  <h2 className="section-title">Información Personal</h2>
+                  <div className="grid-3">
+                    <div className="form-group"><label className="form-label">Tratamiento *</label><select name="tratamiento" value={formData.tratamiento} onChange={handleChange} className="form-input"><option>Sr.</option><option>Sra.</option><option>Srta.</option></select></div>
+                    <div className="form-group"><label className="form-label">Cédula *</label><input type="text" name="cedula" value={formData.cedula} onChange={handleChange} className="form-input" required maxLength={10} /></div>
+                    <div className="form-group"><label className="form-label">Nacionalidad *</label><select name="nacionalidad" value={formData.nacionalidad} onChange={handleChange} className="form-input"><option>ECUADOR</option><option>COLOMBIA</option><option>VENEZUELA</option><option>OTRA</option></select></div>
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Dos Nombres *</label><input type="text" name="nombres" value={formData.nombres} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Primer Apellido *</label><input type="text" name="apellido1" value={formData.apellido1} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Segundo Apellido *</label><input type="text" name="apellido2" value={formData.apellido2} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Estado Civil *</label><select name="estado_civil" value={formData.estado_civil} onChange={handleChange} className="form-input"><option>Soltera/o</option><option>Casada/o</option><option>Unión Libre</option><option>Divorciada/o</option></select></div>
+                    <div className="form-group"><label className="form-label">Fecha Nacimiento *</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group" style={{ gridColumn: 'span 2' }}><label className="form-label">Ciudad Nacimiento *</label><input type="text" name="ciudad_nacimiento" value={formData.ciudad_nacimiento} onChange={handleChange} className="form-input" /></div>
+                  </div>
+
+                  <h2 className="section-title" style={{ marginTop: '40px' }}>Contacto y Bancarios</h2>
+                  <div className="grid-3">
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Dirección Domiciliaria Exacta *</label><input type="text" name="direccion" value={formData.direccion} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Ciudad Residencia *</label><input type="text" name="ciudad_residencia" value={formData.ciudad_residencia} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Teléfono Fijo *</label><input type="text" name="telefono" value={formData.telefono} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Celular *</label><input type="text" name="celular" value={formData.celular} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Correo Electrónico *</label><input type="email" name="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="form-input" style={{ textTransform: 'lowercase' }} /></div>
+                    <div className="form-group"><label className="form-label">Cuenta Produbanco *</label><input type="text" name="banco_produbanco" value={formData.banco_produbanco} onChange={handleChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Tipo de Cuenta *</label><select name="tipo_cuenta" value={formData.tipo_cuenta} onChange={handleChange} className="form-input"><option>Cuenta de Ahorros</option><option>Cuenta Corriente</option></select></div>
+                  </div>
+                  <div className="actions-bar"><button onClick={() => setActiveTab(3)} className="btn-primary">Siguiente</button></div>
+                </div>
+              )}
+
+              {/* TAB 3 */}
+              {activeTab === 3 && (
+                <div>
+                  <h2 className="section-title">Cónyuge o Pareja</h2>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', marginBottom: '24px' }}>
+                    <input type="checkbox" checked={conyuge.tiene} onChange={e => setConyuge({...conyuge, tiene: e.target.checked})} style={{ width: '18px', height: '18px' }} />
+                    <span style={{ fontWeight: 600, color: '#374151' }}>Declarar Cónyuge o Pareja en Unión Libre</span>
+                  </label>
+
+                  {conyuge.tiene && (
+                    <div className="grid-2" style={{ marginBottom: '40px' }}>
+                      <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Nombres Completos</label><input type="text" name="nombres" value={conyuge.nombres} onChange={handleConyugeChange} className="form-input" /></div>
+                      <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Apellidos Completos</label><input type="text" name="apellidos" value={conyuge.apellidos} onChange={handleConyugeChange} className="form-input" /></div>
+                      <div className="form-group"><label className="form-label">Cédula</label><input type="text" name="cedula" value={conyuge.cedula} onChange={handleConyugeChange} className="form-input" /></div>
+                      <div className="form-group"><label className="form-label">Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" value={conyuge.fecha_nacimiento} onChange={handleConyugeChange} className="form-input" /></div>
+                      <div className="form-group"><label className="form-label">Nacionalidad</label><select name="nacionalidad" value={conyuge.nacionalidad} onChange={handleConyugeChange} className="form-input"><option>ECUADOR</option><option>COLOMBIA</option><option>OTRA</option></select></div>
+                      <div className="form-group"><label className="form-label">Ciudad Nacimiento</label><input type="text" name="ciudad_nacimiento" value={conyuge.ciudad_nacimiento} onChange={handleConyugeChange} className="form-input" /></div>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', marginBottom: '24px' }}>
+                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: '#111827' }}>Hijos Registrados ({hijos.length})</h2>
+                    <button onClick={() => setHijos([...hijos, { nombres: '', apellidos: '', fecha_nacimiento: '', nacionalidad: 'Ecuador', ciudad_nacimiento: '', cedula: '' }])} style={{ background: '#eff6ff', color: '#1d4ed8', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Agregar</button>
+                  </div>
+
+                  {hijos.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '32px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px', color: '#6b7280', fontSize: '14px' }}>No hay hijos registrados.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      {hijos.map((hijo, idx) => (
+                        <div key={idx} style={{ padding: '24px', border: '1px solid #e5e7eb', borderRadius: '6px', backgroundColor: '#f9fafb', position: 'relative' }}>
+                          <button onClick={() => setHijos(hijos.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={20} /></button>
+                          <h4 style={{ margin: '0 0 16px', color: '#374151' }}>Hijo #{idx + 1}</h4>
+                          <div className="grid-2">
+                            <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Nombres Completos</label><input type="text" value={hijo.nombres} onChange={e => { const n = [...hijos]; n[idx].nombres = e.target.value.toUpperCase(); setHijos(n); }} className="form-input" /></div>
+                            <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Apellidos Completos</label><input type="text" value={hijo.apellidos} onChange={e => { const n = [...hijos]; n[idx].apellidos = e.target.value.toUpperCase(); setHijos(n); }} className="form-input" /></div>
+                            <div className="form-group"><label className="form-label">Cédula</label><input type="text" value={hijo.cedula} onChange={e => { const n = [...hijos]; n[idx].cedula = e.target.value.toUpperCase(); setHijos(n); }} className="form-input" /></div>
+                            <div className="form-group"><label className="form-label">Fecha Nacimiento</label><input type="date" value={hijo.fecha_nacimiento} onChange={e => { const n = [...hijos]; n[idx].fecha_nacimiento = e.target.value; setHijos(n); }} className="form-input" /></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="actions-bar"><button onClick={() => setActiveTab(4)} className="btn-primary">Siguiente</button></div>
+                </div>
+              )}
+
+              {/* TAB 4 */}
+              {activeTab === 4 && (
+                <div>
+                  <h2 className="section-title">Nivel Académico</h2>
+                  <div className="grid-2">
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Nivel de Instrucción *</label><select name="nivel" value={estudio.nivel} onChange={handleEstudioChange} className="form-input"><option>SECUNDARIA</option><option>TÉCNICA Y SUPERIOR</option><option>UNIVERSITARIA</option><option>POST GRADO</option></select></div>
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Título Obtenido *</label><input type="text" name="titulo" value={estudio.titulo} onChange={handleEstudioChange} className="form-input" required /></div>
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Institución / Universidad *</label><input type="text" name="institucion" value={estudio.institucion} onChange={handleEstudioChange} className="form-input" required /></div>
+                    <div className="form-group"><label className="form-label">Fecha Inicio</label><input type="date" name="fecha_inicio" value={estudio.fecha_inicio} onChange={handleEstudioChange} className="form-input" /></div>
+                    <div className="form-group"><label className="form-label">Fecha Fin</label><input type="date" name="fecha_fin" value={estudio.fecha_fin} onChange={handleEstudioChange} className="form-input" /></div>
+                  </div>
+                  <div className="actions-bar"><button onClick={() => setActiveTab(5)} className="btn-primary">Siguiente</button></div>
+                </div>
+              )}
+
+              {/* TAB 5 */}
+              {activeTab === 5 && (
+                <div>
+                  <h2 className="section-title">Carga de Documentos</h2>
+                  <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '24px' }}>Sube el PDF consolidado con todos los requisitos solicitados en la pestaña de Bienvenida.</p>
+                  
+                  <div className={`upload-area ${file ? 'has-file' : ''}`} onClick={() => document.getElementById('file-upload')?.click()}>
+                    <input type="file" id="file-upload" style={{ display: 'none' }} accept=".pdf" onChange={(e) => { const f = e.target.files?.[0]; if (f && f.type === 'application/pdf') { setFile(f); setError(''); } else { setError('Por favor sube un archivo PDF válido.'); setFile(null); } }} />
+                    {file ? (
+                      <div>
+                        <CheckCircle2 style={{ color: '#10b981', width: '48px', height: '48px', margin: '0 auto 12px' }} />
+                        <p style={{ fontWeight: 600, color: '#111827', margin: '0 0 4px' }}>{file.name}</p>
+                        <p style={{ fontSize: '12px', color: '#059669', margin: 0 }}>{(file.size / 1024 / 1024).toFixed(2)} MB - Archivo listo</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <UploadCloud style={{ color: '#9ca3af', width: '48px', height: '48px', margin: '0 auto 12px' }} />
+                        <p style={{ fontWeight: 600, color: '#374151', margin: '0 0 4px' }}>Haz clic para buscar tu archivo PDF</p>
+                        <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Peso máximo sugerido: 10MB</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <button onClick={() => setActiveTab(4)} className="btn-secondary">Regresar</button>
+                    <button onClick={handleSubmit} disabled={loading || !file} style={{ backgroundColor: '#10b981', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '6px', fontWeight: 'bold', cursor: (loading || !file) ? 'not-allowed' : 'pointer', opacity: (loading || !file) ? 0.5 : 1 }}>
+                      {loading ? 'Procesando...' : 'FINALIZAR Y ENVIAR FICHA'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </main>
+      </div>
+    </>
+  )
+}

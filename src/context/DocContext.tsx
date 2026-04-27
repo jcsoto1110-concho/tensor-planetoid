@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { encryptFile } from '@/lib/encryption';
-import { supabase } from '@/lib/supabase';
 
 export interface DocEmployee {
     id: string; // Cédula
@@ -16,6 +15,7 @@ export interface DocEmployee {
     departamento?: string;
     responsable?: string;
     pais?: string;
+    estado?: string;
     documents: DocFile[];
 }
 
@@ -60,6 +60,7 @@ interface DocContextType {
     getPendingDocuments: () => Array<{ employee: DocEmployee; document: DocFile }>;
     approvePendingDocument: (employeeId: string, docId: string, approvedBy: string, comments?: string) => Promise<void>;
     rejectPendingDocument: (employeeId: string, docId: string, rejectedBy: string, comments?: string) => Promise<void>;
+    syncEmployees: () => Promise<{ success: boolean; count?: number; error?: string }>;
 }
 
 const DocContext = createContext<DocContextType>({} as DocContextType);
@@ -69,7 +70,7 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Load data from Supabase
+    // Load data from Oracle
     useEffect(() => {
         loadData();
     }, []);
@@ -79,77 +80,97 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
             setLoading(true);
 
             // Fetch employees
-            const { data: dbEmployees, error: empError } = await supabase
-                .from('employees')
-                .select('*');
-
-            if (empError) throw empError;
+            let dbEmployees = null;
+            try {
+                const empRes = await fetch('/api/employees', { cache: 'no-store' });
+                const empData = await empRes.json();
+                if (empData.success && empData.data) dbEmployees = empData.data;
+                else console.error('Error fetching employees:', empData.error);
+            } catch (e) {
+                console.error('Failed to fetch employees:', e);
+            }
 
             // Fetch documents
-            const { data: dbDocuments, error: docError } = await supabase
-                .from('documents')
-                .select('*');
-
-            if (docError) throw docError;
+            let dbDocuments = null;
+            try {
+                const docRes = await fetch('/api/documents', { cache: 'no-store' });
+                const docData = await docRes.json();
+                if (docData.success && docData.data) dbDocuments = docData.data;
+                else console.error('Error fetching documents:', docData.error);
+            } catch (e) {
+                console.error('Failed to fetch documents:', e);
+            }
 
             // Fetch audit logs
-            const { data: dbLogs, error: logError } = await supabase
-                .from('audit_logs')
-                .select('*')
-                .order('timestamp', { ascending: false });
+            let dbLogs = null;
+            try {
+                const logRes = await fetch('/api/audit', { cache: 'no-store' });
+                const logData = await logRes.json();
+                if (logData.success && logData.data) dbLogs = logData.data;
+                else console.error('Error fetching audit logs:', logData.error);
+            } catch (e) {
+                console.error('Failed to fetch audit logs:', e);
+            }
 
-            if (logError) throw logError;
+            // ONLY update state if we got at least employees
+            if (dbEmployees && dbEmployees.length > 0) {
+                const docs = dbDocuments || [];
+                
+                // Map employees and attach documents
+                const mappedEmployees: DocEmployee[] = dbEmployees.map((emp: any) => {
+                    const empId = String(emp.ID || emp.id || '');
+                    const empDocs = docs
+                        .filter((doc: any) => String(doc.EMPLOYEE_ID || doc.employee_id || '') === empId)
+                        .map((doc: any) => ({
+                            id: String(doc.ID || doc.id || ''),
+                            fileName: doc.FILE_NAME || doc.file_name || 'Archivo',
+                            type: (doc.FILE_TYPE || doc.file_type || 'pdf').toLowerCase() as any,
+                            url: doc.FILE_URL || doc.file_url || '',
+                            uploadDate: doc.UPLOAD_DATE || doc.upload_date || '',
+                            status: (doc.STATUS || doc.status || 'PENDING') as any,
+                            uploadedBy: doc.UPLOADED_BY || doc.uploaded_by || 'Sistema',
+                            approvedBy: doc.APPROVED_BY || doc.approved_by,
+                            approvedAt: doc.APPROVED_DATE || doc.approved_date,
+                            rejectedBy: doc.REJECTED_BY || doc.rejected_by,
+                            rejectedAt: doc.APPROVED_DATE || doc.approved_date,
+                            comments: doc.COMMENTS || doc.comments || doc.REJECTION_REASON || doc.rejection_reason
+                        }));
 
-            // Map employees and attach documents
-            const mappedEmployees: DocEmployee[] = (dbEmployees || []).map(emp => {
-                const empDocs = (dbDocuments || [])
-                    .filter(doc => doc.employee_id === emp.id)
-                    .map(doc => ({
-                        id: doc.id,
-                        fileName: doc.file_name,
-                        type: doc.file_type,
-                        url: doc.file_url,
-                        uploadDate: doc.upload_date,
-                        status: doc.status,
-                        uploadedBy: doc.uploaded_by,
-                        approvedBy: doc.approved_by,
-                        approvedAt: doc.approved_date,
-                        rejectedBy: doc.rejected_by,
-                        rejectedAt: doc.approved_date,
-                        comments: doc.comments || doc.rejection_reason
-                    }));
+                    return {
+                        id: empId,
+                        codigo_sap: emp.CODIGO_SAP || emp.codigo_sap,
+                        name: emp.NAME || emp.name || 'Sin Nombre',
+                        apellido: emp.APELLIDO || emp.apellido || '',
+                        position: emp.POSITION || emp.position || 'Empleado',
+                        entryDate: emp.ENTRY_DATE || emp.entry_date || '',
+                        region: emp.REGION || emp.region,
+                        ciudad: emp.CIUDAD || emp.ciudad,
+                        departamento: emp.DEPARTAMENTO || emp.departamento,
+                        responsable: emp.RESPONSABLE || emp.responsable,
+                        pais: emp.PAIS || emp.pais,
+                        estado: emp.ESTADO || emp.estado,
+                        documents: empDocs
+                    };
+                });
 
-                return {
-                    id: emp.id,
-                    codigo_sap: emp.codigo_sap,
-                    name: emp.name,
-                    apellido: emp.apellido,
-                    position: emp.position,
-                    entryDate: emp.entry_date,
-                    region: emp.region,
-                    ciudad: emp.ciudad,
-                    departamento: emp.departamento,
-                    responsable: emp.responsable,
-                    pais: emp.pais,
-                    documents: empDocs
-                };
-            });
+                setEmployees(mappedEmployees);
+            }
 
-            // Map audit logs
-            const mappedLogs: AuditLog[] = (dbLogs || []).map(log => ({
-                id: log.id,
-                timestamp: log.timestamp,
-                user: log.user_name,
-                action: log.action as any,
-                entity: log.entity_type as any,
-                entityId: log.entity_id,
-                details: log.description
-            }));
-
-            setEmployees(mappedEmployees);
-            setAuditLogs(mappedLogs);
+            // ONLY update logs if we got them
+            if (dbLogs) {
+                const mappedLogs: AuditLog[] = dbLogs.map((log: any) => ({
+                    id: log.ID || log.id,
+                    timestamp: log.TIMESTAMP || log.timestamp,
+                    user: log.USER_NAME || log.user_name || 'Sistema',
+                    action: (log.ACTION || log.action) as any,
+                    entity: (log.ENTITY_TYPE || log.entity_type) as any,
+                    entityId: log.ENTITY_ID || log.entity_id,
+                    details: log.DESCRIPTION || log.description || ''
+                }));
+                setAuditLogs(mappedLogs);
+            }
         } catch (error) {
-            console.error('Error loading data:', error);
+            console.error('Error in loadData main loop:', error);
         } finally {
             setLoading(false);
         }
@@ -157,13 +178,16 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const addAuditLog = async (action: AuditLog['action'], entity: AuditLog['entity'], details: string, entityId?: string) => {
         try {
-            await supabase.from('audit_logs').insert({
-                action,
-                entity_type: entity,
-                description: details,
-                user_name: 'Sistema', // TODO: Replace with actual user
-                entity_id: entityId,
-                timestamp: new Date().toISOString()
+            await fetch('/api/audit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action,
+                    entity_type: entity,
+                    description: details,
+                    user_name: 'Sistema',
+                    entity_id: entityId
+                })
             });
 
             // Refresh logs
@@ -175,21 +199,25 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const addEmployee = async (emp: DocEmployee) => {
         try {
-            const { error } = await supabase.from('employees').insert({
-                id: emp.id,
-                codigo_sap: emp.codigo_sap,
-                name: emp.name,
-                apellido: emp.apellido,
-                position: emp.position,
-                entry_date: emp.entryDate,
-                region: emp.region,
-                ciudad: emp.ciudad,
-                departamento: emp.departamento,
-                responsable: emp.responsable,
-                pais: emp.pais
+            const response = await fetch('/api/employees', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: emp.id,
+                    codigo_sap: emp.codigo_sap,
+                    name: emp.name,
+                    apellido: emp.apellido,
+                    position: emp.position,
+                    entry_date: emp.entryDate,
+                    region: emp.region,
+                    ciudad: emp.ciudad,
+                    departamento: emp.departamento,
+                    responsable: emp.responsable,
+                    pais: emp.pais
+                })
             });
 
-            if (error) throw error;
+            if (!response.ok) throw new Error('Failed to save employee');
 
             setEmployees(prev => [...prev, emp]);
             await addAuditLog('CREATE', 'EMPLOYEE', `Empleado creado: ${emp.name} ${emp.apellido} (${emp.id})`, emp.id);
@@ -201,69 +229,71 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const addDocumentToEmployee = async (employeeId: string, doc: DocFile | { file: File; fileName: string; type: string; id: string; uploadDate: string }) => {
         try {
-            let fileToUpload: File;
             let fileUrl: string = '';
             let filePath: string = '';
 
             if ('file' in doc) {
-                fileToUpload = doc.file;
+                // Upload to local API
+                const formData = new FormData();
+                formData.append('file', doc.file);
+                formData.append('employeeId', employeeId);
 
-                // Upload to Supabase Storage
-                filePath = `${employeeId}/${Date.now()}_${doc.fileName}`;
-                const { data, error: uploadError } = await supabase.storage
-                    .from('employee-documents')
-                    .upload(filePath, fileToUpload);
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
 
-                if (uploadError) throw uploadError;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to upload file');
+                }
 
-                // Get public URL
-                const { data: { publicUrl } } = supabase.storage
-                    .from('employee-documents')
-                    .getPublicUrl(filePath);
+                const data = await response.json();
+                fileUrl = data.url;
+                filePath = data.path;
 
-                fileUrl = publicUrl;
             } else {
                 console.error('File object missing for upload');
                 return;
             }
 
-            // Save metadata to database
-            const { data: newDoc, error: dbError } = await supabase
-                .from('documents')
-                .insert({
+            // Save metadata to Oracle via API
+            const docId = crypto.randomUUID();
+            const response = await fetch('/api/documents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: docId,
                     file_name: doc.fileName,
                     file_type: doc.type,
                     file_url: fileUrl,
-                    file_path: filePath, // Added missing field
-                    is_encrypted: false, // Default value
+                    file_path: filePath,
                     employee_id: employeeId,
                     uploaded_by: 'Sistema',
-                    status: 'PENDING',
-                    upload_date: new Date().toISOString()
+                    status: 'PENDING'
                 })
-                .select()
-                .single();
+            });
 
-            if (dbError) throw dbError;
+            if (!response.ok) throw new Error('Failed to save document metadata');
 
             // Update local state
             setEmployees(prev => prev.map(emp => {
                 if (emp.id === employeeId) {
                     const docFile: DocFile = {
-                        id: newDoc.id,
-                        fileName: newDoc.file_name,
-                        type: newDoc.file_type,
-                        url: newDoc.file_url,
-                        uploadDate: newDoc.upload_date,
-                        status: newDoc.status,
-                        uploadedBy: newDoc.uploaded_by
+                        id: docId,
+                        fileName: doc.fileName,
+                        type: doc.type as any,
+                        url: fileUrl,
+                        uploadDate: new Date().toISOString(),
+                        status: 'PENDING',
+                        uploadedBy: 'Sistema'
                     };
                     return { ...emp, documents: [...emp.documents, docFile] };
                 }
                 return emp;
             }));
 
-            await addAuditLog('ADD_DOCUMENT', 'DOCUMENT', `Documento cargado: ${doc.fileName}`, newDoc.id);
+            await addAuditLog('ADD_DOCUMENT', 'DOCUMENT', `Documento cargado localmente: ${doc.fileName}`, docId);
 
         } catch (error: any) {
             console.error('Error uploading document:', error);
@@ -315,21 +345,25 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
             if (id && name && apellido) {
                 try {
-                    const { error } = await supabase.from('employees').insert({
-                        id: String(id),
-                        codigo_sap: codigo_sap ? String(codigo_sap) : undefined,
-                        name: name,
-                        apellido: apellido,
-                        position: position,
-                        entry_date: convertExcelDate(entryDateRaw),
-                        region: region,
-                        ciudad: ciudad,
-                        departamento: departamento,
-                        responsable: responsable,
-                        pais: pais
+                    const response = await fetch('/api/employees', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: String(id),
+                            codigo_sap: codigo_sap ? String(codigo_sap) : undefined,
+                            name: name,
+                            apellido: apellido,
+                            position: position,
+                            entry_date: convertExcelDate(entryDateRaw),
+                            region: region,
+                            ciudad: ciudad,
+                            departamento: departamento,
+                            responsable: responsable,
+                            pais: pais
+                        })
                     });
 
-                    if (!error) count++;
+                    if (response.ok) count++;
                 } catch (e) {
                     console.warn(`Skipping duplicate or invalid employee: ${id}`);
                 }
@@ -368,16 +402,18 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const approvePendingDocument = async (employeeId: string, docId: string, approvedBy: string, comments?: string) => {
         try {
-            const { error } = await supabase.from('documents')
-                .update({
+            const response = await fetch('/api/documents', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: docId,
                     status: 'APPROVED',
                     approved_by: approvedBy,
-                    approved_date: new Date().toISOString(),
                     comments: comments
                 })
-                .eq('id', docId);
+            });
 
-            if (error) throw error;
+            if (!response.ok) throw new Error('Failed to approve document');
 
             setEmployees(prev => prev.map(emp => {
                 if (emp.id === employeeId) {
@@ -408,16 +444,18 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
 
     const rejectPendingDocument = async (employeeId: string, docId: string, rejectedBy: string, comments?: string) => {
         try {
-            const { error } = await supabase.from('documents')
-                .update({
+            const response = await fetch('/api/documents', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: docId,
                     status: 'REJECTED',
-                    rejected_by: rejectedBy,
-                    approved_date: new Date().toISOString(), // Using same field for rejection date
+                    approved_by: rejectedBy,
                     rejection_reason: comments
                 })
-                .eq('id', docId);
+            });
 
-            if (error) throw error;
+            if (!response.ok) throw new Error('Failed to reject document');
 
             setEmployees(prev => prev.map(emp => {
                 if (emp.id === employeeId) {
@@ -446,6 +484,20 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const syncEmployees = async () => {
+        try {
+            const response = await fetch('/api/employees/sync', { method: 'POST' });
+            const data = await response.json();
+            if (data.success) {
+                await loadData(); // Refresh list
+            }
+            return data;
+        } catch (error: any) {
+            console.error('Error syncing employees:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
     return (
         <DocContext.Provider value={{
             employees,
@@ -460,7 +512,8 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
             clearAllData,
             getPendingDocuments,
             approvePendingDocument,
-            rejectPendingDocument
+            rejectPendingDocument,
+            syncEmployees
         }}>
             {children}
         </DocContext.Provider>

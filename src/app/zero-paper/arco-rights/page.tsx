@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Country } from '@/types/dataProtection';
 import { FileSearch, Edit, Trash2, Ban, Download, Send, CheckCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 const requestTypes = {
     access: {
@@ -71,13 +70,23 @@ export default function ARCOPortalPage() {
             status: 'pending'
         };
 
-        // Guardar en Supabase
-        const { data, error } = await supabase
-            .from('arco_requests')
-            .insert(requestData)
-            .select();
+        // Guardar en Oracle via API (usando ruta genérica o específica)
+        try {
+            const response = await fetch('/api/audit', { // Usando audit log para registrar la solicitud ARCO
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: cedula,
+                    action: `ARCO_REQUEST_${selectedType.toUpperCase()}`,
+                    entity_type: 'ARCO',
+                    entity_id: cedula,
+                    description: `Solicitud ARCO (${selectedCountry}): ${details}`
+                })
+            });
 
-        if (error) {
+            if (!response.ok) throw new Error('Failed to save ARCO request');
+
+        } catch (error: any) {
             console.error('Error saving ARCO request:', error);
             alert('❌ Error al enviar solicitud: ' + error.message);
             setIsSubmitting(false);

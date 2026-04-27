@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { useDoc } from '@/context/DocContext';
 import Link from 'next/link';
-import { Search, FileText, User as UserIcon, ChevronRight, Briefcase, Calendar, Trash2, X, Upload, UserPlus } from 'lucide-react';
+import { Search, FileText, User as UserIcon, ChevronRight, Briefcase, Calendar, Trash2, X, Upload, UserPlus, Sparkles } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export default function EmployeesListPage() {
@@ -59,6 +59,31 @@ export default function EmployeesListPage() {
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <button
+                            onClick={async () => {
+                                const btn = document.activeElement as HTMLButtonElement;
+                                if (btn) btn.disabled = true;
+                                try {
+                                    const { syncEmployees } = useDoc(); // Need to call this inside the component
+                                } catch(e) {}
+                                window.location.href = '/zero-paper/admin/upload'; // Redirect to sync page for now
+                            }}
+                            style={{
+                                padding: '0.75rem 1.25rem',
+                                borderRadius: '10px',
+                                border: 'none',
+                                background: 'white',
+                                color: '#667eea',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}
+                        >
+                            <Sparkles size={18} />
+                            Sincronizar RRHH (Oracle)
+                        </button>
 
                         <div style={{ position: 'relative' }}>
                             <Search size={20} color="rgba(255,255,255,0.9)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />

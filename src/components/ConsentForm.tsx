@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Country } from '@/types/dataProtection';
 import { CheckSquare, FileSignature, Calendar, Shield } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 interface ConsentFormProps {
     employeeId?: string;
@@ -118,29 +117,40 @@ export default function ConsentForm({
             accepted: true
         };
 
-        // Guardar en Supabase
-        const { data, error } = await supabase
-            .from('consents')
-            .insert(consentData)
-            .select();
+        // Guardar en Oracle via API
+        try {
+            const response = await fetch('/api/consents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    employee_cedula: cedula || employeeCedula,
+                    country: selectedCountry,
+                    consent_text: processedText,
+                    ip_address: 'N/A',
+                    user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A',
+                    accepted: true
+                })
+            });
 
-        if (error) {
+            if (!response.ok) throw new Error('Failed to save consent');
+
+            const data = await response.json();
+
+            if (onConsentGiven && data.success && data.data) {
+                onConsentGiven(data.data[0]);
+            }
+
+            if (onSubmitted) {
+                onSubmitted();
+            }
+
+            alert('✅ Consentimiento registrado exitosamente');
+        } catch (error: any) {
             console.error('Error saving consent:', error);
             alert('❌ Error al guardar consentimiento: ' + error.message);
+        } finally {
             setIsSubmitting(false);
-            return;
         }
-
-        if (onConsentGiven) {
-            onConsentGiven(data[0]);
-        }
-
-        if (onSubmitted) {
-            onSubmitted();
-        }
-
-        alert('✅ Consentimiento registrado exitosamente');
-        setIsSubmitting(false);
     };
 
     return (

@@ -146,27 +146,28 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                 </div>
 
                 <nav style={{ flex: 1, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {/* Show all links for ADMIN and UPLOADER */}
-                    {!isApprover && (
+                    {/* Show only relevant links based on role and requested order */}
+                    {!isApprover ? (
                         <>
-                            <NavLink href="/zero-paper/admin" icon={<LayoutGrid size={20} />} label="Dashboard" active={pathname === '/zero-paper/admin'} />
-                            <NavLink href="/zero-paper/admin/upload" icon={<Upload size={20} />} label="Carga Masiva" active={pathname === '/zero-paper/admin/upload'} />
                             <NavLink href="/zero-paper/admin/employees" icon={<Users size={20} />} label="Empleados" active={pathname === '/zero-paper/admin/employees'} />
+                            <NavLink href="/zero-paper/admin/upload" icon={<Upload size={20} />} label="Carga Masiva" active={pathname === '/zero-paper/admin/upload'} />
+                            <NavLink
+                                href="/zero-paper/admin/approvals"
+                                icon={<CheckSquare size={20} />}
+                                label="Aprobaciones"
+                                active={pathname === '/zero-paper/admin/approvals'}
+                                badge={pendingCount}
+                            />
                         </>
-                    )}
-
-                    {/* Approvals link - always visible */}
-                    <NavLink
-                        href="/zero-paper/admin/approvals"
-                        icon={<CheckSquare size={20} />}
-                        label="Aprobaciones"
-                        active={pathname === '/zero-paper/admin/approvals'}
-                        badge={pendingCount}
-                    />
-
-                    {/* Audit log - only for ADMIN */}
-                    {currentUser?.role === 'ADMIN' && (
-                        <NavLink href="/zero-paper/admin/audit" icon={<ClipboardList size={20} />} label="Bitácora" active={pathname === '/zero-paper/admin/audit'} />
+                    ) : (
+                        /* For APPROVER only show Approvals */
+                        <NavLink
+                            href="/zero-paper/admin/approvals"
+                            icon={<CheckSquare size={20} />}
+                            label="Aprobaciones"
+                            active={pathname === '/zero-paper/admin/approvals'}
+                            badge={pendingCount}
+                        />
                     )}
                 </nav>
 

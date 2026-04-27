@@ -15,10 +15,11 @@ export async function authenticateWithExternalService(
     password: string
 ): Promise<AuthResponse> {
     try {
-        const response = await fetch('https://ns.aseyco.com:444/MSWebServiceNomina/rest/service/wsNominaEmp', {
+        // Use the internal API route to avoid CORS issues
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'text/plain',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 cedula: cedula,
@@ -27,26 +28,17 @@ export async function authenticateWithExternalService(
         });
 
         if (!response.ok) {
+            const errorData = await response.json();
             return {
                 success: false,
-                error: 'Credenciales inválidas'
+                error: errorData.error || 'Credenciales inválidas'
             };
         }
 
         const data = await response.json();
 
-        // Verificar si el servicio retorna un indicador de éxito
-        if (data.error || data.success === false) {
-            return {
-                success: false,
-                error: data.message || 'Credenciales inválidas'
-            };
-        }
-
-        return {
-            success: true,
-            data: data
-        };
+        // The API route already validates the response
+        return data;
     } catch (error) {
         console.error('Error authenticating with external service:', error);
         return {

@@ -124,7 +124,7 @@ export default function PrivacyPolicyPage() {
                 </div>
 
                 {/* Policy Sections */}
-                {Object.entries(policy.sections).map(([key, section]) => (
+                {Object.entries(policy.sections).map(([key, section]: [string, any]) => (
                     <div
                         key={key}
                         style={{
