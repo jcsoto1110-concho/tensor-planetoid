@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2 } from 'lucide-react'
+import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2, Mail, RefreshCw } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 export default function CandidatesAdmin() {
@@ -14,9 +14,18 @@ export default function CandidatesAdmin() {
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(portalUrl)}`
   const [errorMsg, setErrorMsg] = useState('')
 
+  // Selección de Pestañas
+  const [activeTab, setActiveTab] = useState<'onboarding' | 'seleccion'>('onboarding')
+  
+  // Datos para Selección
+  const [resumes, setResumes] = useState<any[]>([])
+  const [loadingResumes, setLoadingResumes] = useState(false)
+  const [scanning, setScanning] = useState(false)
+
   useEffect(() => {
     setIsMounted(true)
     fetchCandidates()
+    fetchResumes()
   }, [])
 
   const fetchCandidates = async () => {
@@ -35,6 +44,37 @@ export default function CandidatesAdmin() {
       setCandidates(data)
     }
     setLoading(false)
+  }
+
+  const fetchResumes = async () => {
+    setLoadingResumes(true)
+    const { data, error } = await supabase
+      .from('email_resumes')
+      .select('*')
+      .order('received_date', { ascending: false })
+    
+    if (!error && data) {
+      setResumes(data)
+    }
+    setLoadingResumes(false)
+  }
+
+  const handleScanEmails = async () => {
+    setScanning(true)
+    try {
+      const res = await fetch('/api/scan-emails', { method: 'POST', body: JSON.stringify({}) })
+      const data = await res.json()
+      if (res.ok) {
+        alert(data.message)
+        fetchResumes()
+      } else {
+        alert('Error al escanear: ' + data.details)
+      }
+    } catch (err: any) {
+      alert('Fallo de red al escanear correos.')
+    } finally {
+      setScanning(false)
+    }
   }
 
   const handleSyncToOracle = async (id: string) => {
@@ -184,6 +224,11 @@ export default function CandidatesAdmin() {
         .qr-download { font-size: 11px; color: #2563eb; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 4px; }
         .qr-download:hover { text-decoration: underline; }
 
+        .tabs-nav { display: flex; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .tab-btn { padding: 12px 24px; background: none; border: none; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab-btn:hover { color: #111827; }
+        .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+
         .table-container { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th { background-color: #f3f4f6; color: #4b5563; font-size: 12px; font-weight: 600; text-transform: uppercase; padding: 12px 24px; border-bottom: 1px solid #e5e7eb; }
@@ -246,9 +291,26 @@ export default function CandidatesAdmin() {
           </div>
         )}
 
-        {loading ? (
-          <p style={{ color: '#6b7280', textAlign: 'center', padding: '40px' }}>Cargando candidatos...</p>
-        ) : (
+        <div className="tabs-nav">
+          <button 
+            className={`tab-btn ${activeTab === 'onboarding' ? 'active' : ''}`}
+            onClick={() => setActiveTab('onboarding')}
+          >
+            Formularios de Ingreso (Onboarding)
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'seleccion' ? 'active' : ''}`}
+            onClick={() => setActiveTab('seleccion')}
+          >
+            Bandeja de Hojas de Vida (Selección)
+          </button>
+        </div>
+
+        {activeTab === 'onboarding' && (
+          <>
+            {loading ? (
+              <p style={{ color: '#6b7280', textAlign: 'center', padding: '40px' }}>Cargando candidatos...</p>
+            ) : (
           <div className="table-container">
             <table>
               <thead>
@@ -314,6 +376,78 @@ export default function CandidatesAdmin() {
               </tbody>
             </table>
           </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'seleccion' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Hojas de vida extraídas desde el correo de Selección.</p>
+              <button 
+                onClick={handleScanEmails} 
+                disabled={scanning}
+                style={{ backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: scanning ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: scanning ? 0.7 : 1 }}
+              >
+                <RefreshCw size={16} className={scanning ? "animate-spin" : ""} /> 
+                {scanning ? 'Escaneando Correo...' : 'Buscar Nuevos Correos'}
+              </button>
+            </div>
+
+            {loadingResumes ? (
+              <p style={{ color: '#6b7280', textAlign: 'center', padding: '40px' }}>Cargando hojas de vida...</p>
+            ) : (
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Remitente</th>
+                      <th>Asunto</th>
+                      <th>Fecha Recibido</th>
+                      <th>Archivo Adjunto</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {resumes.map((r) => (
+                      <tr key={r.id}>
+                        <td>
+                          <div className="user-cell">
+                            <div className="user-avatar" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}><Mail size={20} /></div>
+                            <div>
+                              <p className="user-name">{r.sender_name || 'Sin Nombre'}</p>
+                              <p className="user-email">{r.sender_email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ fontSize: '14px', color: '#4b5563', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.subject}</td>
+                        <td style={{ fontSize: '14px', color: '#4b5563' }}>{new Date(r.received_date).toLocaleDateString()}</td>
+                        <td>
+                          {r.pdf_url && (
+                            <a href={r.pdf_url} target="_blank" rel="noreferrer" className="pdf-link">
+                              <FileText size={16} /> Ver CV
+                            </a>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`status-badge status-pending`}>
+                            {r.classification_status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {resumes.length === 0 && (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>
+                          Aún no se han escaneado correos. Haz clic en "Buscar Nuevos Correos".
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>
