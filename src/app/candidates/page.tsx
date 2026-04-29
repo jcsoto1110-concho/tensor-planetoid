@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2, Mail, RefreshCw, Brain, Settings, Search, MapPin, Briefcase } from 'lucide-react'
+import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2, Mail, RefreshCw, Brain, Settings, Search, MapPin, Briefcase, Trophy, Star, Save, ChevronDown } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 export default function CandidatesAdmin() {
@@ -15,7 +15,7 @@ export default function CandidatesAdmin() {
   const [errorMsg, setErrorMsg] = useState('')
 
   // Selección de Pestañas
-  const [activeTab, setActiveTab] = useState<'onboarding' | 'seleccion'>('onboarding')
+  const [activeTab, setActiveTab] = useState<'onboarding' | 'seleccion' | 'ranking'>('onboarding')
   
   // Datos para Selección
   const [resumes, setResumes] = useState<any[]>([])
@@ -29,11 +29,72 @@ export default function CandidatesAdmin() {
   const [filterCity, setFilterCity] = useState('')
   const [filterPosition, setFilterPosition] = useState('')
 
+  // === RANKING POR CARGO ===
+  const [jobPositions, setJobPositions] = useState<any[]>([])
+  const [rankingCargo, setRankingCargo] = useState('')
+  const [rankingCiudad, setRankingCiudad] = useState('')
+  const [rankingFunciones, setRankingFunciones] = useState('')
+  const [rankingResults, setRankingResults] = useState<any[]>([])
+  const [rankingLoading, setRankingLoading] = useState(false)
+  const [rankingError, setRankingError] = useState('')
+  const [savingPosition, setSavingPosition] = useState(false)
+
   useEffect(() => {
     setIsMounted(true)
     fetchCandidates()
     fetchResumes()
+    fetchJobPositions()
   }, [])
+
+  const fetchJobPositions = async () => {
+    const { data } = await supabase.from('job_positions').select('*').order('created_at', { ascending: false })
+    if (data) setJobPositions(data)
+  }
+
+  const handleSavePosition = async () => {
+    if (!rankingCargo || !rankingFunciones) return
+    setSavingPosition(true)
+    await supabase.from('job_positions').insert({ cargo: rankingCargo, ciudad: rankingCiudad, funciones: rankingFunciones })
+    await fetchJobPositions()
+    setSavingPosition(false)
+  }
+
+  const handleLoadPosition = (pos: any) => {
+    setRankingCargo(pos.cargo)
+    setRankingCiudad(pos.ciudad || '')
+    setRankingFunciones(pos.funciones)
+  }
+
+  const handleRankCandidates = async () => {
+    if (!rankingCargo || !rankingFunciones) {
+      setRankingError('Debes ingresar el cargo y sus funciones.')
+      return
+    }
+    if (!openAiKey) {
+      setShowSettings(true)
+      return
+    }
+    setRankingLoading(true)
+    setRankingError('')
+    setRankingResults([])
+    try {
+      const res = await fetch('/api/rank-candidates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cargo: rankingCargo, ciudad: rankingCiudad, funciones: rankingFunciones, apiKey: openAiKey })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setRankingResults(data.rankings)
+      } else {
+        setRankingError(data.error || 'Error al evaluar candidatos.')
+      }
+    } catch (e: any) {
+      setRankingError('Error de red: ' + e.message)
+    } finally {
+      setRankingLoading(false)
+    }
+  }
 
   const fetchCandidates = async () => {
     setLoading(true)
@@ -302,6 +363,30 @@ export default function CandidatesAdmin() {
 
         .pdf-link { color: #2563eb; font-size: 14px; display: flex; align-items: center; gap: 6px; text-decoration: none; }
         .pdf-link:hover { color: #1d4ed8; text-decoration: underline; }
+
+        /* === RANKING STYLES === */
+        .ranking-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: flex-start; }
+        @media (max-width: 900px) { .ranking-layout { grid-template-columns: 1fr; } }
+        .ranking-form-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); position: sticky; top: 24px; }
+        .ranking-form-title { font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 18px; display: flex; align-items: center; gap: 8px; }
+        .ranking-label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .ranking-input { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; }
+        .ranking-input:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+        .ranking-textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; font-size: 13px; resize: vertical; min-height: 140px; box-sizing: border-box; line-height: 1.5; transition: border-color 0.2s; font-family: inherit; }
+        .ranking-textarea:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+        .ranking-btn-primary { width: 100%; background: linear-gradient(135deg,#7c3aed,#4f46e5); color: white; border: none; padding: 11px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+        .ranking-btn-primary:hover { opacity: 0.9; }
+        .ranking-btn-primary:disabled { opacity: 0.55; cursor: wait; }
+        .ranking-btn-secondary { flex: 1; background: white; color: #374151; border: 1px solid #d1d5db; padding: 9px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s; }
+        .ranking-btn-secondary:hover { background: #f9fafb; }
+        .ranking-select { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; font-size: 13px; background: white; cursor: pointer; }
+        .score-bar-wrap { background: #f3f4f6; border-radius: 9999px; height: 8px; width: 120px; overflow: hidden; display: inline-block; vertical-align: middle; }
+        .score-bar-fill { height: 8px; border-radius: 9999px; transition: width 0.6s ease; }
+        .medal-badge { font-size: 22px; line-height: 1; }
+        .rank-row { border-bottom: 1px solid #f3f4f6; }
+        .rank-row:hover { background: #fafafa; }
+        .rank-number { width: 48px; text-align: center; font-size: 13px; font-weight: 700; color: #6b7280; }
+        .justification-text { font-size: 12px; color: #6b7280; font-style: italic; margin-top: 4px; line-height: 1.4; }
       `}</style>
 
       {showSettings && (
@@ -372,6 +457,13 @@ export default function CandidatesAdmin() {
             onClick={() => setActiveTab('seleccion')}
           >
             Bandeja de Hojas de Vida (Selección)
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'ranking' ? 'active' : ''}`}
+            onClick={() => setActiveTab('ranking')}
+            style={{ color: activeTab === 'ranking' ? '#7c3aed' : undefined, borderBottomColor: activeTab === 'ranking' ? '#7c3aed' : undefined }}
+          >
+            🏆 Selección por Cargo (IA)
           </button>
         </div>
 
@@ -576,6 +668,171 @@ export default function CandidatesAdmin() {
               </div>
             )}
           </>
+        )}
+
+        {activeTab === 'ranking' && (
+          <div className="ranking-layout">
+
+            {/* ---- PANEL IZQUIERDO: FORMULARIO ---- */}
+            <div className="ranking-form-card">
+              <p className="ranking-form-title"><Trophy size={18} color="#7c3aed" /> Definir Cargo Vacante</p>
+
+              {jobPositions.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <label className="ranking-label">Cargar cargo guardado</label>
+                  <select
+                    className="ranking-select"
+                    defaultValue=""
+                    onChange={e => {
+                      const pos = jobPositions.find((p: any) => p.id === e.target.value)
+                      if (pos) handleLoadPosition(pos)
+                    }}
+                  >
+                    <option value="">-- Selecciona un cargo --</option>
+                    {jobPositions.map((p: any) => (
+                      <option key={p.id} value={p.id}>{p.cargo} {p.ciudad ? `· ${p.ciudad}` : ''}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div style={{ marginBottom: '14px' }}>
+                <label className="ranking-label">Nombre del cargo *</label>
+                <input id="ranking-cargo" className="ranking-input" type="text" placeholder="Ej: Cajero, Vendedor, Bodeguero..." value={rankingCargo} onChange={e => setRankingCargo(e.target.value)} />
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label className="ranking-label">Ciudad objetivo</label>
+                <input id="ranking-ciudad" className="ranking-input" type="text" placeholder="Ej: Quito, Guayaquil..." value={rankingCiudad} onChange={e => setRankingCiudad(e.target.value)} />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label className="ranking-label">Funciones y requisitos del cargo *</label>
+                <textarea
+                  id="ranking-funciones"
+                  className="ranking-textarea"
+                  placeholder="Describe las funciones principales, requisitos de experiencia, nivel educativo mínimo, habilidades clave..."
+                  value={rankingFunciones}
+                  onChange={e => setRankingFunciones(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                <button
+                  id="btn-save-position"
+                  className="ranking-btn-secondary"
+                  onClick={handleSavePosition}
+                  disabled={savingPosition || !rankingCargo || !rankingFunciones}
+                >
+                  <Save size={14} /> {savingPosition ? 'Guardando...' : 'Guardar'}
+                </button>
+              </div>
+
+              <button
+                id="btn-rank-candidates"
+                className="ranking-btn-primary"
+                onClick={handleRankCandidates}
+                disabled={rankingLoading}
+              >
+                <Brain size={16} />
+                {rankingLoading ? 'Evaluando candidatos...' : 'Evaluar con IA'}
+              </button>
+
+              {rankingError && (
+                <div style={{ marginTop: '14px', background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '12px', borderRadius: '8px', fontSize: '13px' }}>
+                  {rankingError}
+                </div>
+              )}
+
+              {rankingLoading && (
+                <div style={{ marginTop: '16px', textAlign: 'center', color: '#7c3aed', fontSize: '13px' }}>
+                  <RefreshCw size={16} style={{ display: 'inline', animation: 'spin 1s linear infinite', marginRight: '6px' }} />
+                  La IA está analizando todos los perfiles...
+                </div>
+              )}
+            </div>
+
+            {/* ---- PANEL DERECHO: RESULTADOS ---- */}
+            <div>
+              {rankingResults.length > 0 ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: '700' }}>Ranking de Candidatos</h2>
+                      <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>Cargo: <strong>{rankingCargo}</strong>{rankingCiudad ? ` · ${rankingCiudad}` : ''} · {rankingResults.length} candidatos evaluados</p>
+                    </div>
+                  </div>
+
+                  <div className="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '48px', textAlign: 'center' }}>#</th>
+                          <th>Candidato</th>
+                          <th>Ciudad</th>
+                          <th>Perfil detectado</th>
+                          <th>Puntaje IA</th>
+                          <th>CV</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rankingResults.map((r, idx) => {
+                          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`
+                          const scoreColor = r.score >= 75 ? '#16a34a' : r.score >= 50 ? '#d97706' : '#dc2626'
+                          const barColor = r.score >= 75 ? '#22c55e' : r.score >= 50 ? '#f59e0b' : '#ef4444'
+                          return (
+                            <tr key={r.id} className="rank-row">
+                              <td className="rank-number">
+                                {idx < 3 ? <span className="medal-badge">{medal}</span> : <span>{medal}</span>}
+                              </td>
+                              <td>
+                                <div className="user-cell" style={{ alignItems: 'flex-start' }}>
+                                  <div className="user-avatar" style={{ background: '#f3e8ff', color: '#9333ea', flexShrink: 0 }}><User size={18}/></div>
+                                  <div>
+                                    <p className="user-name" style={{ marginBottom: '2px' }}>{r.sender_name || 'Sin nombre'}</p>
+                                    <p className="user-email">{r.sender_email}</p>
+                                    <p className="justification-text">{r.justification}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ fontSize: '13px', color: '#4b5563', whiteSpace: 'nowrap' }}>
+                                <MapPin size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />{r.city || '—'}
+                              </td>
+                              <td>
+                                {r.position && <span className="ai-tag"><Briefcase size={11}/> {r.position}</span>}
+                                {r.experience_years && <span className="ai-tag" style={{ background: '#fef9c3', color: '#854d0e' }}>⏱ {r.experience_years}</span>}
+                              </td>
+                              <td style={{ whiteSpace: 'nowrap' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div className="score-bar-wrap">
+                                    <div className="score-bar-fill" style={{ width: `${r.score}%`, background: barColor }} />
+                                  </div>
+                                  <span style={{ fontWeight: '700', fontSize: '14px', color: scoreColor }}>{r.score}</span>
+                                </div>
+                              </td>
+                              <td>
+                                {r.pdf_url ? (
+                                  <a href={r.pdf_url} target="_blank" rel="noreferrer" className="pdf-link"><FileText size={15}/> Ver CV</a>
+                                ) : <span style={{ color: '#9ca3af', fontSize: '12px' }}>Sin CV</span>}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                !rankingLoading && (
+                  <div style={{ textAlign: 'center', padding: '80px 40px', background: 'white', borderRadius: '12px', border: '1px dashed #d1d5db' }}>
+                    <Trophy size={48} color="#d1d5db" style={{ marginBottom: '16px' }} />
+                    <h3 style={{ color: '#9ca3af', margin: '0 0 8px', fontSize: '16px' }}>Sin resultados aún</h3>
+                    <p style={{ color: '#9ca3af', fontSize: '14px', margin: 0 }}>Completa el formulario y haz clic en <strong>"Evaluar con IA"</strong> para ver el ranking de candidatos.</p>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
         )}
       </div>
     </>
