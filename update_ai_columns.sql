@@ -1,0 +1,10 @@
+-- Agregar columnas de Inteligencia Artificial a la tabla email_resumes
+ALTER TABLE email_resumes 
+ADD COLUMN IF NOT EXISTS city VARCHAR(100),
+ADD COLUMN IF NOT EXISTS position VARCHAR(150),
+ADD COLUMN IF NOT EXISTS experience_years VARCHAR(50),
+ADD COLUMN IF NOT EXISTS education_level VARCHAR(100),
+ADD COLUMN IF NOT EXISTS skills TEXT,
+ADD COLUMN IF NOT EXISTS languages TEXT,
+ADD COLUMN IF NOT EXISTS availability VARCHAR(100),
+ADD COLUMN IF NOT EXISTS age VARCHAR(20);

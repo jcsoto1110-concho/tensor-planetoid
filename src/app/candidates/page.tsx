@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2, Mail, RefreshCw } from 'lucide-react'
+import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2, Mail, RefreshCw, Brain, Settings, Search, MapPin, Briefcase } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 export default function CandidatesAdmin() {
@@ -21,6 +21,13 @@ export default function CandidatesAdmin() {
   const [resumes, setResumes] = useState<any[]>([])
   const [loadingResumes, setLoadingResumes] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null)
+  const [openAiKey, setOpenAiKey] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
+
+  // Filtros de Búsqueda
+  const [filterCity, setFilterCity] = useState('')
+  const [filterPosition, setFilterPosition] = useState('')
 
   useEffect(() => {
     setIsMounted(true)
@@ -74,6 +81,34 @@ export default function CandidatesAdmin() {
       alert('Fallo de red al escanear correos.')
     } finally {
       setScanning(false)
+    }
+  }
+
+  const handleAnalyzeResume = async (id: string) => {
+    if (!openAiKey) {
+      alert('Por favor, ingresa tu API Key de OpenAI haciendo clic en el icono de engranaje (⚙️).')
+      setShowSettings(true)
+      return
+    }
+
+    setAnalyzingId(id)
+    try {
+      const res = await fetch('/api/analyze-resume', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, apiKey: openAiKey }) 
+      })
+      const data = await res.json()
+      
+      if (res.ok) {
+        fetchResumes() // Recargar datos
+      } else {
+        alert('Error de IA: ' + data.error + '\nDetalles: ' + (data.details || ''))
+      }
+    } catch (err) {
+      alert('Error de conexión con la IA.')
+    } finally {
+      setAnalyzingId(null)
     }
   }
 
@@ -250,9 +285,43 @@ export default function CandidatesAdmin() {
         .action-btn-danger { background: none; border: none; color: #ef4444; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: flex-end; gap: 6px; cursor: pointer; width: 100%; text-align: right; }
         .action-btn-danger:hover { color: #b91c1c; }
         
+        .ai-btn { background: #8b5cf6; color: white; border: none; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s; }
+        .ai-btn:hover { background: #7c3aed; }
+        .ai-btn:disabled { background: #c4b5fd; cursor: wait; }
+
+        .ai-summary-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; font-size: 13px; color: #475569; margin-top: 8px; font-style: italic; }
+        .ai-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; margin-right: 8px; margin-bottom: 4px; }
+        .ai-tag.city { background: #fce7f3; color: #be185d; }
+
+        .filter-bar { display: flex; gap: 16px; margin-bottom: 16px; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; align-items: center; }
+        .filter-input { flex: 1; display: flex; align-items: center; gap: 8px; border: 1px solid #d1d5db; padding: 8px 12px; border-radius: 6px; }
+        .filter-input input { border: none; outline: none; width: 100%; font-size: 14px; }
+
+        .settings-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .settings-content { background: white; padding: 24px; border-radius: 8px; width: 400px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+
         .pdf-link { color: #2563eb; font-size: 14px; display: flex; align-items: center; gap: 6px; text-decoration: none; }
         .pdf-link:hover { color: #1d4ed8; text-decoration: underline; }
       `}</style>
+
+      {showSettings && (
+        <div className="settings-modal">
+          <div className="settings-content">
+            <h3 style={{ margin: '0 0 16px', fontSize: '18px' }}>Configuración de IA (Claude)</h3>
+            <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '16px' }}>Ingresa tu API Key de Anthropic Claude para habilitar el motor de lectura inteligente de Hojas de Vida.</p>
+            <input 
+              type="password" 
+              placeholder="sk-ant-..." 
+              value={openAiKey}
+              onChange={e => setOpenAiKey(e.target.value)}
+              style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '16px' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button onClick={() => setShowSettings(false)} style={{ padding: '8px 16px', border: '1px solid #d1d5db', background: 'white', borderRadius: '4px', cursor: 'pointer' }}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="admin-container">
         <div className="admin-header">
@@ -384,14 +453,43 @@ export default function CandidatesAdmin() {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Hojas de vida extraídas desde el correo de Selección.</p>
-              <button 
-                onClick={handleScanEmails} 
-                disabled={scanning}
-                style={{ backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: scanning ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: scanning ? 0.7 : 1 }}
-              >
-                <RefreshCw size={16} className={scanning ? "animate-spin" : ""} /> 
-                {scanning ? 'Escaneando Correo...' : 'Buscar Nuevos Correos'}
-              </button>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  onClick={() => setShowSettings(true)} 
+                  style={{ backgroundColor: 'white', color: '#4b5563', border: '1px solid #d1d5db', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  <Settings size={16} />
+                </button>
+                <button 
+                  onClick={handleScanEmails} 
+                  disabled={scanning}
+                  style={{ backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: scanning ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: scanning ? 0.7 : 1 }}
+                >
+                  <RefreshCw size={16} className={scanning ? "animate-spin" : ""} /> 
+                  {scanning ? 'Escaneando Correo...' : 'Buscar Nuevos Correos'}
+                </button>
+              </div>
+            </div>
+
+            <div className="filter-bar">
+              <div className="filter-input">
+                <Briefcase size={18} color="#6b7280" />
+                <input 
+                  type="text" 
+                  placeholder="Filtrar por cargo (ej. Vendedor, Gerente)..." 
+                  value={filterPosition} 
+                  onChange={e => setFilterPosition(e.target.value)} 
+                />
+              </div>
+              <div className="filter-input">
+                <MapPin size={18} color="#6b7280" />
+                <input 
+                  type="text" 
+                  placeholder="Filtrar por ciudad (ej. Quito)..." 
+                  value={filterCity} 
+                  onChange={e => setFilterCity(e.target.value)} 
+                />
+              </div>
             </div>
 
             {loadingResumes ? (
@@ -401,44 +499,74 @@ export default function CandidatesAdmin() {
                 <table>
                   <thead>
                     <tr>
-                      <th>Remitente</th>
-                      <th>Asunto</th>
-                      <th>Fecha Recibido</th>
-                      <th>Archivo Adjunto</th>
+                      <th>Perfil IA</th>
+                      <th>Archivo CV</th>
+                      <th>Fecha</th>
                       <th>Estado</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {resumes.map((r) => (
+                    {resumes
+                      .filter(r => filterPosition ? (r.position || '').toLowerCase().includes(filterPosition.toLowerCase()) : true)
+                      .filter(r => filterCity ? (r.city || '').toLowerCase().includes(filterCity.toLowerCase()) : true)
+                      .map((r) => (
                       <tr key={r.id}>
-                        <td>
-                          <div className="user-cell">
-                            <div className="user-avatar" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}><Mail size={20} /></div>
-                            <div>
-                              <p className="user-name">{r.sender_name || 'Sin Nombre'}</p>
-                              <p className="user-email">{r.sender_email}</p>
+                        <td style={{ width: '50%' }}>
+                          <div className="user-cell" style={{ alignItems: 'flex-start' }}>
+                            <div className="user-avatar" style={{ backgroundColor: r.classification_status === 'REVIEWED' ? '#f0fdf4' : '#f3e8ff', color: r.classification_status === 'REVIEWED' ? '#16a34a' : '#9333ea' }}>
+                              {r.classification_status === 'REVIEWED' ? <Brain size={20} /> : <Mail size={20} />}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <p className="user-name">{r.sender_name || 'Sin Nombre'} <span style={{ color: '#9ca3af', fontWeight: 'normal', fontSize: '12px' }}>({r.sender_email})</span></p>
+                              <p className="user-email" style={{ marginBottom: '8px' }}>Asunto: {r.subject}</p>
+                              
+                              {r.classification_status === 'REVIEWED' ? (
+                                <div>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                                    <span className="ai-tag city"><MapPin size={12} /> {r.city}</span>
+                                    <span className="ai-tag"><Briefcase size={12} /> {r.position}</span>
+                                    {r.experience_years && <span className="ai-tag" style={{ background: '#fef9c3', color: '#854d0e' }}>⏱ {r.experience_years}</span>}
+                                    {r.education_level && <span className="ai-tag" style={{ background: '#f0fdf4', color: '#166534' }}>🎓 {r.education_level}</span>}
+                                    {r.age && r.age !== 'No especificada' && <span className="ai-tag" style={{ background: '#ede9fe', color: '#6d28d9' }}>👤 {r.age}</span>}
+                                    {r.availability && <span className="ai-tag" style={{ background: '#fff7ed', color: '#c2410c' }}>📅 {r.availability}</span>}
+                                  </div>
+                                  {r.skills && <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0' }}>🛠 <strong>Skills:</strong> {r.skills}</p>}
+                                  {r.languages && <p style={{ fontSize: '12px', color: '#4b5563', margin: '4px 0' }}>🌐 <strong>Idiomas:</strong> {r.languages}</p>}
+                                  <div className="ai-summary-box">"{r.ai_summary}"</div>
+                                </div>
+                              ) : (
+                                <button 
+                                  className="ai-btn" 
+                                  onClick={() => handleAnalyzeResume(r.id)}
+                                  disabled={analyzingId === r.id}
+                                >
+                                  <Brain size={14} /> {analyzingId === r.id ? 'Analizando (IA)...' : 'Analizar con IA'}
+                                </button>
+                              )}
                             </div>
                           </div>
                         </td>
-                        <td style={{ fontSize: '14px', color: '#4b5563', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.subject}</td>
-                        <td style={{ fontSize: '14px', color: '#4b5563' }}>{new Date(r.received_date).toLocaleDateString()}</td>
                         <td>
                           {r.pdf_url && (
-                            <a href={r.pdf_url} target="_blank" rel="noreferrer" className="pdf-link">
-                              <FileText size={16} /> Ver CV
-                            </a>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <a href={r.pdf_url} target="_blank" rel="noreferrer" className="pdf-link">
+                                <FileText size={16} /> Ver CV
+                              </a>
+                              <span style={{ fontSize: '11px', color: '#9ca3af' }}>{r.file_name}</span>
+                            </div>
                           )}
                         </td>
+                        <td style={{ fontSize: '13px', color: '#4b5563' }}>{new Date(r.received_date).toLocaleDateString()}</td>
                         <td>
-                          <span className={`status-badge status-pending`}>
-                            {r.classification_status}
+                          <span className={`status-badge ${r.classification_status === 'REVIEWED' ? 'status-synced' : 'status-pending'}`}>
+                            {r.classification_status === 'REVIEWED' ? 'REVISADO' : 'PENDIENTE'}
                           </span>
                         </td>
                       </tr>
                     ))}
                     {resumes.length === 0 && (
                       <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>
+                        <td colSpan={4} style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>
                           Aún no se han escaneado correos. Haz clic en "Buscar Nuevos Correos".
                         </td>
                       </tr>
