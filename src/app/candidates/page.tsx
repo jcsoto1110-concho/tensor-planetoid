@@ -428,13 +428,19 @@ export default function CandidatesAdmin() {
         .pipeline-pendiente { background: #f3f4f6; color: #6b7280; }
         .pipeline-mensaje { background: #dbeafe; color: #1d4ed8; }
         .pipeline-entrevista { background: #fef3c7; color: #92400e; }
-        .pipeline-onboarding { background: #dcfce7; color: #166534; }
+        .pipeline-confirmada { background: #e0f2fe; color: #0369a1; }
+        .pipeline-aprobada { background: #dcfce7; color: #166534; }
+        .pipeline-rechazada { background: #fee2e2; color: #991b1b; }
+        .pipeline-onboarding { background: #ede9fe; color: #5b21b6; }
         .track-btn { font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; border: 1px solid; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; transition: opacity 0.15s; background: white; }
         .track-btn:hover { opacity: 0.8; }
         .track-btn:disabled { opacity: 0.4; cursor: wait; }
         .track-btn-wa { color: #16a34a; border-color: #86efac; }
         .track-btn-entrevista { color: #d97706; border-color: #fde68a; }
-        .track-btn-onboarding { color: #7c3aed; border-color: #c4b5fd; }
+        .track-btn-confirmar { color: #0369a1; border-color: #bae6fd; }
+        .track-btn-aprobar { color: #166534; border-color: #86efac; }
+        .track-btn-rechazar { color: #991b1b; border-color: #fca5a5; }
+        .track-btn-onboarding { color: #5b21b6; border-color: #c4b5fd; }
         .interview-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 60; }
         .interview-content { background: white; padding: 28px; border-radius: 12px; width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
         .wa-link { color: #16a34a; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
@@ -693,6 +699,11 @@ export default function CandidatesAdmin() {
                     {resumes
                       .filter(r => filterPosition ? (r.position || '').toLowerCase().includes(filterPosition.toLowerCase()) : true)
                       .filter(r => filterCity ? (r.city || '').toLowerCase().includes(filterCity.toLowerCase()) : true)
+                      .sort((a, b) => {
+                        if (a.id === analyzingId) return -1
+                        if (b.id === analyzingId) return 1
+                        return 0
+                      })
                       .map((r) => (
                       <tr key={r.id}>
                         <td style={{ width: '50%' }}>
@@ -743,7 +754,7 @@ export default function CandidatesAdmin() {
                         <td style={{ fontSize: '13px', color: '#374151', whiteSpace: 'nowrap' }}>
                           {r.sender_phone
                             ? <a
-                                href={`https://wa.me/${r.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}`}
+                                href={`https://wa.me/${r.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent('Estimado candidato, hemos recibido su CV, ¿podemos agendar una reunión para la entrevista?')}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 title="Enviar mensaje por WhatsApp"
@@ -893,7 +904,7 @@ export default function CandidatesAdmin() {
                           const tStatus = tracking?.status || 'PENDIENTE'
                           const isUpdating = trackingUpdating === r.id
                           const waHref = r.sender_phone
-                            ? `https://wa.me/${r.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}`
+                            ? `https://wa.me/${r.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent('Estimado candidato, hemos recibido su CV, ¿podemos agendar una reunión para la entrevista?')}`
                             : null
                           return (
                             <tr key={r.id} className="rank-row">
@@ -907,7 +918,7 @@ export default function CandidatesAdmin() {
                                     <p className="user-name" style={{ marginBottom: '2px' }}>{r.sender_name || 'Sin nombre'}</p>
                                     <p className="user-email">{r.sender_email}</p>
                                     <p className="justification-text">{r.justification}</p>
-                                    {tStatus === 'ENTREVISTA_PROGRAMADA' && tracking?.interview_date && (
+                                    {(tStatus === 'ENTREVISTA_PROGRAMADA' || tStatus === 'ENTREVISTA_CONFIRMADA' || tStatus === 'ENTREVISTA_APROBADA') && tracking?.interview_date && (
                                       <p style={{ fontSize: '11px', color: '#d97706', fontWeight: 600, margin: '4px 0 0' }}>
                                         📅 Entrevista: {new Date(tracking.interview_date + 'T12:00:00').toLocaleDateString()}
                                         {tracking.notes && <span style={{ color: '#6b7280', fontWeight: 400 }}> · {tracking.notes}</span>}
@@ -947,7 +958,10 @@ export default function CandidatesAdmin() {
                                     {tStatus === 'PENDIENTE' && '⏳ Pendiente'}
                                     {tStatus === 'MENSAJE_ENVIADO' && '💬 Mensaje enviado'}
                                     {tStatus === 'ENTREVISTA_PROGRAMADA' && '📅 Entrevista programada'}
-                                    {tStatus === 'ONBOARDING' && '✅ Onboarding'}
+                                    {tStatus === 'ENTREVISTA_CONFIRMADA' && '✅ Entrevista confirmada'}
+                                    {tStatus === 'ENTREVISTA_APROBADA' && '🌟 Entrevista aprobada'}
+                                    {tStatus === 'ENTREVISTA_RECHAZADA' && '❌ No aprobado'}
+                                    {tStatus === 'ONBOARDING' && '🚀 Onboarding'}
                                   </span>
                                 </div>
                                 {/* Botones de acción según estado */}
@@ -976,11 +990,38 @@ export default function CandidatesAdmin() {
                                   )}
                                   {tStatus === 'ENTREVISTA_PROGRAMADA' && (
                                     <button
+                                      className="track-btn track-btn-confirmar"
+                                      disabled={isUpdating}
+                                      onClick={() => updateTracking(r.id, 'ENTREVISTA_CONFIRMADA')}
+                                    >
+                                      ✅ Candidato confirmó asistencia
+                                    </button>
+                                  )}
+                                  {tStatus === 'ENTREVISTA_CONFIRMADA' && (
+                                    <>
+                                      <button
+                                        className="track-btn track-btn-aprobar"
+                                        disabled={isUpdating}
+                                        onClick={() => updateTracking(r.id, 'ENTREVISTA_APROBADA')}
+                                      >
+                                        🌟 Aprobó la entrevista
+                                      </button>
+                                      <button
+                                        className="track-btn track-btn-rechazar"
+                                        disabled={isUpdating}
+                                        onClick={() => updateTracking(r.id, 'ENTREVISTA_RECHAZADA')}
+                                      >
+                                        ❌ No aprobó la entrevista
+                                      </button>
+                                    </>
+                                  )}
+                                  {tStatus === 'ENTREVISTA_APROBADA' && (
+                                    <button
                                       className="track-btn track-btn-onboarding"
                                       disabled={isUpdating}
                                       onClick={() => updateTracking(r.id, 'ONBOARDING')}
                                     >
-                                      ✅ Pasar a Onboarding
+                                      🚀 Pasar a Onboarding
                                     </button>
                                   )}
                                   {tStatus !== 'PENDIENTE' && (

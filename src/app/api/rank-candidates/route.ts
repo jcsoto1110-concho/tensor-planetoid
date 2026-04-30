@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     // 1. Cargar todos los CVs ya analizados por IA
     const { data: resumes, error: dbError } = await supabase
       .from('email_resumes')
-      .select('id, sender_name, sender_email, city, position, experience_years, education_level, skills, languages, availability, age, ai_summary, pdf_url, file_name')
+      .select('id, sender_name, sender_email, sender_phone, city, position, experience_years, education_level, skills, languages, availability, age, ai_summary, pdf_url, file_name')
       .eq('classification_status', 'REVIEWED');
 
     if (dbError) {
@@ -110,6 +110,7 @@ Responde ÚNICAMENTE con un array JSON válido, sin etiquetas markdown ni texto 
           ...ranking,
           sender_name: resume?.sender_name || 'Sin nombre',
           sender_email: resume?.sender_email || '',
+          sender_phone: resume?.sender_phone || null,
           city: resume?.city || 'No especificada',
           position: resume?.position || 'No especificado',
           experience_years: resume?.experience_years || '',
