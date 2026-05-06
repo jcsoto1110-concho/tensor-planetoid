@@ -9,9 +9,9 @@ export async function POST(req: NextRequest) {
     // 1. Obtener Access Token mediante MSAL
     const msalConfig = {
       auth: {
-        clientId: '69f4a759-9537-4f11-b398-47a7f6ef8e83',
-        authority: 'https://login.microsoftonline.com/a25466cf-9db0-4555-b90b-3b29d4097ff2',
-        clientSecret: 'vg98Q~Zt5MJ2ui6mpjM~CCFiPGB8o5fObGM4ZbXm'
+        clientId: process.env.AZURE_CLIENT_ID || '',
+        authority: `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}`,
+        clientSecret: process.env.AZURE_CLIENT_SECRET || ''
       }
     };
     
