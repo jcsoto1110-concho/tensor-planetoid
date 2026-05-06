@@ -69,7 +69,8 @@ export async function POST(req: NextRequest) {
           email: resume?.sender_email || '',
           pdf_url: resume?.pdf_url || '',
           position: resume?.position || '',
-          experience: resume?.experience_years || ''
+          experience: resume?.experience_years || '',
+          sender_phone: resume?.sender_phone || ''
         };
       })
       .sort((a, b) => (b.score || 0) - (a.score || 0));

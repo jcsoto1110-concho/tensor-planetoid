@@ -717,7 +717,8 @@ export default function CandidatesAdmin() {
                                 {r.email_uid?.startsWith('WEB') ? 'WEB' : 'EMAIL'}
                               </span>
                             </div>
-                            <p style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '8px' }}>{r.sender_email}</p>
+                            <p style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '4px' }}>{r.sender_email}</p>
+                            {r.sender_phone && <p style={{ color: '#3b82f6', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>📞 {r.sender_phone}</p>}
                             
                             {/* Mostramos los datos si está REVISADO o si ya tiene cargo extraído */}
                             {(r.classification_status === 'REVIEWED' || r.position) ? (
@@ -995,40 +996,43 @@ export default function CandidatesAdmin() {
                         </td>
                         <td style={{ fontWeight: 600, color: '#475569' }}>{p.cargo}</td>
                         <td>
-                          {p.candidate?.sender_phone ? (
-                            <a 
-                              href={p.status === 'PENDIENTE' ? '#' : `https://wa.me/${p.candidate.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent(
-                                p.status === 'ENTREVISTA_PROGRAMADA' 
-                                ? `Estimad@ candidat@, nos complace informarte que has pasado la primera etapa de nuestro proceso de selección para Superdeporte S.A. Para la siguiente fase, deberás asistir a una entrevista presencial y/o virtual.\n\nTe enviamos los detalles para que puedas asistir:\n📅Fecha: ${p.interview_date ? new Date(p.interview_date.split(' ')[0] + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' }) : '—'}\n⏰Hora: ${p.interview_date?.split(' ')[1] || '09:00'}\n📍Lugar: Av Galo Plaza Lasso 13205 de los Ceresos.`
-                                : `Hola ${p.candidate.sender_name || 'Candidato'}, te saludamos de RRHH de Superdeporte S.A. Estamos revisando tu perfil para el cargo de ${p.cargo} y nos gustaría agendar una entrevista.`
-                              )}`} 
-                              onClick={(e) => p.status === 'PENDIENTE' && e.preventDefault()}
-                              target={p.status === 'PENDIENTE' ? undefined : "_blank"} 
-                              className="wa-link"
-                              style={{ 
-                                opacity: p.status === 'PENDIENTE' ? 0.5 : 1, 
-                                cursor: p.status === 'PENDIENTE' ? 'not-allowed' : 'pointer',
-                                filter: p.status === 'PENDIENTE' ? 'grayscale(1)' : 'none'
-                              }}
-                            >
-                              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '16px' }} /> {p.candidate.sender_phone}
-                            </a>
-                          ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {p.candidate?.sender_phone && (
+                              <a 
+                                href={p.status === 'PENDIENTE' ? '#' : `https://wa.me/${p.candidate.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent(
+                                  p.status === 'ENTREVISTA_PROGRAMADA' 
+                                  ? `Estimad@ candidat@, nos complace informarte que has pasado la primera etapa de nuestro proceso de selección para Superdeporte S.A. Para la siguiente fase, deberás asistir a una entrevista presencial y/o virtual.\n\nTe enviamos los detalles para que puedas asistir:\n📅Fecha: ${p.interview_date ? new Date(p.interview_date.split(' ')[0] + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' }) : '—'}\n⏰Hora: ${p.interview_date?.split(' ')[1] || '09:00'}\n📍Lugar: Av Galo Plaza Lasso 13205 de los Ceresos.`
+                                  : `Hola ${p.candidate.sender_name || 'Candidato'}, te saludamos de RRHH de Superdeporte S.A. Estamos revisando tu perfil para el cargo de ${p.cargo} y nos gustaría agendar una entrevista.`
+                                )}`} 
+                                onClick={(e) => p.status === 'PENDIENTE' && e.preventDefault()}
+                                target={p.status === 'PENDIENTE' ? undefined : "_blank"} 
+                                className="wa-link"
+                                style={{ 
+                                  opacity: p.status === 'PENDIENTE' ? 0.5 : 1, 
+                                  cursor: p.status === 'PENDIENTE' ? 'not-allowed' : 'pointer',
+                                  filter: p.status === 'PENDIENTE' ? 'grayscale(1)' : 'none',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '16px' }} /> {p.candidate.sender_phone}
+                              </a>
+                            )}
                             <button 
                               disabled={p.status === 'PENDIENTE'}
                               onClick={() => handleSendContactEmail(p.candidate?.sender_email, p.candidate?.sender_name, p.cargo, p.interview_date, p.notes)}
                               className="track-btn"
                               style={{ 
                                 fontSize: '11px', 
-                                padding: '4px 8px', 
+                                padding: '6px 8px', 
                                 color: p.status === 'PENDIENTE' ? '#94a3b8' : '#2563eb', 
                                 borderColor: p.status === 'PENDIENTE' ? '#e2e8f0' : '#dbeafe',
-                                cursor: p.status === 'PENDIENTE' ? 'not-allowed' : 'pointer'
+                                cursor: p.status === 'PENDIENTE' ? 'not-allowed' : 'pointer',
+                                justifyContent: 'center'
                               }}
                             >
                               <Mail size={12} /> {p.status === 'ENTREVISTA_PROGRAMADA' ? 'Enviar Citación' : 'Enviar Email'}
                             </button>
-                          )}
+                          </div>
                         </td>
                         <td>
                           <span className="pipeline-badge" style={{ background: '#dbeafe', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
