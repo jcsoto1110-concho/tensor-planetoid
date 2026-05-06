@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { Client } from '@microsoft/microsoft-graph-client';
+import { ConfidentialClientApplication } from '@azure/msal-node';
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,32 +9,30 @@ export async function POST(req: NextRequest) {
 
     if (!email) return NextResponse.json({ error: 'Email requerido' }, { status: 400 });
 
-    const smtpHost = process.env.SMTP_HOST || 'smtp-mail.outlook.com';
-    const smtpPort = parseInt(process.env.SMTP_PORT || '587');
-    const smtpUser = process.env.SMTP_USER || 'uneteanuestroequipo@ec.marathon-sports.com';
-    const smtpPass = process.env.SMTP_PASS || '';
+    const clientId = process.env.AZURE_CLIENT_ID || '69f4a759-9537-4f11-b398-47a7f6ef8e83';
+    const tenantId = process.env.AZURE_TENANT_ID || 'a25466cf-9db0-4555-b90b-3b29d4097ff2';
+    const clientSecret = process.env.AZURE_CLIENT_SECRET || 'vg98Q~Zt5MJ2ui6mpjM~CCFiPGB8o5fObGM4ZbXm';
+    const senderEmail = process.env.SMTP_USER || 'uneteanuestroequipo@ec.marathon-sports.com';
 
-    if (!smtpPass) {
-      return NextResponse.json({ error: 'SMTP_PASS no configurado' }, { status: 500 });
+    // 1. Obtener Token de Acceso
+    const msalConfig = {
+      auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, clientSecret }
+    };
+    const cca = new ConfidentialClientApplication(msalConfig);
+    const authResponse = await cca.acquireTokenByClientCredential({
+      scopes: ['https://graph.microsoft.com/.default']
+    });
+
+    if (!authResponse || !authResponse.accessToken) {
+      throw new Error('No se pudo obtener el token de acceso de Azure');
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: false, // TLS (use STARTTLS)
-      requireTLS: true,
-      auth: { user: smtpUser, pass: smtpPass },
-      tls: {
-        rejectUnauthorized: false // Helps with some server certificates
-      }
+    const client = Client.init({
+      authProvider: (done) => done(null, authResponse.accessToken)
     });
 
     const formattedDate = isInterview ? new Date(interviewDate.split(' ')[0] + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
     const time = isInterview ? interviewDate.split(' ')[1] || '09:00' : '';
-
-    const message = isInterview 
-      ? `Hola ${name || 'candidat@'},\n\nNos complace informarte que has pasado la primera etapa de nuestro proceso de selección para Superdeporte S.A. Para la siguiente fase, deberás asistir a una entrevista presencial y/o virtual.\n\nTe enviamos los detalles para que puedas asistir:\n📅Fecha: ${formattedDate}\n⏰Hora: ${time}\n📍Lugar: Av Galo Plaza Lasso 13205 de los Ceresos.\n\nTe esperamos.`
-      : `Hola ${name || 'Candidato'},\n\nTe saludamos de RRHH de Superdeporte S.A. Estamos revisando tu perfil para el cargo de ${cargo} y nos gustaría agendar una entrevista.\n\nPor favor, confírmanos tu disponibilidad.\n\nSaludos cordiales,\nEquipo de Selección.`;
 
     const htmlMessage = isInterview 
       ? `<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -66,17 +65,19 @@ export async function POST(req: NextRequest) {
           <p>Saludos cordiales,<br/><strong>Equipo de Selección</strong></p>
         </div>`;
 
-    await transporter.sendMail({
-      from: `"RRHH Selección" <${smtpUser}>`,
-      to: email,
-      subject: isInterview ? `Citación a Entrevista: ${cargo}` : `Proceso de Selección: ${cargo}`,
-      text: message,
-      html: htmlMessage
-    });
+    const sendMail = {
+      message: {
+        subject: isInterview ? `Citación a Entrevista: ${cargo}` : `Proceso de Selección: ${cargo}`,
+        body: { contentType: 'HTML', content: htmlMessage },
+        toRecipients: [{ emailAddress: { address: email } }]
+      }
+    };
+
+    await client.api(`/users/${senderEmail}/sendMail`).post(sendMail);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error enviando mail de contacto:', error);
+    console.error('Error enviando mail con Graph API:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

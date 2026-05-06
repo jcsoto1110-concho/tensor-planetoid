@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { Client } from '@microsoft/microsoft-graph-client';
+import { ConfidentialClientApplication } from '@azure/msal-node';
 import QRCode from 'qrcode';
 
 export async function POST(req: NextRequest) {
@@ -10,35 +11,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Se requiere el email del candidato.' }, { status: 400 });
     }
 
-    const smtpHost = process.env.SMTP_HOST || 'smtp-mail.outlook.com';
-    const smtpPort = parseInt(process.env.SMTP_PORT || '587');
-    const smtpUser = process.env.SMTP_USER || 'uneteanuestroequipo@ec.marathon-sports.com';
-    const smtpPass = process.env.SMTP_PASS || '';
-    const onboardingUrl = process.env.ONBOARDING_URL || 'http://localhost:3000/onboarding';
+    const clientId = process.env.AZURE_CLIENT_ID || '69f4a759-9537-4f11-b398-47a7f6ef8e83';
+    const tenantId = process.env.AZURE_TENANT_ID || 'a25466cf-9db0-4555-b90b-3b29d4097ff2';
+    const clientSecret = process.env.AZURE_CLIENT_SECRET || 'vg98Q~Zt5MJ2ui6mpjM~CCFiPGB8o5fObGM4ZbXm';
+    const senderEmail = process.env.SMTP_USER || 'uneteanuestroequipo@ec.marathon-sports.com';
+    const onboardingUrl = process.env.ONBOARDING_URL || 'https://contrataciosuper.app/onboarding';
 
-    if (!smtpPass) {
-      return NextResponse.json({ error: 'SMTP_PASS no está configurado en las variables de entorno.' }, { status: 500 });
+    // 1. Obtener Token de Acceso
+    const msalConfig = {
+      auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, clientSecret }
+    };
+    const cca = new ConfidentialClientApplication(msalConfig);
+    const authResponse = await cca.acquireTokenByClientCredential({
+      scopes: ['https://graph.microsoft.com/.default']
+    });
+
+    if (!authResponse || !authResponse.accessToken) {
+      throw new Error('No se pudo obtener el token de acceso de Azure');
     }
 
-    // 1. Generar QR como buffer PNG
-    const qrBuffer = await QRCode.toBuffer(onboardingUrl, {
-      type: 'png',
-      width: 300,
-      margin: 2,
-      color: { dark: '#000000', light: '#ffffff' },
+    const client = Client.init({
+      authProvider: (done) => done(null, authResponse.accessToken)
     });
 
-    // 2. Configurar transporter nodemailer
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: false, // TLS
-      requireTLS: true,
-      auth: { user: smtpUser, pass: smtpPass },
-      tls: {
-        rejectUnauthorized: false
-      }
+    // 2. Generar QR como base64 para embeber
+    const qrDataUrl = await QRCode.toDataURL(onboardingUrl, {
+      width: 300,
+      margin: 2,
     });
+    const qrBase64 = qrDataUrl.split(',')[1];
 
     // 3. Cuerpo HTML del correo
     const htmlBody = `
@@ -85,26 +86,31 @@ export async function POST(req: NextRequest) {
       </div>
     `;
 
-    // 4. Enviar el correo
-    await transporter.sendMail({
-      from: `"SUPERDEPORTE S.A. - Selección" <${smtpUser}>`,
-      to: candidateEmail,
-      subject: 'SOLICITUD DOCUMENTOS MARATHON SPORTS',
-      priority: 'high',
-      html: htmlBody,
-      attachments: [
-        {
-          filename: 'QR_Onboarding.png',
-          content: qrBuffer,
-          cid: 'qr_onboarding', // Para embeber en HTML con cid:
-        },
-      ],
-    });
+    // 4. Enviar el correo con adjunto inline
+    const sendMail = {
+      message: {
+        subject: 'SOLICITUD DOCUMENTOS MARATHON SPORTS',
+        body: { contentType: 'HTML', content: htmlBody },
+        toRecipients: [{ emailAddress: { address: candidateEmail } }],
+        attachments: [
+          {
+            '@odata.type': '#microsoft.graph.fileAttachment',
+            name: 'QR_Onboarding.png',
+            contentType: 'image/png',
+            contentBytes: qrBase64,
+            contentId: 'qr_onboarding',
+            isInline: true
+          }
+        ]
+      }
+    };
+
+    await client.api(`/users/${senderEmail}/sendMail`).post(sendMail);
 
     return NextResponse.json({ success: true, message: `Correo enviado a ${candidateEmail}` });
 
   } catch (error: any) {
-    console.error('Error enviando correo de aprobación:', error);
+    console.error('Error enviando correo de aprobación con Graph API:', error);
     return NextResponse.json({ error: 'Error al enviar el correo: ' + error.message }, { status: 500 });
   }
 }
