@@ -4,18 +4,18 @@ import { ConfidentialClientApplication } from '@azure/msal-node';
 import QRCode from 'qrcode';
 
 export async function POST(req: NextRequest) {
+  const clientId = process.env.AZURE_CLIENT_ID || '69f4a759-9537-4f11-b398-47a7f6ef8e83';
+  const tenantId = process.env.AZURE_TENANT_ID || 'a25466cf-9db0-4555-b90b-3b29d4097ff2';
+  const clientSecret = process.env.AZURE_CLIENT_SECRET || 'vg98Q~Zt5MJ2ui6mpjM~CCFiPGB8o5fObGM4ZbXm';
+  const senderEmail = process.env.SMTP_USER || 'uneteanuestroequipo@ec.marathon-sports.com';
+  const onboardingUrl = process.env.ONBOARDING_URL || 'https://contrataciosuper.app/onboarding';
+
   try {
     const { candidateName, candidateEmail } = await req.json();
 
     if (!candidateEmail) {
       return NextResponse.json({ error: 'Se requiere el email del candidato.' }, { status: 400 });
     }
-
-    const clientId = process.env.AZURE_CLIENT_ID || '69f4a759-9537-4f11-b398-47a7f6ef8e83';
-    const tenantId = process.env.AZURE_TENANT_ID || 'a25466cf-9db0-4555-b90b-3b29d4097ff2';
-    const clientSecret = process.env.AZURE_CLIENT_SECRET || 'vg98Q~Zt5MJ2ui6mpjM~CCFiPGB8o5fObGM4ZbXm';
-    const senderEmail = process.env.SMTP_USER || 'uneteanuestroequipo@ec.marathon-sports.com';
-    const onboardingUrl = process.env.ONBOARDING_URL || 'https://contrataciosuper.app/onboarding';
 
     // 1. Obtener Token de Acceso
     const msalConfig = {
