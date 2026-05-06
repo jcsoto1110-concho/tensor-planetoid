@@ -75,9 +75,14 @@ export async function POST(req: NextRequest) {
 
     await client.api(`/users/${senderEmail}/sendMail`).post(sendMail);
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
+    } catch (error: any) {
     console.error('Error enviando mail con Graph API:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    // Extraemos más info del error de Graph si existe
+    const errorDetail = error.response?.data?.error?.message || error.message;
+    const errorCode = error.response?.data?.error?.code || 'UNKNOWN';
+    return NextResponse.json({ 
+      error: `Error Graph API (${errorCode}): ${errorDetail}`,
+      debug: { senderEmail, clientId, tenantId } 
+    }, { status: 500 });
   }
 }

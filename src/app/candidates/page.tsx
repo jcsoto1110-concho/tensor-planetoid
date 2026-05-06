@@ -1040,15 +1040,15 @@ export default function CandidatesAdmin() {
                               </a>
                             )}
                             <button 
-                              disabled={p.status === 'PENDIENTE'}
+                              disabled={p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO'}
                               onClick={() => handleSendContactEmail(p.candidate?.sender_email, p.candidate?.sender_name, p.cargo, p.interview_date, p.notes)}
                               className="track-btn"
                               style={{ 
                                 fontSize: '11px', 
                                 padding: '6px 8px', 
-                                color: p.status === 'PENDIENTE' ? '#94a3b8' : '#2563eb', 
-                                borderColor: p.status === 'PENDIENTE' ? '#e2e8f0' : '#dbeafe',
-                                cursor: p.status === 'PENDIENTE' ? 'not-allowed' : 'pointer',
+                                color: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? '#94a3b8' : '#2563eb', 
+                                borderColor: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? '#e2e8f0' : '#dbeafe',
+                                cursor: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 'not-allowed' : 'pointer',
                                 justifyContent: 'center'
                               }}
                             >

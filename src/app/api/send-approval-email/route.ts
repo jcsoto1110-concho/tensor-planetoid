@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Error enviando correo de aprobación con Graph API:', error);
-    return NextResponse.json({ error: 'Error al enviar el correo: ' + error.message }, { status: 500 });
+    const errorDetail = error.response?.data?.error?.message || error.message;
+    return NextResponse.json({ error: 'Error al enviar el correo (Graph): ' + errorDetail }, { status: 500 });
   }
 }
