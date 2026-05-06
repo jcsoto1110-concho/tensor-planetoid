@@ -278,6 +278,14 @@ export default function CandidatesAdmin() {
     setLoadingResumes(false)
   }
 
+  const handleUpdatePhone = async (id: string, phone: string) => {
+    const newPhone = window.prompt("Editar número de teléfono:", phone);
+    if (newPhone === null) return;
+    const { error } = await supabase.from('email_resumes').update({ sender_phone: newPhone }).eq('id', id);
+    if (error) alert("Error: " + error.message);
+    else fetchResumes();
+  }
+
   const handleSendContactEmail = async (email: string, name: string, cargo: string, interviewDate?: string, notes?: string) => {
     const isInterview = !!interviewDate;
     const confirmMsg = isInterview 
@@ -718,7 +726,20 @@ export default function CandidatesAdmin() {
                               </span>
                             </div>
                             <p style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '4px' }}>{r.sender_email}</p>
-                            {r.sender_phone && <p style={{ color: '#3b82f6', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>📞 {r.sender_phone}</p>}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                              {r.sender_phone ? (
+                                <p style={{ color: '#3b82f6', fontSize: '12px', fontWeight: 'bold', margin: 0 }}>📞 {r.sender_phone}</p>
+                              ) : (
+                                <p style={{ color: '#94a3b8', fontSize: '11px', margin: 0 }}>Sín teléfono</p>
+                              )}
+                              <button 
+                                onClick={() => handleUpdatePhone(r.id, r.sender_phone || '')} 
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                                title="Editar Teléfono"
+                              >
+                                <Settings size={12} />
+                              </button>
+                            </div>
                             
                             {/* Mostramos los datos si está REVISADO o si ya tiene cargo extraído */}
                             {(r.classification_status === 'REVIEWED' || r.position) ? (

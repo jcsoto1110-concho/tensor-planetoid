@@ -99,6 +99,7 @@ export default function ApplyPage() {
         received_date: new Date().toISOString(),
         file_name: file.name,
         pdf_url: publicUrl,
+        sender_phone: formData.celular,
         classification_status: 'PENDING',
         position: formData.cargo,
         city: formData.ciudad,
