@@ -591,9 +591,28 @@ export default function CandidatesAdmin() {
 
       <div className="admin-container">
         <div className="admin-header">
-          <div>
-            <h1 className="admin-title">Candidatos Registrados</h1>
-            <p className="admin-subtitle">Portal de Onboarding - Zero Paper</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <div>
+              <h1 className="admin-title">Candidatos Registrados</h1>
+              <p className="admin-subtitle">Portal de Onboarding - Zero Paper</p>
+            </div>
+            <button 
+              onClick={() => window.location.reload()} 
+              style={{ 
+                background: '#f0f7ff', 
+                border: '1px solid #cce3ff', 
+                color: '#2563eb', 
+                padding: '8px 20px', 
+                borderRadius: '10px', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                transition: 'all 0.2s'
+              }}
+            >
+              Actualizar
+            </button>
           </div>
           <div className="qr-card">
             <div>
@@ -1349,7 +1368,6 @@ export default function CandidatesAdmin() {
               <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button onClick={() => { setRejectionModal({ id: viewingOnboarding.id, email: viewingOnboarding.email, name: `${viewingOnboarding.nombres} ${viewingOnboarding.apellidos}` }); setViewingOnboarding(null); }} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }}>Rechazar con Observación</button>
                 <button onClick={() => handleApproveOnboarding(viewingOnboarding.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
-                <button onClick={() => handleSyncToOracle(viewingOnboarding.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', border: 'none' }}>🚀 Sincronizar</button>
               </div>
             </div>
           </div>
