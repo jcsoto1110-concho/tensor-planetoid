@@ -48,21 +48,29 @@ export async function POST(request: NextRequest) {
         }
 
         let profile = null;
+        const cleanCedula = cedula.trim();
 
         // 2. Si es para el panel de candidatos, validar que la cédula esté autorizada en admin_profiles
         if (app === 'candidates') {
+            console.log(`Checking admin_profiles for cedula: "${cleanCedula}"`);
             const { data: profileData, error: profileError } = await supabase
                 .from('admin_profiles')
                 .select('*')
-                .eq('cedula', cedula)
+                .eq('cedula', cleanCedula)
                 .eq('is_active', true)
-                .single();
+                .maybeSingle();
             
             profile = profileData;
+            console.log(`Profile found: ${profile ? 'YES' : 'NO'}`);
+            if (profileError) console.error('Supabase error:', profileError);
 
             if (profileError || !profile) {
                 return NextResponse.json(
-                    { success: false, error: 'Usuario no autorizado para acceder al panel administrativo de candidatos' },
+                    { 
+                        success: false, 
+                        error: 'Usuario no autorizado para acceder al panel administrativo de candidatos',
+                        debug_cedula: cleanCedula 
+                    },
                     { status: 403 }
                 );
             }
