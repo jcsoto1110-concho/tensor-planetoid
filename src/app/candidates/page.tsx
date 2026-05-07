@@ -286,12 +286,10 @@ export default function CandidatesAdmin() {
   }
 
   const fetchResumes = async () => {
-    if (!user) return
     setLoadingResumes(true)
     const { data } = await supabase
       .from('email_resumes')
       .select('*')
-      .eq('created_by_cedula', user.cedula)
       .order('received_date', { ascending: false })
     if (data) setResumes(data)
     setLoadingResumes(false)
@@ -446,7 +444,8 @@ export default function CandidatesAdmin() {
   return (
     <>
       <style>{`
-        .admin-container { padding: 32px; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh; font-family: 'Inter', system-ui, sans-serif; color: #0f172a; }
+        .admin-main { min-height: 100vh; background: #f8fafc; font-family: 'Inter', system-ui, sans-serif; color: #0f172a; }
+        .admin-container { padding: 32px; max-width: 1600px; margin: 0 auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; flex-wrap: wrap; gap: 20px; }
         .admin-title { font-size: 28px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; background: linear-gradient(90deg, #0f172a, #334155); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .admin-subtitle { color: #64748b; font-size: 15px; font-weight: 500; margin: 0; }
@@ -613,61 +612,87 @@ export default function CandidatesAdmin() {
         </div>
       )}
 
-      <div className="admin-container">
-        <header className="onboarding-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#002f6c' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+      <div className="admin-main">
+        <header 
+          className="onboarding-header" 
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            background: 'linear-gradient(135deg, #002f6c 0%, #001a3d 100%)',
+            padding: '20px 40px',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Subtle light effect */}
+          <div style={{ position: 'absolute', top: '-50%', left: '-10%', width: '40%', height: '200%', background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', transform: 'rotate(-15deg)', pointerEvents: 'none' }} />
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '40px', position: 'relative', zIndex: 1 }}>
             <div>
-              <h1 className="onboarding-title">SUPERDEPORTE S.A.</h1>
-              <p className="onboarding-subtitle">Panel de Gestión Administrativa</p>
+              <h1 className="onboarding-title" style={{ fontSize: '28px', letterSpacing: '0.5px', marginBottom: '4px', color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>SUPERDEPORTE S.A.</h1>
+              <p className="onboarding-subtitle" style={{ color: '#94a3b8', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>Panel de Gestión Administrativa</p>
             </div>
+            
             <button 
-              onClick={() => {
-                fetchCandidates();
-                fetchResumes();
-                fetchPipeline();
-              }} 
+              onClick={() => { fetchCandidates(); fetchResumes(); fetchPipeline(); }} 
               style={{ 
                 background: 'rgba(255,255,255,0.1)', 
                 border: '1px solid rgba(255,255,255,0.2)', 
                 color: 'white', 
-                padding: '8px 20px', 
-                borderRadius: '10px', 
+                padding: '10px 24px', 
+                borderRadius: '12px', 
                 cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: '600',
-                transition: 'all 0.2s'
+                fontSize: '14px',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
               }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
-              Actualizar
+              <RefreshCw size={18} /> Actualizar
             </button>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ textAlign: 'right', color: 'white' }}>
-              <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>{user?.name}</p>
-              <p style={{ margin: 0, fontSize: '11px', opacity: 0.8 }}>{user?.cedula}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', position: 'relative', zIndex: 1 }}>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#ffffff' }}>{user?.name}</p>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>Cédula: {user?.cedula}</p>
             </div>
+            
+            <div style={{ height: '40px', width: '1px', background: 'rgba(255,255,255,0.15)' }} />
+            
             <button 
               onClick={logout}
               style={{ 
-                background: 'rgba(239, 68, 68, 0.2)', 
-                border: '1px solid rgba(239, 68, 68, 0.4)', 
+                background: 'rgba(239, 68, 68, 0.15)', 
+                border: '1px solid rgba(239, 68, 68, 0.3)', 
                 color: '#fca5a5', 
-                padding: '8px 12px', 
-                borderRadius: '8px', 
+                padding: '10px 20px', 
+                borderRadius: '12px', 
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                fontSize: '12px',
-                fontWeight: 'bold'
+                gap: '10px',
+                fontSize: '14px',
+                fontWeight: '800',
+                transition: 'all 0.2s'
               }}
-              title="Cerrar Sesión"
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
-              <LogOut size={16} /> Salir
+              <LogOut size={18} /> Salir
             </button>
           </div>
         </header>
+        <div className="admin-container">
           <div className="qr-card">
             <div>
               <label className="ranking-label">Link Candidatos</label>
@@ -1036,7 +1061,7 @@ export default function CandidatesAdmin() {
               <h4 style={{ margin: '0 0 8px', color: '#475569' }}>Total Candidatos en el Sistema</h4>
               <p style={{ margin: 0, fontSize: '32px', fontWeight: 900, color: '#0f172a' }}>
                 {new Set([
-                  ...resumes.map(r => r.sender_email?.toLowerCase()).filter(Boolean),
+                  ...resumes.filter(r => r.created_by_cedula === user?.cedula).map(r => r.sender_email?.toLowerCase()).filter(Boolean),
                   ...candidates.map(c => c.email?.toLowerCase()).filter(Boolean)
                 ]).size}
               </p>
@@ -1447,6 +1472,7 @@ export default function CandidatesAdmin() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </>
   )

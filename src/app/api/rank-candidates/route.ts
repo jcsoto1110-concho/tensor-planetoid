@@ -4,18 +4,24 @@ import OpenAI from 'openai';
 
 export async function POST(req: NextRequest) {
   try {
-    const { cargo, ciudad, funciones, apiKey } = await req.json();
+    const { cargo, ciudad, funciones, apiKey, cedula } = await req.json();
     const openaiKey = (apiKey || process.env.OPENAI_API_KEY || '').trim();
 
     if (!openaiKey) return NextResponse.json({ error: 'Falta API Key de OpenAI' }, { status: 401 });
 
     const openai = new OpenAI({ apiKey: openaiKey });
 
-    // 1. Cargar candidatos
-    const { data: resumes, error: dbError } = await supabase
+    // 1. Cargar candidatos del usuario
+    let query = supabase
       .from('email_resumes')
       .select('*')
       .or('classification_status.eq.REVIEWED,position.neq.""');
+    
+    if (cedula) {
+      query = query.eq('created_by_cedula', cedula);
+    }
+
+    const { data: resumes, error: dbError } = await query;
 
     if (dbError) throw dbError;
     if (!resumes || resumes.length === 0) return NextResponse.json({ error: 'No hay candidatos listos para rankear' }, { status: 404 });
