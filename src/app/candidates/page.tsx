@@ -1092,7 +1092,7 @@ export default function CandidatesAdmin() {
                                 <button 
                                   className="track-btn" 
                                   style={{ background: '#0f172a', color: 'white', border: 'none' }}
-                                  onClick={() => handleSendApprovalEmail(p.candidate?.sender_name, p.candidate?.sender_email)}
+                                  onClick={() => handleSendApprovalEmail(p.resume_id)}
                                 >
                                   📧 Enviar Documentos (QR)
                                 </button>
