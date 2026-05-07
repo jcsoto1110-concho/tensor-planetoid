@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { UploadCloud, CheckCircle2, AlertCircle, Plus, Trash2, Check, FileCheck, Mail, User, Briefcase, MapPin } from 'lucide-react'
+import { UploadCloud, CheckCircle2, AlertCircle, Plus, Trash2, Check, FileCheck, Mail, User, Briefcase, MapPin, Eye } from 'lucide-react'
 
 const WELCOME_TEXT = `A nombre de SUPERDEPORTE S.A. es un placer darte la bienvenida, esperamos que disfrutes con nosotros de nuestra actividad favorita, el deporte. Estamos orgullosos de ofrecer la mejor experiencia deportiva a nuestros consumidores a través de una asesoría del más alto nivel. Nos caracterizamos por ser un equipo que juega fuerte, que juega para ganar, sin excusas, siempre obedeciendo las reglas del juego. Estamos convencidos que tus competencias nos llevarán a lograr las metas que nos hemos propuesto. Eres parte de esta comunidad de apasionados por el deporte, dispuestos a transformar su entorno y contagiar esta pasión, volviéndose dueños del resultado y siempre trabajando hacia un mismo objetivo.`
 
@@ -118,9 +118,31 @@ export default function OnboardingTabs() {
   const handleSubmit = async () => {
     const currentDocs = getDynamicDocs();
     
-    // 1. Validar consentimiento
+    // 1. Validar campos obligatorios de Personales y Bancarios
+    const requiredFields = [
+      { key: 'nombres', label: 'Nombres' },
+      { key: 'apellido1', label: 'Primer Apellido' },
+      { key: 'apellido2', label: 'Segundo Apellido' },
+      { key: 'cedula', label: 'Cédula' },
+      { key: 'ciudad_nacimiento', label: 'Ciudad de Nacimiento' },
+      { key: 'fecha_nacimiento', label: 'Fecha de Nacimiento' },
+      { key: 'direccion', label: 'Dirección' },
+      { key: 'ciudad_residencia', label: 'Ciudad de Residencia' },
+      { key: 'celular', label: 'Celular' },
+      { key: 'email', label: 'Correo Electrónico' },
+      { key: 'banco_produbanco', label: 'Número de Cuenta Produbanco' }
+    ];
+
+    for (const field of requiredFields) {
+      if (!formData[field.key as keyof typeof formData]) {
+        setActiveTab(2);
+        setError(`El campo "${field.label}" es obligatorio en la sección de Datos Personales.`);
+        return;
+      }
+    }
+
     if (!formData.consentimiento) { 
-      setError('Debes aceptar el consentimiento de tratamiento de datos personales.'); 
+      setError('Debes aceptar el consentimiento de tratamiento de datos personales en la pestaña de Documentos.'); 
       return; 
     }
     
@@ -252,7 +274,7 @@ export default function OnboardingTabs() {
       <style>{`
         .onboarding-container { font-family: system-ui, -apple-system, sans-serif; background-color: #f3f4f6; min-height: 100vh; color: #1f2937; }
         .onboarding-header { background-color: #002f6c; color: white; padding: 16px 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .onboarding-title { margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+        .onboarding-title { margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 1px; color: white !important; }
         .onboarding-subtitle { margin: 4px 0 0; font-size: 13px; color: #93c5fd; }
         .onboarding-main { max-width: 1000px; margin: 32px auto; padding: 0 16px; }
         .onboarding-card { background-color: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #e5e7eb; }
@@ -472,7 +494,27 @@ export default function OnboardingTabs() {
                         </div>
                         
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {files[doc] && <span style={{ fontSize: '11px', color: '#059669' }}>{files[doc]!.name.substring(0, 15)}...</span>}
+                          {files[doc] && (
+                            <>
+                              <span style={{ fontSize: '11px', color: '#059669' }}>{files[doc]!.name.substring(0, 10)}...</span>
+                              <button 
+                                onClick={() => window.open(URL.createObjectURL(files[doc]!), '_blank')} 
+                                style={{ 
+                                  padding: '6px', 
+                                  borderRadius: '4px', 
+                                  border: '1px solid #3b82f6', 
+                                  background: '#eff6ff', 
+                                  color: '#3b82f6',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center'
+                                }}
+                                title="Ver archivo subido"
+                              >
+                                <Eye size={14} />
+                              </button>
+                            </>
+                          )}
                           <button 
                             onClick={() => document.getElementById(`file-${doc}`)?.click()} 
                             style={{ 
