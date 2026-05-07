@@ -81,31 +81,59 @@ export default function OnboardingTabs() {
     setError('');
   }
 
+  const getDynamicDocs = () => {
+    const docs = [...REQUIRED_DOCS.filter(d => d !== "Partida de nacimiento (hijos)")];
+    if (hijos.length > 0) {
+      hijos.forEach((_, idx) => {
+        docs.push(`Partida de nacimiento - Hijo ${idx + 1}`);
+      });
+    } else {
+      docs.push("Partida de nacimiento (si aplica)");
+    }
+    return docs;
+  };
+
   const handleSubmit = async () => {
-    if (!formData.consentimiento) { setActiveTab(1); setError('Debes aceptar el consentimiento en la pestaña de Bienvenida.'); return }
+    const currentDocs = getDynamicDocs();
     
-    // Validar que al menos los documentos básicos existan
-    if (!files["Hoja de vida actualizada"]) { 
-      setActiveTab(5); 
-      setError('La Hoja de Vida es obligatoria.'); 
+    // 1. Validar consentimiento
+    if (!formData.consentimiento) { 
+      setError('Debes aceptar el consentimiento de tratamiento de datos personales.'); 
       return; 
+    }
+    
+    // 2. Validar documentos obligatorios (todos menos "si aplica")
+    for (const doc of currentDocs) {
+      if (!doc.includes('(si aplica)') && !files[doc]) {
+        setActiveTab(5);
+        setError(`El documento "${doc}" es obligatorio.`);
+        return;
+      }
     }
 
     setLoading(true)
     setError('')
 
-    const prefixes: Record<string, string> = {
-      "Hoja de vida actualizada": "cv",
-      "Fotocopias de tamaño carnet": "foto",
-      "Fotocopias de cédula de identidad y papeleta de votación": "cedula_pap_vot",
-      "Certificado de antecedentes penales": "antecedentes",
-      "Carnet de vacunación (3 dosis)": "vacuna",
-      "Certificados de trabajos anteriores": "cert_trabajo",
-      "Acta de grado o copia de título": "titulo",
-      "Partida de matrimonio (si aplica)": "matrimonio",
-      "Copia de cédula del cónyuge": "cedula_conyuge",
-      "Partida de nacimiento (hijos)": "nacimiento_hijos",
-      "Certificado de cuenta Produbanco": "cuenta_banco"
+    const getPrefix = (docName: string) => {
+      if (docName.startsWith("Partida de nacimiento - Hijo")) {
+        const num = docName.split(' ').pop();
+        return `nacimiento_hijo_${num}`;
+      }
+      const map: Record<string, string> = {
+        "Hoja de vida actualizada": "cv",
+        "Fotocopias de tamaño carnet": "foto",
+        "Fotocopias de cédula de identidad y papeleta de votación": "cedula_pap_vot",
+        "Certificado de antecedentes penales": "antecedentes",
+        "Carnet de vacunación (3 dosis)": "vacuna",
+        "Certificados de trabajos anteriores": "cert_trabajo",
+        "Acta de grado o copia de título": "titulo",
+        "Partida de matrimonio (si aplica)": "matrimonio",
+        "Copia de cédula del cónyuge": "cedula_conyuge",
+        "Partida de nacimiento (hijos)": "nacimiento_hijos",
+        "Partida de nacimiento (si aplica)": "nacimiento_hijos",
+        "Certificado de cuenta Produbanco": "cuenta_banco"
+      };
+      return map[docName] || "doc";
     };
 
     try {
@@ -125,13 +153,12 @@ export default function OnboardingTabs() {
 
       const documentosUrls: Record<string, string> = {};
 
-      // Subir cada archivo
-      for (const docName of REQUIRED_DOCS) {
+      // Subir cada archivo que esté presente
+      for (const docName of currentDocs) {
         const fileToUpload = files[docName];
         if (fileToUpload) {
           const fileExt = fileToUpload.name.split('.').pop();
-          const prefix = prefixes[docName] || "doc";
-          // Formato solicitado: CEDULA_PREFIJO.EXT
+          const prefix = getPrefix(docName);
           const fileName = `${formData.cedula}/${formData.cedula}_${prefix}.${fileExt}`;
           
           const { error: uploadError } = await supabase.storage
@@ -165,7 +192,8 @@ export default function OnboardingTabs() {
           nacionalidad: formData.nacionalidad, 
           ciudad_residencia: formData.ciudad_residencia, 
           direccion: formData.direccion, 
-          telefono_fijo: formData.telefono 
+          telefono_fijo: formData.telefono,
+          consentimiento_datos: formData.consentimiento
         },
         datos_bancarios: { banco: 'PRODUBANCO', tipo_cuenta: formData.tipo_cuenta, numero_cuenta: formData.banco_produbanco },
         cargas_familiares: { conyuge: conyuge.tiene ? conyuge : null, hijos },
@@ -174,7 +202,6 @@ export default function OnboardingTabs() {
         status: 'LLENADO'
       }
 
-      // Actualizamos el registro existente por email
       const { error: dbError } = await supabase.from('onboarding_candidates').update(payload).eq('email', formData.email.toLowerCase())
       if (dbError) throw dbError
       setIsSuccess(true)
@@ -282,14 +309,9 @@ export default function OnboardingTabs() {
                     <div className="req-title"><FileCheck size={20} /> Requisitos Obligatorios</div>
                     <p style={{ color: '#1e40af', fontSize: '14px', marginBottom: '16px' }}>Deberás subir cada uno de los siguientes documentos en la pestaña final:</p>
                     <div className="grid-2" style={{ color: '#1e3a8a', fontSize: '13px' }}>
-                      {REQUIRED_DOCS.map((doc, i) => <div key={i}>• {doc}</div>)}
+                      {getDynamicDocs().map((doc, i) => <div key={i}>• {doc}</div>)}
                     </div>
                   </div>
-
-                  <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '16px', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer' }}>
-                    <input type="checkbox" name="consentimiento" checked={formData.consentimiento} onChange={handleChange} style={{ marginTop: '4px', width: '18px', height: '18px' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}>Autorizo el tratamiento de mis datos personales para el proceso de selección y futuras oportunidades laborales en Superdeporte S.A. *</span>
-                  </label>
 
                   <div className="actions-bar"><button onClick={() => setActiveTab(2)} className="btn-primary">Siguiente</button></div>
                 </div>
@@ -394,7 +416,7 @@ export default function OnboardingTabs() {
                   <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '24px' }}>Por favor sube una copia legible de cada documento solicitado.</p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {REQUIRED_DOCS.map((doc) => (
+                    {getDynamicDocs().map((doc) => (
                       <div key={doc} style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -406,7 +428,9 @@ export default function OnboardingTabs() {
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {files[doc] ? <CheckCircle2 size={18} color="#10b981" /> : <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid #d1d5db' }} />}
-                          <span style={{ fontSize: '14px', fontWeight: 500, color: files[doc] ? '#166534' : '#374151' }}>{doc}</span>
+                          <span style={{ fontSize: '14px', fontWeight: 500, color: files[doc] ? '#166534' : '#374151' }}>
+                            {doc} {!doc.includes('(si aplica)') && <span style={{ color: '#ef4444' }}>*</span>}
+                          </span>
                         </div>
                         
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -435,9 +459,28 @@ export default function OnboardingTabs() {
                     ))}
                   </div>
 
+                  <div style={{ marginTop: '32px', backgroundColor: '#f9fafb', padding: '20px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer' }}>
+                      <input type="checkbox" name="consentimiento" checked={formData.consentimiento} onChange={handleChange} style={{ marginTop: '4px', width: '20px', height: '20px' }} />
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151', lineHeight: 1.5 }}>Autorizo el tratamiento de mis datos personales para el proceso de selección y futuras oportunidades laborales en Superdeporte S.A. *</span>
+                    </label>
+                  </div>
+
                   <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <button onClick={() => setActiveTab(4)} className="btn-secondary">Regresar</button>
-                    <button onClick={handleSubmit} disabled={loading} style={{ backgroundColor: '#10b981', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '6px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}>
+                    <button 
+                      onClick={handleSubmit} 
+                      disabled={loading || !formData.consentimiento} 
+                      style={{ 
+                        backgroundColor: (loading || !formData.consentimiento) ? '#94a3b8' : '#10b981', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '12px 24px', 
+                        borderRadius: '6px', 
+                        fontWeight: 'bold', 
+                        cursor: (loading || !formData.consentimiento) ? 'not-allowed' : 'pointer'
+                      }}
+                    >
                       {loading ? 'Procesando...' : 'FINALIZAR Y ENVIAR FICHA'}
                     </button>
                   </div>
