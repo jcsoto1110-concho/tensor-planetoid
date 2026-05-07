@@ -371,7 +371,7 @@ export default function OnboardingTabs() {
                     <div className="grid-2" style={{ marginBottom: '40px' }}>
                       <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Nombres Completos</label><input type="text" name="nombres" value={conyuge.nombres} onChange={handleConyugeChange} className="form-input" /></div>
                       <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Apellidos Completos</label><input type="text" name="apellidos" value={conyuge.apellidos} onChange={handleConyugeChange} className="form-input" /></div>
-                      <div className="form-group"><label className="form-label">Cédula</label><input type="text" name="cedula" value={conyuge.cedula} onChange={handleConyugeChange} className="form-input" /></div>
+                      <div className="form-group"><label className="form-label">Cédula</label><input type="text" name="cedula" value={conyuge.cedula} onChange={handleConyugeChange} className="form-input" minLength={10} maxLength={10} /></div>
                       <div className="form-group"><label className="form-label">Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" value={conyuge.fecha_nacimiento} onChange={handleConyugeChange} className="form-input" /></div>
                       <div className="form-group"><label className="form-label">Nacionalidad</label><select name="nacionalidad" value={conyuge.nacionalidad} onChange={handleConyugeChange} className="form-input"><option>ECUADOR</option><option>COLOMBIA</option><option>OTRA</option></select></div>
                       <div className="form-group"><label className="form-label">Ciudad Nacimiento</label><input type="text" name="ciudad_nacimiento" value={conyuge.ciudad_nacimiento} onChange={handleConyugeChange} className="form-input" /></div>
@@ -394,14 +394,29 @@ export default function OnboardingTabs() {
                           <div className="grid-2">
                             <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Nombres Completos</label><input type="text" value={hijo.nombres} onChange={e => { const n = [...hijos]; n[idx].nombres = e.target.value.toUpperCase(); setHijos(n); }} className="form-input" /></div>
                             <div className="form-group" style={{ gridColumn: '1 / -1' }}><label className="form-label">Apellidos Completos</label><input type="text" value={hijo.apellidos} onChange={e => { const n = [...hijos]; n[idx].apellidos = e.target.value.toUpperCase(); setHijos(n); }} className="form-input" /></div>
-                            <div className="form-group"><label className="form-label">Cédula</label><input type="text" value={hijo.cedula} onChange={e => { const n = [...hijos]; n[idx].cedula = e.target.value.toUpperCase(); setHijos(n); }} className="form-input" /></div>
+                            <div className="form-group"><label className="form-label">Cédula</label><input type="text" value={hijo.cedula} onChange={e => { const n = [...hijos]; n[idx].cedula = e.target.value.toUpperCase(); setHijos(n); }} className="form-input" minLength={10} maxLength={10} /></div>
                             <div className="form-group"><label className="form-label">Fecha Nacimiento</label><input type="date" value={hijo.fecha_nacimiento} onChange={e => { const n = [...hijos]; n[idx].fecha_nacimiento = e.target.value; setHijos(n); }} className="form-input" /></div>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="actions-bar"><button onClick={() => setActiveTab(4)} className="btn-primary">Siguiente</button></div>
+                  <div className="actions-bar">
+                    <button onClick={() => {
+                      if (conyuge.tiene && conyuge.cedula && conyuge.cedula.length !== 10) {
+                        setError('La cédula del cónyuge debe tener 10 caracteres.');
+                        return;
+                      }
+                      for (let i = 0; i < hijos.length; i++) {
+                        if (hijos[i].cedula && hijos[i].cedula.length !== 10) {
+                          setError(`La cédula del hijo #${i + 1} debe tener 10 caracteres.`);
+                          return;
+                        }
+                      }
+                      setError('');
+                      setActiveTab(4);
+                    }} className="btn-primary">Siguiente</button>
+                  </div>
                 </div>
               )}
 
