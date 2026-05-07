@@ -351,6 +351,12 @@ export default function CandidatesAdmin() {
     }
   }
 
+  const handleSyncToOracle = async (id: string) => {
+    if (!confirm('¿Deseas sincronizar este candidato con Oracle? Asegúrate de haber revisado sus documentos.')) return;
+    await fetch('/api/oracle-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    fetchCandidates();
+  }
+
   const handleRejectOnboarding = async () => {
     if (!rejectionModal || !rejectionObs) return;
     try {
@@ -1246,9 +1252,8 @@ export default function CandidatesAdmin() {
                             <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe' }}>👁️ Ver Expediente</button>
                             <button onClick={() => alert('Ventana de Nómina próximamente...')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe' }}>🏦 Nómina</button>
                             <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }}>❌ Rechazar</button>
-                            {c.status !== 'SYNCED' && (
-                              <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
-                            )}
+                            <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
+                            <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ color: '#002f6c', background: '#002f6c', color: 'white' }}>🚀 Sincronizar</button>
                           </>
                         )}
                         {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
@@ -1343,7 +1348,8 @@ export default function CandidatesAdmin() {
 
               <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button onClick={() => { setRejectionModal({ id: viewingOnboarding.id, email: viewingOnboarding.email, name: `${viewingOnboarding.nombres} ${viewingOnboarding.apellidos}` }); setViewingOnboarding(null); }} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }}>Rechazar con Observación</button>
-                <button onClick={() => handleApproveOnboarding(viewingOnboarding.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', border: 'none' }}>🌟 Aprobar</button>
+                <button onClick={() => handleApproveOnboarding(viewingOnboarding.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
+                <button onClick={() => handleSyncToOracle(viewingOnboarding.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', border: 'none' }}>🚀 Sincronizar</button>
               </div>
             </div>
           </div>
