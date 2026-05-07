@@ -951,7 +951,12 @@ export default function CandidatesAdmin() {
 
             <div style={{ marginTop: '32px', background: '#f8fafc', padding: '24px', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
               <h4 style={{ margin: '0 0 8px', color: '#475569' }}>Total Candidatos en el Sistema</h4>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 900, color: '#0f172a' }}>{resumes.length + candidates.length}</p>
+              <p style={{ margin: 0, fontSize: '32px', fontWeight: 900, color: '#0f172a' }}>
+                {new Set([
+                  ...resumes.map(r => r.sender_email?.toLowerCase()).filter(Boolean),
+                  ...candidates.map(c => c.email?.toLowerCase()).filter(Boolean)
+                ]).size}
+              </p>
             </div>
           </div>
         )}
