@@ -130,7 +130,8 @@ export async function POST(req: NextRequest) {
             position: autoData?.position || '',
             experience_years: autoData?.experience_years || null,
             city: autoData?.city || '',
-            ai_summary: autoData?.summary || ''
+            ai_summary: autoData?.summary || '',
+            created_by_cedula: requesterCedula
           };
 
           // Guardar en la base de datos
