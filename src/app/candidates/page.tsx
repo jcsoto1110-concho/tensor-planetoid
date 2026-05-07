@@ -1235,21 +1235,22 @@ export default function CandidatesAdmin() {
                          border: '1px solid currentColor',
                          opacity: 0.8
                        }}>
-                         {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'SYNCED' ? '✅ SINCRONIZADO' : '⏳ PENDIENTE'}
+                         {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'SYNCED' ? '✅ APROBADO' : '⏳ PENDIENTE'}
                        </span>
                        {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        {c.status === 'LLENADO' && (
+                        {(c.status === 'LLENADO' || c.status === 'SYNCED') && (
                           <>
                             <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe' }}>👁️ Ver Expediente</button>
                             <button onClick={() => alert('Ventana de Nómina próximamente...')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe' }}>🏦 Nómina</button>
                             <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }}>❌ Rechazar</button>
-                            <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
+                            {c.status !== 'SYNCED' && (
+                              <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
+                            )}
                           </>
                         )}
-                        {c.status === 'SYNCED' && <span style={{ color: '#10b981', fontSize: '12px', fontWeight: 'bold' }}>Sincronizado</span>}
                         {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
                         <button onClick={() => handleDelete(c.id)} className="track-btn" style={{ color: '#64748b', padding: '6px' }} title="Eliminar registro"><Trash2 size={14} /></button>
                       </div>

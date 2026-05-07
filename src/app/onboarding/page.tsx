@@ -326,20 +326,22 @@ export default function OnboardingTabs() {
           <button 
             onClick={() => window.location.reload()} 
             style={{ 
-              background: 'rgba(255,255,255,0.1)', 
-              border: '1px solid rgba(255,255,255,0.2)', 
+              background: 'rgba(255,255,255,0.2)', 
+              border: '2px solid white', 
               color: 'white', 
-              padding: '8px', 
-              borderRadius: '50%', 
+              padding: '8px 16px', 
+              borderRadius: '24px', 
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.2s'
+              gap: '8px',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              transition: 'all 0.2s'
             }}
-            title="Refrescar página"
           >
-            <RefreshCw size={18} />
+            <RefreshCw size={16} />
+            Refrescar
           </button>
         </header>
 
