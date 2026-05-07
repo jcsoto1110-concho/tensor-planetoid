@@ -73,10 +73,20 @@ export default function OnboardingTabs() {
   }
 
   const handleFileChange = (docName: string, file: File | null) => {
-    if (file && file.size > 10 * 1024 * 1024) {
-      setError(`El archivo ${docName} excede los 10MB.`);
+    if (!file) return;
+    
+    // 1. Validar que sea PDF
+    if (file.type !== 'application/pdf') {
+      setError(`El archivo para "${docName}" debe ser formato PDF.`);
       return;
     }
+
+    // 2. Validar tamaño (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError(`El archivo "${docName}" excede los 10MB.`);
+      return;
+    }
+    
     setFiles(prev => ({ ...prev, [docName]: file }));
     setError('');
   }
@@ -159,7 +169,8 @@ export default function OnboardingTabs() {
         if (fileToUpload) {
           const fileExt = fileToUpload.name.split('.').pop();
           const prefix = getPrefix(docName);
-          const fileName = `${formData.cedula}/${formData.cedula}_${prefix}.${fileExt}`;
+          const timestamp = Date.now();
+          const fileName = `${formData.cedula}/${formData.cedula}_${prefix}_${timestamp}.${fileExt}`;
           
           const { error: uploadError } = await supabase.storage
             .from('candidate-documents')
@@ -452,6 +463,7 @@ export default function OnboardingTabs() {
                             type="file" 
                             id={`file-${doc}`} 
                             style={{ display: 'none' }} 
+                            accept=".pdf"
                             onChange={(e) => handleFileChange(doc, e.target.files?.[0] || null)} 
                           />
                         </div>
