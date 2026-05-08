@@ -77,13 +77,19 @@ export async function POST(request: NextRequest) {
         }
 
         // 3. Preparar datos de respuesta
-        let userData = {
+        let userData: any = {
             cedula: authData.cedula || cedula,
-            name: authData.nombre || 'Usuario'
+            name: authData.nombre || 'Usuario',
+            company_slug: 'superdeporte',
+            company_name: 'SUPERDEPORTE S.A.',
+            perfil: 'ADMIN'
         };
 
         if (app === 'candidates' && profile) {
             userData.name = profile.name;
+            userData.company_slug = profile.company_slug || 'superdeporte';
+            userData.company_name = profile.company_name || 'SUPERDEPORTE S.A.';
+            userData.perfil = profile.perfil || 'ADMIN';
         }
 
         return NextResponse.json({

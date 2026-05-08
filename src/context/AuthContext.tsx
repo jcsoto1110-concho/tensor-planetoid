@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 interface User {
   cedula: string;
   name: string;
+  company_slug: string;
+  company_name: string;
+  perfil: string;
 }
 
 interface AuthContextType {
