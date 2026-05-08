@@ -60,7 +60,7 @@ export default function LoginPage() {
             <Lock size={32} />
           </div>
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: '0 0 8px' }}>Panel Administrativo</h1>
-          <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Ingresa tus credenciales de Superdeporte S.A.</p>
+          <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Ingresa tus credenciales de Windows de la compañía</p>
         </div>
 
         {error && (
@@ -83,16 +83,16 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Cédula</label>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Usuario Windows</label>
             <div style={{ position: 'relative' }}>
               <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
                 <User size={18} />
               </div>
-              <input 
+                <input 
                 type="text" 
                 value={cedula}
                 onChange={(e) => setCedula(e.target.value)}
-                placeholder="0000000000"
+                placeholder="nombre.apellido"
                 style={{ 
                   width: '100%', 
                   padding: '12px 12px 12px 40px', 

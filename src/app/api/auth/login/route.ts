@@ -14,16 +14,19 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 1. Validar contra el Web Service externo
-        const response = await fetch('https://ns.aseyco.com:444/MSWebServiceNomina/rest/service/wsNominaEmp', {
+        // 1. Validar contra el Web Service de Active Directory (AD)
+        const response = await fetch('https://ns.aseyco.com:444/MSWebServiceNomina/rest/service/adService', {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ cedula, password })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                usuario: cedula, // Asumimos que el campo que antes era cédula ahora recibe el usuario de Windows
+                password 
+            })
         });
 
         if (!response.ok) {
             return NextResponse.json(
-                { success: false, error: 'Credenciales inválidas en el sistema de nómina' },
+                { success: false, error: 'Credenciales de Windows inválidas' },
                 { status: 401 }
             );
         }
