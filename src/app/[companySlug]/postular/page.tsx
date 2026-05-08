@@ -1,15 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { supabase } from '@/lib/supabase'
 import { UploadCloud, CheckCircle2, AlertCircle, Briefcase, MapPin, User, Mail, Clock, ChevronDown } from 'lucide-react'
+import { useParams } from 'next/navigation'
 
 export default function ApplyPage() {
+  const params = useParams()
+  const companySlug = params.companySlug as string
+  
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [jobPositions, setJobPositions] = useState<any[]>([])
+  const [companyInfo, setCompanyInfo] = useState({ name: 'SUPERDEPORTE S.A.', slug: 'superdeporte' })
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -25,11 +30,36 @@ export default function ApplyPage() {
   })
 
   useEffect(() => {
-    fetchJobPositions()
-  }, [])
+    if (companySlug) {
+      fetchCompanyInfo()
+      fetchJobPositions()
+    }
+  }, [companySlug])
+
+  const fetchCompanyInfo = async () => {
+    // Intentar obtener el nombre de la empresa desde los perfiles
+    const { data } = await supabase
+      .from('admin_profiles')
+      .select('company_name')
+      .eq('company_slug', companySlug)
+      .limit(1)
+      .maybeSingle()
+    
+    if (data) {
+      setCompanyInfo({ name: data.company_name, slug: companySlug })
+    } else {
+      // Fallback simple si no hay perfil creado aún para ese slug
+      const name = companySlug.charAt(0).toUpperCase() + companySlug.slice(1) + ' S.A.'
+      setCompanyInfo({ name, slug: companySlug })
+    }
+  }
 
   const fetchJobPositions = async () => {
-    const { data } = await supabase.from('job_positions').select('*').order('cargo', { ascending: true })
+    const { data } = await supabase
+      .from('job_positions')
+      .select('*')
+      .eq('company_slug', companySlug)
+      .order('cargo', { ascending: true })
     if (data) setJobPositions(data)
   }
 
@@ -107,7 +137,8 @@ export default function ApplyPage() {
         skills: formData.herramientas,
         main_achievement: formData.logro,
         key_tools: formData.herramientas,
-        ai_summary: `CED: ${formData.cedula} | TEL: ${formData.celular} | LOGRO: ${formData.logro} | HERRAMIENTAS: ${formData.herramientas} | CONSENTIMIENTO LOPDP: ACEPTADO`
+        ai_summary: `CED: ${formData.cedula} | TEL: ${formData.celular} | LOGRO: ${formData.logro} | HERRAMIENTAS: ${formData.herramientas} | CONSENTIMIENTO LOPDP: ACEPTADO`,
+        company_slug: companySlug
       }])
 
       if (dbError) throw dbError
@@ -129,7 +160,7 @@ export default function ApplyPage() {
           </div>
           <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a', margin: '0 0 16px' }}>¡Postulación Enviada!</h2>
           <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.6', margin: '0 0 32px' }}>
-            Gracias {formData.nombre}, hemos recibido tu hoja de vida. Nuestro equipo de Talento Humano la revisará y se pondrá en contacto contigo muy pronto.
+            Gracias {formData.nombre}, hemos recibido tu hoja de vida. El equipo de Talento Humano de <strong>{companyInfo.name}</strong> la revisará y se pondrá en contacto contigo muy pronto.
           </p>
           <button onClick={() => window.location.reload()} style={{ background: '#002f6c', color: 'white', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
             Enviar otra postulación
@@ -145,7 +176,7 @@ export default function ApplyPage() {
         
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h1 style={{ color: 'white', fontSize: '32px', fontWeight: '800', margin: '0 0 12px', letterSpacing: '-0.02em' }}>Únete a Nuestro Equipo</h1>
-          <p style={{ color: '#93c5fd', fontSize: '16px' }}>SUPERDEPORTE S.A. | Talento Humano</p>
+          <p style={{ color: '#93c5fd', fontSize: '16px' }}>{companyInfo.name} | Talento Humano</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
@@ -290,7 +321,7 @@ export default function ApplyPage() {
                 style={{ width: '20px', height: '20px', marginTop: '2px', cursor: 'pointer' }} 
               />
               <p style={{ fontSize: '13px', color: '#475569', lineHeight: '1.5', margin: 0 }}>
-                Acepto que mis datos personales sean tratados por SUPERDEPORTE S.A. para fines de reclutamiento y selección de personal, conforme a la Ley Orgánica de Protección de Datos Personales.
+                Acepto que mis datos personales sean tratados por <strong>{companyInfo.name}</strong> para fines de reclutamiento y selección de personal, conforme a la Ley Orgánica de Protección de Datos Personales.
               </p>
             </div>
 

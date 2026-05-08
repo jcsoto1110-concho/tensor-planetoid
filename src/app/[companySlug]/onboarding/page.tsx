@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { UploadCloud, CheckCircle2, AlertCircle, Plus, Trash2, Check, FileCheck, Mail, User, Briefcase, MapPin, Eye, RefreshCw } from 'lucide-react'
+import { useParams } from 'next/navigation'
 
-const WELCOME_TEXT = `A nombre de SUPERDEPORTE S.A. es un placer darte la bienvenida, esperamos que disfrutes con nosotros de nuestra actividad favorita, el deporte. Estamos orgullosos de ofrecer la mejor experiencia deportiva a nuestros consumidores a través de una asesoría del más alto nivel. Nos caracterizamos por ser un equipo que juega fuerte, que juega para ganar, sin excusas, siempre obedeciendo las reglas del juego. Estamos convencidos que tus competencias nos llevarán a lograr las metas que nos hemos propuesto. Eres parte de esta comunidad de apasionados por el deporte, dispuestos a transformar su entorno y contagiar esta pasión, volviéndose dueños del resultado y siempre trabajando hacia un mismo objetivo.`
+const GET_WELCOME_TEXT = (companyName: string) => `A nombre de ${companyName} es un placer darte la bienvenida, esperamos que disfrutes con nosotros de nuestra actividad favorita, el deporte. Estamos orgullosos de ofrecer la mejor experiencia deportiva a nuestros consumidores a través de una asesoría del más alto nivel. Nos caracterizamos por ser un equipo que juega fuerte, que juega para ganar, sin excusas, siempre obedeciendo las reglas del juego. Estamos convencidos que tus competencias nos llevarán a lograr las metas que nos hemos propuesto. Eres parte de esta comunidad de apasionados por el deporte, dispuestos a transformar su entorno y contagiar esta pasión, volviéndose dueños del resultado y siempre trabajando hacia un mismo objetivo.`
 
 const REQUIRED_DOCS = [
   "Hoja de vida actualizada",
@@ -29,11 +30,37 @@ const TABS = [
 ]
 
 export default function OnboardingTabs() {
+  const params = useParams()
+  const companySlug = params.companySlug as string
+
   const [activeTab, setActiveTab] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [files, setFiles] = useState<Record<string, File | null>>({})
   const [isSuccess, setIsSuccess] = useState(false)
+  const [companyInfo, setCompanyInfo] = useState({ name: 'SUPERDEPORTE S.A.', slug: 'superdeporte' })
+
+  useEffect(() => {
+    if (companySlug) {
+      fetchCompanyInfo()
+    }
+  }, [companySlug])
+
+  const fetchCompanyInfo = async () => {
+    const { data } = await supabase
+      .from('admin_profiles')
+      .select('company_name')
+      .eq('company_slug', companySlug)
+      .limit(1)
+      .maybeSingle()
+    
+    if (data) {
+      setCompanyInfo({ name: data.company_name, slug: companySlug })
+    } else {
+      const name = companySlug.charAt(0).toUpperCase() + companySlug.slice(1) + ' S.A.'
+      setCompanyInfo({ name, slug: companySlug })
+    }
+  }
 
   const [formData, setFormData] = useState({
     consentimiento: false, tratamiento: 'Sr.', nombres: '', apellido1: '', apellido2: '', ciudad_nacimiento: '', fecha_nacimiento: '', estado_civil: 'Soltera/o', nacionalidad: 'ECUADOR', cedula: '', banco_produbanco: '', tipo_cuenta: 'Cuenta de Ahorros', ciudad_residencia: '', direccion: '', telefono: '', celular: '', email: ''
@@ -244,7 +271,8 @@ export default function OnboardingTabs() {
         cargas_familiares: { conyuge: conyuge.tiene ? conyuge : null, hijos },
         estudios: [estudio], 
         documentos: documentosUrls,
-        status: 'LLENADO'
+        status: 'LLENADO',
+        company_slug: companySlug
       }
 
       const { error: dbError } = await supabase.from('onboarding_candidates').update(payload).eq('email', formData.email.toLowerCase())
@@ -320,7 +348,7 @@ export default function OnboardingTabs() {
       <div className="onboarding-container">
         <header className="onboarding-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 className="onboarding-title">SUPERDEPORTE S.A.</h1>
+            <h1 className="onboarding-title">{companyInfo.name}</h1>
             <p className="onboarding-subtitle">Ficha de Ingreso de Personal</p>
           </div>
           <button 
@@ -367,7 +395,7 @@ export default function OnboardingTabs() {
               {activeTab === 1 && (
                 <div>
                   <h2 className="section-title">Bienvenido/a al equipo</h2>
-                  <p style={{ color: '#4b5563', lineHeight: 1.6, marginBottom: '32px' }}>{WELCOME_TEXT}</p>
+                  <p style={{ color: '#4b5563', lineHeight: 1.6, marginBottom: '32px' }}>{GET_WELCOME_TEXT(companyInfo.name)}</p>
 
                   <div className="req-box">
                     <div className="req-title"><FileCheck size={20} /> Requisitos Obligatorios</div>
@@ -562,7 +590,7 @@ export default function OnboardingTabs() {
                   <div style={{ marginTop: '32px', backgroundColor: '#f9fafb', padding: '20px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                     <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer' }}>
                       <input type="checkbox" name="consentimiento" checked={formData.consentimiento} onChange={handleChange} style={{ marginTop: '4px', width: '20px', height: '20px' }} />
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151', lineHeight: 1.5 }}>Autorizo el tratamiento de mis datos personales para el proceso de selección y futuras oportunidades laborales en Superdeporte S.A. *</span>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151', lineHeight: 1.5 }}>Autorizo el tratamiento de mis datos personales para el proceso de selección y futuras oportunidades laborales en <strong>{companyInfo.name}</strong>. *</span>
                     </label>
                   </div>
 
