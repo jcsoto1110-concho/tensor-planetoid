@@ -254,6 +254,22 @@ export default function CandidatesAdmin() {
     }
   }
 
+  const handleMarkAsReviewed = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('email_resumes')
+        .update({ classification_status: 'REVIEWED' })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Actualizar estado local
+      setResumes(prev => prev.map(r => r.id === id ? { ...r, classification_status: 'REVIEWED' } : r));
+    } catch (e: any) {
+      alert('Error al marcar como revisado: ' + e.message);
+    }
+  }
+
   const fetchTracking = async (cargo: string) => {
     const res = await fetch(`/api/candidate-tracking?cargo=${encodeURIComponent(cargo)}`)
     const data = await res.json()
@@ -856,7 +872,20 @@ export default function CandidatesAdmin() {
                                   </button>
                                 )}
                               </div>
-                            ) : <button className="ai-btn" onClick={() => handleAnalyzeResume(r.id)} disabled={analyzingId === r.id}>{analyzingId === r.id ? 'Analizando...' : 'Analizar con IA'}</button>}
+                            ) : (
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                <button className="ai-btn" onClick={() => handleAnalyzeResume(r.id)} disabled={analyzingId === r.id}>
+                                  {analyzingId === r.id ? 'Analizando...' : 'Analizar con IA'}
+                                </button>
+                                <button 
+                                  className="ai-btn" 
+                                  style={{ background: '#10b981', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.2)' }} 
+                                  onClick={() => handleMarkAsReviewed(r.id)}
+                                >
+                                  Aceptar Directo (Sin IA)
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
