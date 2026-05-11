@@ -5,6 +5,26 @@ import { supabase } from '@/lib/supabase'
 import { UploadCloud, CheckCircle2, AlertCircle, Briefcase, MapPin, User, Mail, Clock, ChevronDown } from 'lucide-react'
 import { useParams } from 'next/navigation'
 
+const CONSENT_TEXT = (companyName: string) => `CONSENTIMIENTO INFORMADO PARA EL TRATAMIENTO DE DATOS PERSONALES DE POSTULANTES
+
+Al registrar mis datos y cargar mi hoja de vida en la presente plataforma, declaro que he sido informado/a de forma clara, previa, expresa y suficiente sobre el tratamiento de mis datos personales por parte de ${companyName}, en calidad de Responsable del Tratamiento, conforme a la Ley Orgánica de Protección de Datos Personales y su Reglamento.
+
+Autorizo de manera libre, específica, informada e inequívoca a ${companyName} para recopilar, registrar, almacenar, consultar, analizar, clasificar, conservar y tratar mis datos personales ingresados en la plataforma, así como aquellos contenidos en mi hoja de vida, con la finalidad de gestionar mi postulación, evaluar mi perfil profesional, contactarme en relación con procesos de selección actuales o futuros, verificar la información proporcionada y determinar mi posible adecuación a una vacante.
+
+Declaro conocer que, como parte del proceso de selección, ${companyName} podrá utilizar herramientas tecnológicas con funcionalidades de inteligencia artificial, cuyo objetivo será generar un resumen breve de mi perfil profesional, experiencia, formación, habilidades y posible compatibilidad con la vacante a la que aplico, con el fin de facilitar la revisión inicial por parte del área de Desarrollo Humano y Organizacional —DHO—.
+
+El uso de inteligencia artificial tendrá carácter auxiliar y de apoyo, por lo que no sustituirá necesariamente la revisión humana ni implicará por sí solo una decisión definitiva de contratación, descarte o vinculación laboral. La decisión final dentro del proceso de selección corresponderá al área competente de ${companyName}.
+
+Los datos personales tratados podrán incluir: nombres y apellidos, número de identificación, datos de contacto, domicilio o ciudad de residencia, formación académica, experiencia laboral, referencias, competencias, aspiración salarial, disponibilidad, información contenida en la hoja de vida y demás datos que el postulante proporcione voluntariamente en la plataforma.
+
+En caso de que mi hoja de vida contenga datos sensibles o categorías especiales de datos personales, declaro que los proporciono voluntariamente y autorizo su tratamiento únicamente en la medida en que sean estrictamente necesarios para la gestión de mi postulación. No obstante, se recomienda no incluir información sensible que no sea necesaria para el proceso de selección.
+
+Mis datos serán conservados durante el tiempo necesario para gestionar la postulación y, posteriormente, podrán mantenerse en la base de talento de ${companyName} para futuras vacantes, por un plazo máximo de 12 meses, salvo que solicite previamente su eliminación o revoque mi consentimiento.
+
+Declaro conocer que puedo ejercer en cualquier momento mis derechos de acceso, rectificación, actualización, eliminación, oposición, anulación, limitación del tratamiento, portabilidad y derecho a no ser objeto de una decisión basada únicamente en valoraciones automatizadas, escribiendo al correo: privacidad@superdeporte.com.ec. También podré revocar mi consentimiento en cualquier momento, sin que ello afecte la licitud del tratamiento realizado con anterioridad a dicha revocatoria.
+
+Asimismo, declaro conocer que la negativa a proporcionar mis datos personales o a aceptar este consentimiento impedirá continuar con el registro de mi postulación en la plataforma, al ser información necesaria para gestionar el proceso de selección.`;
+
 export default function ApplyPage() {
   const params = useParams()
   const companySlug = params.companySlug as string
@@ -26,7 +46,8 @@ export default function ApplyPage() {
     experiencia: '',
     logro: '',
     herramientas: '',
-    consentimiento: false
+    consentimiento: false,
+    noAceptoConsentimiento: false
   })
 
   useEffect(() => {
@@ -66,7 +87,14 @@ export default function ApplyPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
-    setFormData(prev => ({ ...prev, [name]: val }))
+    
+    if (name === 'consentimiento' && val) {
+      setFormData(prev => ({ ...prev, consentimiento: true, noAceptoConsentimiento: false }))
+    } else if (name === 'noAceptoConsentimiento' && val) {
+      setFormData(prev => ({ ...prev, consentimiento: false, noAceptoConsentimiento: true }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: val }))
+    }
   }
 
   const handleJobSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -82,7 +110,7 @@ export default function ApplyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file) { setError('Por favor, adjunta tu hoja de vida en PDF.'); return }
-    if (!formData.consentimiento) { setError('Debes aceptar el tratamiento de datos personales.'); return }
+    if (!formData.consentimiento) { setError('Debes aceptar el tratamiento de datos personales para postularte.'); return }
     if (formData.cedula.length < 10) { setError('La cédula debe tener al menos 10 dígitos.'); return }
     
     setLoading(true)
@@ -311,18 +339,42 @@ export default function ApplyPage() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <input 
-                type="checkbox" 
-                name="consentimiento" 
-                required 
-                checked={formData.consentimiento} 
-                onChange={handleChange} 
-                style={{ width: '20px', height: '20px', marginTop: '2px', cursor: 'pointer' }} 
-              />
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: '1.5', margin: 0 }}>
-                Acepto que mis datos personales sean tratados por <strong>{companyInfo.name}</strong> para fines de reclutamiento y selección de personal, conforme a la Ley Orgánica de Protección de Datos Personales.
-              </p>
+            <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+              <div style={{ maxHeight: '200px', overflowY: 'auto', fontSize: '13px', color: '#475569', lineHeight: '1.6', marginBottom: '20px', padding: '12px', background: 'white', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                {CONSENT_TEXT(companyInfo.name).split('\n\n').map((para, i) => (
+                  <p key={i} style={{ marginBottom: para.includes(':') ? '8px' : '12px', fontWeight: para.startsWith('CONSENTIMIENTO') ? '800' : 'normal' }}>
+                    {para}
+                  </p>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gap: '12px' }}>
+                <label style={{ display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer', padding: '12px', borderRadius: '8px', background: formData.consentimiento ? '#f0fdf4' : 'transparent', border: `1px solid ${formData.consentimiento ? '#22c55e' : 'transparent'}`, transition: 'all 0.2s' }}>
+                  <input 
+                    type="checkbox" 
+                    name="consentimiento" 
+                    checked={formData.consentimiento} 
+                    onChange={handleChange} 
+                    style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
+                  />
+                  <span style={{ fontSize: '13px', color: '#1e293b', fontWeight: '500' }}>
+                    He leído y acepto el tratamiento de mis datos personales para la gestión de mi postulación, incluyendo el uso auxiliar de herramientas de inteligencia artificial.
+                  </span>
+                </label>
+
+                <label style={{ display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer', padding: '12px', borderRadius: '8px', background: formData.noAceptoConsentimiento ? '#fef2f2' : 'transparent', border: `1px solid ${formData.noAceptoConsentimiento ? '#ef4444' : 'transparent'}`, transition: 'all 0.2s' }}>
+                  <input 
+                    type="checkbox" 
+                    name="noAceptoConsentimiento" 
+                    checked={formData.noAceptoConsentimiento} 
+                    onChange={handleChange} 
+                    style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
+                  />
+                  <span style={{ fontSize: '13px', color: '#1e293b', fontWeight: '500' }}>
+                    He leído y no acepto el tratamiento de mis datos personales para la gestión de mi postulación.
+                  </span>
+                </label>
+              </div>
             </div>
 
             <button 
@@ -350,7 +402,7 @@ export default function ApplyPage() {
         </form>
 
         <p style={{ textAlign: 'center', marginTop: '32px', color: '#93c5fd', fontSize: '13px' }}>
-          Al enviar este formulario, aceptas nuestra política de tratamiento de datos personales.
+          Al enviar este formulario, confirmas que la información proporcionada es verídica.
         </p>
 
       </div>

@@ -29,6 +29,26 @@ const TABS = [
   { id: 5, label: 'Documentos' },
 ]
 
+const CONSENT_TEXT = (companyName: string) => `CONSENTIMIENTO INFORMADO PARA EL TRATAMIENTO DE DATOS PERSONALES DE POSTULANTES
+
+Al registrar mis datos y cargar mi hoja de vida en la presente plataforma, declaro que he sido informado/a de forma clara, previa, expresa y suficiente sobre el tratamiento de mis datos personales por parte de ${companyName}, en calidad de Responsable del Tratamiento, conforme a la Ley Orgánica de Protección de Datos Personales y su Reglamento.
+
+Autorizo de manera libre, específica, informada e inequívoca a ${companyName} para recopilar, registrar, almacenar, consultar, analizar, clasificar, conservar y tratar mis datos personales ingresados en la plataforma, así como aquellos contenidos en mi hoja de vida, con la finalidad de gestionar mi postulación, evaluar mi perfil profesional, contactarme en relación con procesos de selección actuales o futuros, verificar la información proporcionada y determinar mi posible adecuación a una vacante.
+
+Declaro conocer que, como parte del proceso de selección, ${companyName} podrá utilizar herramientas tecnológicas con funcionalidades de inteligencia artificial, cuyo objetivo será generar un resumen breve de mi perfil profesional, experiencia, formación, habilidades y posible compatibilidad con la vacante a la que aplico, con el fin de facilitar la revisión inicial por parte del área de Desarrollo Humano y Organizacional —DHO—.
+
+El uso de inteligencia artificial tendrá carácter auxiliar y de apoyo, por lo que no sustituirá necesariamente la revisión humana ni implicará por sí solo una decisión definitiva de contratación, descarte o vinculación laboral. La decisión final dentro del proceso de selección corresponderá al área competente de ${companyName}.
+
+Los datos personales tratados podrán incluir: nombres y apellidos, número de identificación, datos de contacto, domicilio o ciudad de residencia, formación académica, experiencia laboral, referencias, competencias, aspiración salarial, disponibilidad, información contenida en la hoja de vida y demás datos que el postulante proporcione voluntariamente en la plataforma.
+
+En caso de que mi hoja de vida contenga datos sensibles o categorías especiales de datos personales, declaro que los proporciono voluntariamente y autorizo su tratamiento únicamente en la medida en que sean estrictamente necesarios para la gestión de mi postulación. No obstante, se recomienda no incluir información sensible que no sea necesaria para el proceso de selección.
+
+Mis datos serán conservados durante el tiempo necesario para gestionar la postulación y, posteriormente, podrán mantenerse en la base de talento de ${companyName} para futuras vacantes, por un plazo máximo de 12 meses, salvo que solicite previamente su eliminación o revoque mi consentimiento.
+
+Declaro conocer que puedo ejercer en cualquier momento mis derechos de acceso, rectificación, actualización, eliminación, oposición, anulación, limitación del tratamiento, portabilidad y derecho a no ser objeto de una decisión basada únicamente en valoraciones automatizadas, escribiendo al correo: privacidad@superdeporte.com.ec. También podré revocar mi consentimiento en cualquier momento, sin que ello afecte la licitud del tratamiento realizado con anterioridad a dicha revocatoria.
+
+Asimismo, declaro conocer que la negativa a proporcionar mis datos personales o a aceptar este consentimiento impedirá continuar con el registro de mi postulación en la plataforma, al ser información necesaria para gestionar el proceso de selección.`;
+
 export default function OnboardingTabs() {
   const params = useParams()
   const companySlug = params.companySlug as string
@@ -63,7 +83,7 @@ export default function OnboardingTabs() {
   }
 
   const [formData, setFormData] = useState({
-    consentimiento: false, tratamiento: 'Sr.', nombres: '', apellido1: '', apellido2: '', ciudad_nacimiento: '', fecha_nacimiento: '', estado_civil: 'Soltera/o', nacionalidad: 'ECUADOR', cedula: '', banco_produbanco: '', tipo_cuenta: 'Cuenta de Ahorros', ciudad_residencia: '', direccion: '', telefono: '', celular: '', email: ''
+    consentimiento: false, noAceptoConsentimiento: false, tratamiento: 'Sr.', nombres: '', apellido1: '', apellido2: '', ciudad_nacimiento: '', fecha_nacimiento: '', estado_civil: 'Soltera/o', nacionalidad: 'ECUADOR', cedula: '', banco_produbanco: '', tipo_cuenta: 'Cuenta de Ahorros', ciudad_residencia: '', direccion: '', telefono: '', celular: '', email: ''
   })
   const [conyuge, setConyuge] = useState({ tiene: false, nombres: '', apellidos: '', fecha_nacimiento: '', nacionalidad: 'Ecuador', ciudad_nacimiento: '', cedula: '' })
   const [hijos, setHijos] = useState<any[]>([])
@@ -71,7 +91,14 @@ export default function OnboardingTabs() {
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value.toUpperCase() }))
+    
+    if (name === 'consentimiento' && checked) {
+      setFormData(prev => ({ ...prev, consentimiento: true, noAceptoConsentimiento: false }))
+    } else if (name === 'noAceptoConsentimiento' && checked) {
+      setFormData(prev => ({ ...prev, consentimiento: false, noAceptoConsentimiento: true }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value.toUpperCase() }))
+    }
   }
 
   const handleConyugeChange = (e: any) => {
@@ -343,6 +370,14 @@ export default function OnboardingTabs() {
         .upload-area { border: 2px dashed #d1d5db; border-radius: 8px; padding: 48px; text-align: center; cursor: pointer; background-color: #f9fafb; transition: all 0.2s; }
         .upload-area:hover { background-color: #f3f4f6; border-color: #9ca3af; }
         .upload-area.has-file { border-color: #10b981; background-color: #ecfdf5; }
+
+        .consent-box { background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 24px; border-radius: 8px; margin-top: 32px; }
+        .consent-text-container { max-height: 200px; overflow-y: auto; background-color: white; border: 1px solid #f1f5f9; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #4b5563; margin-bottom: 20px; }
+        .consent-options { display: grid; gap: 12px; }
+        .consent-option { display: flex; gap: 12px; alignItems: center; cursor: pointer; padding: 12px; border-radius: 8px; transition: all 0.2s; border: 1px solid transparent; }
+        .consent-option.accepted { background-color: #f0fdf4; border-color: #22c55e; }
+        .consent-option.rejected { background-color: #fef2f2; border-color: #ef4444; }
+        .consent-option-text { font-size: 13px; color: #1e293b; font-weight: 500; }
       `}</style>
 
       <div className="onboarding-container">
@@ -587,11 +622,42 @@ export default function OnboardingTabs() {
                     ))}
                   </div>
 
-                  <div style={{ marginTop: '32px', backgroundColor: '#f9fafb', padding: '20px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                    <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer' }}>
-                      <input type="checkbox" name="consentimiento" checked={formData.consentimiento} onChange={handleChange} style={{ marginTop: '4px', width: '20px', height: '20px' }} />
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151', lineHeight: 1.5 }}>Autorizo el tratamiento de mis datos personales para el proceso de selección y futuras oportunidades laborales en <strong>{companyInfo.name}</strong>. *</span>
-                    </label>
+                  <div className="consent-box">
+                    <div className="consent-text-container">
+                      {CONSENT_TEXT(companyInfo.name).split('\n\n').map((para, i) => (
+                        <p key={i} style={{ marginBottom: para.includes(':') ? '8px' : '12px', fontWeight: para.startsWith('CONSENTIMIENTO') ? '800' : 'normal' }}>
+                          {para}
+                        </p>
+                      ))}
+                    </div>
+
+                    <div className="consent-options">
+                      <label className={`consent-option ${formData.consentimiento ? 'accepted' : ''}`}>
+                        <input 
+                          type="checkbox" 
+                          name="consentimiento" 
+                          checked={formData.consentimiento} 
+                          onChange={handleChange} 
+                          style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
+                        />
+                        <span className="consent-option-text">
+                          He leído y acepto el tratamiento de mis datos personales para la gestión de mi postulación, incluyendo el uso auxiliar de herramientas de inteligencia artificial para generar un resumen de mi perfil profesional y facilitar la revisión de mi hoja de vida por parte del área de DHO.
+                        </span>
+                      </label>
+
+                      <label className={`consent-option ${formData.noAceptoConsentimiento ? 'rejected' : ''}`}>
+                        <input 
+                          type="checkbox" 
+                          name="noAceptoConsentimiento" 
+                          checked={formData.noAceptoConsentimiento} 
+                          onChange={handleChange} 
+                          style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
+                        />
+                        <span className="consent-option-text">
+                          He leído y no acepto el tratamiento de mis datos personales para la gestión de mi postulación, por lo que entiendo que no será posible continuar con mi registro y participación en los procesos de selección de {companyInfo.name}.
+                        </span>
+                      </label>
+                    </div>
                   </div>
 
                   <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
