@@ -57,6 +57,13 @@ export default function ApplyPage() {
     }
   }, [companySlug])
 
+  // Actualizar el titulo de la pestana del navegador dinamicamente
+  useEffect(() => {
+    if (companyInfo.name && companyInfo.name !== 'SUPERDEPORTE S.A.') {
+      document.title = `Unete a ${companyInfo.name} | Talento Humano`
+    }
+  }, [companyInfo.name])
+
   const fetchCompanyInfo = async () => {
     // Intentar obtener el nombre de la empresa desde los perfiles
     const { data } = await supabase
