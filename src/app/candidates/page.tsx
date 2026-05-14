@@ -417,12 +417,13 @@ export default function CandidatesAdmin() {
       })
       const data = await res.json()
       if (res.ok) {
-        fetchResumes()
+        await fetchResumes()
+        alert('✅ Análisis completado con éxito.')
       } else {
-        alert('Error de IA: ' + (data.error || 'Fallo desconocido'))
+        alert('❌ Error de IA: ' + (data.error || 'Fallo desconocido'))
       }
     } catch (err: any) {
-      alert('Error de conexión con la IA: ' + err.message)
+      alert('❌ Error de conexión: ' + err.message)
     } finally {
       setAnalyzingId(null)
     }
