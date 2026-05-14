@@ -11,11 +11,15 @@ export async function POST(req: NextRequest) {
   const onboardingUrl = process.env.ONBOARDING_URL || 'https://contrataciosuper.app/onboarding';
 
   try {
-    const { candidateName, candidateEmail } = await req.json();
+    const { candidateName, candidateEmail, companySlug } = await req.json();
 
     if (!candidateEmail) {
       return NextResponse.json({ error: 'Se requiere el email del candidato.' }, { status: 400 });
     }
+
+    // URL de onboarding dinámica según empresa
+    const slug = companySlug || 'superdeporte';
+    const onboardingUrl = `https://uneteanuestroequipo.ec.aseyco.com/${slug}/onboarding`;
 
     // 1. Obtener Token de Acceso
     const msalConfig = {

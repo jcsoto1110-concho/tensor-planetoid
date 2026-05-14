@@ -13,7 +13,7 @@ export default function CandidatesAdmin() {
 
   const [candidates, setCandidates] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [portalUrl, setPortalUrl] = useState(`https://${user?.company_slug || 'superdeporte'}.com/onboarding`)
+  const [portalUrl, setPortalUrl] = useState(`https://uneteanuestroequipo.ec.aseyco.com/${user?.company_slug || 'superdeporte'}/onboarding`)
   const [isMounted, setIsMounted] = useState(false)
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(portalUrl)}`
@@ -80,6 +80,8 @@ export default function CandidatesAdmin() {
 
   useEffect(() => {
     if (user) {
+      // Actualizar la URL con el slug real del usuario cuando esté disponible
+      setPortalUrl(`https://uneteanuestroequipo.ec.aseyco.com/${user.company_slug}/onboarding`)
       const savedKey = localStorage.getItem('openai_api_key')
       if (savedKey) setOpenAiKey(savedKey)
       
@@ -174,7 +176,8 @@ export default function CandidatesAdmin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           candidateName: candidate.sender_name || candidate.name,
-          candidateEmail: candidate.sender_email
+          candidateEmail: candidate.sender_email,
+          companySlug: user?.company_slug
         })
       });
 
