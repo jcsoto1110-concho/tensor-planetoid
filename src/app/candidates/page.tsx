@@ -727,14 +727,40 @@ export default function CandidatesAdmin() {
           </div>
         </header>
         <div className="admin-container">
-          <div className="qr-card">
-            <div>
-              <label className="ranking-label">Link Candidatos</label>
-              <input type="text" value={portalUrl} onChange={e => setPortalUrl(e.target.value)} className="qr-input" />
+          <div className="qr-card" style={{ gap: '32px', flexWrap: 'wrap' }}>
+            {/* LINK ONBOARDING */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div>
+                <label className="ranking-label">🚀 Link Onboarding (Nuevos Ingresos)</label>
+                <input type="text" value={portalUrl} onChange={e => setPortalUrl(e.target.value)} className="qr-input" />
+              </div>
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(portalUrl)}`} alt="QR Onboarding" style={{ width: '64px', height: '64px', borderRadius: '8px' }} />
             </div>
-            <img src={qrCodeUrl} alt="QR" style={{ width: '64px', height: '64px' }} />
-            <button 
-              onClick={() => { fetchCandidates(); fetchResumes(); fetchPipeline(); }} 
+
+            {/* SEPARADOR */}
+            <div style={{ width: '1px', background: '#e2e8f0', alignSelf: 'stretch' }} />
+
+            {/* LINK POSTULACIÓN */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div>
+                <label className="ranking-label">📋 Link Postulación (Candidatos)</label>
+                <input
+                  type="text"
+                  value={`https://uneteanuestroequipo.ec.aseyco.com/${user?.company_slug || 'superdeporte'}/postular`}
+                  readOnly
+                  className="qr-input"
+                  style={{ background: '#f8fafc', color: '#475569', cursor: 'default' }}
+                />
+              </div>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://uneteanuestroequipo.ec.aseyco.com/${user?.company_slug || 'superdeporte'}/postular`)}`}
+                alt="QR Postulación"
+                style={{ width: '64px', height: '64px', borderRadius: '8px' }}
+              />
+            </div>
+
+            <button
+              onClick={() => { fetchCandidates(); fetchResumes(); fetchPipeline(); }}
               className="ranking-btn-primary"
               style={{ width: 'auto', padding: '12px 24px', marginLeft: 'auto', borderRadius: '10px' }}
             >
