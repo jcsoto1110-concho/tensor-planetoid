@@ -1141,13 +1141,12 @@ export default function CandidatesAdmin() {
   const fetchPipeline = async () => {
     if (!user) return
     setPipelineLoading(true)
-    const res = await fetch(`/api/candidate-tracking?company_slug=${user.company_slug}&cedula=${user.cedula}`)
+    const res = await fetch(`/api/candidate-tracking?company_slug=${user.company_slug}`)
     const data = await res.json()
     if (data.data) {
-      // Filtrar por empresa y por usuario individual para el resumen
+      // Filtrar solo por empresa para el resumen global
       setPipelineData(data.data.filter((p: any) => 
-        p.candidate?.company_slug === user.company_slug && 
-        p.created_by_cedula === user.cedula
+        p.candidate?.company_slug === user.company_slug
       ))
     }
     // Cargar pruebas psicométricas
