@@ -1641,6 +1641,23 @@ export default function CandidatesAdmin() {
     setLoadingResumes(false)
   }
 
+  const handleToggleReviewed = async (resume_id: string, currentStatus: string | null) => {
+    const isCurrentlyReviewed = currentStatus === 'REVIEWED' || currentStatus === 'MANUALLY_REVIEWED';
+    const newStatus = isCurrentlyReviewed ? null : 'MANUALLY_REVIEWED';
+    
+    const { error } = await supabase
+      .from('email_resumes')
+      .update({ classification_status: newStatus })
+      .eq('id', resume_id);
+
+    if (!error) {
+      setResumes(prev => prev.map(r => r.id === resume_id ? { ...r, classification_status: newStatus } : r));
+    } else {
+      console.error("Error updating review status:", error);
+      alert("Error al actualizar el estado de revisión.");
+    }
+  }
+
   const handleUpdatePhone = async (id: string, phone: string) => {
     const newPhone = window.prompt("Editar número de teléfono:", phone);
     if (newPhone === null) return;
@@ -2990,6 +3007,16 @@ export default function CandidatesAdmin() {
                                 <Settings size={12} />
                               </button>
                             </div>
+                            
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: (r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#16a34a' : '#64748b', cursor: 'pointer', background: (r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#f0fdf4' : '#f8fafc', border: `1px solid ${(r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#bbf7d0' : '#e2e8f0'}`, padding: '4px 8px', borderRadius: '6px', marginBottom: '8px' }}>
+                              <input 
+                                type="checkbox" 
+                                checked={r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED'}
+                                onChange={() => handleToggleReviewed(r.id, r.classification_status || null)}
+                                style={{ cursor: 'pointer' }}
+                              />
+                              {(r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '✓ Perfil Revisado' : 'Marcar como Revisado'}
+                            </label>
                             
                             {/* Mostramos los datos si está REVISADO o si ya tiene cargo extraído */}
                             {(r.classification_status === 'REVIEWED' || r.position) ? (
