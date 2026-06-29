@@ -4239,6 +4239,7 @@ export default function CandidatesAdmin() {
               {([
                 { key: 'candidatos', label: '👥 Candidatos' },
                 { key: 'resultados', label: '📊 Resultados' },
+                { key: 'medica',     label: '⚕️ Valoración Médica' },
                 { key: 'fase2',      label: '🏆 Fase 2' },
               ] as const).map(tab => (
                 <button
@@ -4696,6 +4697,61 @@ export default function CandidatesAdmin() {
                   </div>
                 </div>
               )
+            })()}
+
+            {/* ── PESTAÑA: VALORACIÓN MÉDICA ─────────────────────────────── */}
+            {formativasSubTab === 'medica' && (() => {
+              const sessionCands = formativeSessionFilter === 'ALL'
+                ? formativeCandidates
+                : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
+
+              const passedCands = sessionCands.filter(c => c.fase === 2);
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)', border: '1px solid #f5d0fe', borderRadius: '16px', padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                    <div>
+                      <h4 style={{ margin: 0, color: '#86198f', fontSize: '14px', fontWeight: 800 }}>⚕️ Valoración Médica</h4>
+                      <p style={{ margin: '4px 0 0', color: '#701a75', fontSize: '12.5px' }}>Estos candidatos pasaron la entrevista y evaluación. Descarga el reporte para enviar a valoración médica.</p>
+                    </div>
+                    <button onClick={handleExportMedica} className="ranking-btn-primary" style={{ background: 'linear-gradient(135deg, #d946ef, #c026d3)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}>
+                      📥 Descargar Excel
+                    </button>
+                  </div>
+
+                  <div className="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Nombres y Apellidos</th>
+                          <th>Responsable</th>
+                          <th>Celular</th>
+                          <th>Cédula</th>
+                          <th>Correo</th>
+                          <th>Domicilio</th>
+                          <th>Sector</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {passedCands.map(c => (
+                          <tr key={c.id}>
+                            <td style={{ fontWeight: 600 }}>{c.email_resumes?.sender_name || 'Desconocido'}</td>
+                            <td>{c.created_by_user || 'Sin asignar'}</td>
+                            <td>{c.email_resumes?.sender_phone}</td>
+                            <td>{c.email_resumes?.cedula}</td>
+                            <td>{c.email_resumes?.sender_email}</td>
+                            <td>{c.email_resumes?.address || c.email_resumes?.city}</td>
+                            <td>{c.email_resumes?.sector}</td>
+                          </tr>
+                        ))}
+                        {passedCands.length === 0 && (
+                          <tr><td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>No hay candidatos en esta fase.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
             })()}
 
             {/* ── PESTAÑA: FASE 2 ─────────────────────────────────────────── */}
