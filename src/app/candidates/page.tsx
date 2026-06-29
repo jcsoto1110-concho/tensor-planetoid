@@ -350,7 +350,7 @@ export default function CandidatesAdmin() {
   const [formativeSessionFilter, setFormativeSessionFilter] = useState<string>('ALL')
   const [formativeSessions, setFormativeSessions] = useState<string[]>([])
   const [formativeNameFilter, setFormativeNameFilter] = useState('')
-  const [formativasSubTab, setFormativasSubTab] = useState<'candidatos' | 'resultados' | 'fase2'>('candidatos')
+  const [formativasSubTab, setFormativasSubTab] = useState<'candidatos' | 'resultados' | 'medica' | 'fase2'>('candidatos')
   const [fase2MinScore, setFase2MinScore] = useState(0)
   const [promotingFase2, setPromotingFase2] = useState(false)
   const [sendingBulkOnboarding, setSendingBulkOnboarding] = useState(false)
