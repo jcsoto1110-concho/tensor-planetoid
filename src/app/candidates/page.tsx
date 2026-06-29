@@ -597,6 +597,32 @@ export default function CandidatesAdmin() {
       XLSX.writeFile(wb, `Formativas_${sessionName}.xlsx`);
     }
 
+    const resumeIdsToArchive = sessionCands.map(c => c.resume_id).filter(Boolean);
+    if (resumeIdsToArchive.length > 0) {
+      const { error } = await supabase.from('candidate_tracking')
+        .update({ status: 'FORMATIVA_CERRADA' })
+        .in('resume_id', resumeIdsToArchive);
+        
+      if (!error) {
+        setTrackingMap(prev => {
+          const newMap = { ...prev };
+          resumeIdsToArchive.forEach(id => {
+            if (newMap[id]) newMap[id] = { ...newMap[id], status: 'FORMATIVA_CERRADA' };
+          });
+          return newMap;
+        });
+        fetchPipeline();
+      }
+      
+      // Eliminar de formativas para que no salgan más en la pantalla
+      await supabase.from('formative_candidates')
+        .delete()
+        .in('resume_id', resumeIdsToArchive);
+        
+      // Actualizar estado local
+      setFormativeCandidates(prev => prev.filter(c => c.session_title !== sessionName));
+    }
+
     const now = new Date();
     const newTitle = `Formativas ${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${now.getHours()}${now.getMinutes()}`;
     
@@ -1003,7 +1029,7 @@ export default function CandidatesAdmin() {
     
     const trackedResumeIds = Object.keys(trackingMap).filter(resumeId => {
       const tracking = trackingMap[resumeId];
-      return tracking && tracking.cargo === rankingCargo;
+      return tracking && tracking.cargo === rankingCargo && tracking.status !== 'FORMATIVA_CERRADA';
     });
 
     const aiResultsMap = new Map<string, any>();
@@ -1014,6 +1040,7 @@ export default function CandidatesAdmin() {
     const unifiedList: any[] = [];
 
     rankingResults.forEach(r => {
+      if (trackingMap[r.id]?.status === 'FORMATIVA_CERRADA') return;
       unifiedList.push({
         id: r.id,
         name: r.name || r.sender_name || 'Sin Nombre',
