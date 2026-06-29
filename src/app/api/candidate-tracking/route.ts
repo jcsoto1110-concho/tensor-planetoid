@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const cedula = searchParams.get('cedula');
   const company_slug = searchParams.get('company_slug');
 
-  let query = supabase.from('candidate_tracking').select('*');
+  let query = supabase.from('candidate_tracking').select('*').neq('status', 'FORMATIVA_CERRADA');
   
   if (cedula) {
     query = query.eq('created_by_cedula', cedula);
