@@ -636,6 +636,35 @@ export default function CandidatesAdmin() {
     alert(`✅ Sesión "${sessionName}" archivada con éxito. Se ha creado la nueva sesión "${newTitle}".`);
   };
 
+  const handleExportMedica = () => {
+    const sessionCands = formativeSessionFilter === 'ALL'
+      ? formativeCandidates
+      : formativeCandidates.filter(c => c.session_title === formativeSessionFilter);
+
+    const passedCands = sessionCands.filter(c => c.fase === 2);
+
+    if (passedCands.length === 0) {
+      alert("No hay candidatos en esta fase para exportar.");
+      return;
+    }
+
+    const dataToExport = passedCands.map(c => ({
+      'NOMBRES Y APELLIDOS': c.email_resumes?.sender_name || 'Desconocido',
+      'RESPONSABLE': c.created_by_user || 'Sin asignar',
+      'CELULAR': c.email_resumes?.sender_phone || '',
+      'CEDULA': c.email_resumes?.cedula || '',
+      'CORREO': c.email_resumes?.sender_email || '',
+      'DOMICILIO': c.email_resumes?.address || c.email_resumes?.city || '',
+      'SECTOR': c.email_resumes?.sector || ''
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Valoracion Medica");
+    const sessionName = formativeSessionFilter !== 'ALL' ? formativeSessionFilter : 'Todas';
+    XLSX.writeFile(wb, `Valoracion_Medica_${sessionName}.xlsx`);
+  }
+
   const handleCreateSupervisor = async () => {
     if (!user) return
     if (!supervisorName.trim() || !supervisorEmail.trim()) return
