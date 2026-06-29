@@ -1641,6 +1641,88 @@ export default function CandidatesAdmin() {
     setLoadingResumes(false)
   }
 
+  const handleExportNomina = () => {
+    if (candidates.length === 0) {
+      alert('No hay candidatos en Onboarding para exportar.');
+      return;
+    }
+
+    const flatData = candidates.map((c, index) => {
+      const p = c.datos_personales || {};
+      const b = c.datos_bancarios || {};
+      const fam = c.cargas_familiares || {};
+      const conyuge = fam.conyuge || {};
+      const hijos = fam.hijos || [];
+      const estudio = c.educacion || {};
+
+      let ap1 = p.apellido1 || '';
+      let ap2 = p.apellido2 || '';
+      if (!ap1 && !ap2 && c.apellidos) {
+        const parts = c.apellidos.split(' ');
+        ap1 = parts[0] || '';
+        ap2 = parts.length > 1 ? parts.slice(1).join(' ') : '';
+      }
+
+      const primerHijo = hijos.length > 0 ? hijos[0] : {};
+      const segundoHijo = hijos.length > 1 ? hijos[1] : {};
+
+      return {
+        "#": index + 1,
+        "TERCERA_PT": "",
+        "AUTORIZA EL TRATAMIENTO DE DATOS PERSONALES": p.tratamiento || "Sí",
+        "TRABAJADOR NO": "",
+        "INGRESA TUS DOS NOMBRES:": c.nombres || '',
+        "INGRESA TU PRIMER APELLIDO:": ap1,
+        "INGRESA TU SEGUNDO APELLIDO:": ap2,
+        "CIUDAD DE NACIMIENTO": p.ciudad_nacimiento || '',
+        "FECHA DE NACIMIENTO": p.fecha_nacimiento || '',
+        "ESTADO CIVIL": p.estado_civil || '',
+        "NACIONALIDAD": p.nacionalidad || '',
+        "NÚMERO DE CÉDULA": c.cedula || '',
+        "NÚMERO DE CTA O LIBRETA": b.numero_cuenta || '',
+        "TIPO DE CTA": b.tipo_cuenta || '',
+        "CIUDAD EN LA QUE RESIDES": p.ciudad_residencia || '',
+        "DIRECCIÓN DOMICILIARIA (CALLE PRINCIPAL - CALLE SECUNDARIA - NUMERACIÓN)": p.direccion || '',
+        "N° DE TELÉFONO CONVENCIONAL": p.telefono_fijo || 'S/n',
+        "EN EL CASO DE CONTAR CON CARGAS FAMILIARES ESCOGE LAS OPCIONES": hijos.length.toString(),
+        "EN EL CASO DE TENER CONYUGE, INGRESA EL NOMBRE COMPLETO: (2 NOMBRES)": conyuge.tiene ? `${conyuge.nombres || ''} ${conyuge.apellidos || ''}`.trim() : '',
+        "FECHA DE NACIMIENTO DEL CÓNYUGE:": conyuge.fecha_nacimiento || '',
+        "NACIONALIDAD DEL CÓNYUGE": conyuge.nacionalidad || '',
+        "CIUDAD DE NACIMIENTO CÓNYUGE": conyuge.ciudad_nacimiento || '',
+        "NÚMERO CÉDULA CÓNYUGE": conyuge.cedula || '',
+        
+        "EN EL CASO DE TENER HIJOS, INGRESE EL NOMBRE COMPLETO: (2 NOMBRES)": primerHijo.nombres ? `${primerHijo.nombres} ${primerHijo.apellidos}`.trim() : '',
+        "FECHA DE NACIMIENTO DEL HIJO:": primerHijo.fecha_nacimiento || '',
+        "NACIONALIDAD DEL HIJO:": primerHijo.nacionalidad || '',
+        "CIUDAD DE NACIMIENTO DEL HIJO": primerHijo.ciudad_nacimiento || '',
+        "NÚMERO CÉDULA HIJO": primerHijo.cedula || '',
+
+        "EN EL CASO DE TENER HIJOS, INGRESE EL NOMBRE COMPLETO: (2 NOMBRES) ": segundoHijo.nombres ? `${segundoHijo.nombres} ${segundoHijo.apellidos}`.trim() : '',
+        "FECHA DE NACIMIENTO DEL HIJO: ": segundoHijo.fecha_nacimiento || '',
+        "NACIONALIDAD DEL HIJO: ": segundoHijo.nacionalidad || '',
+        "CIUDAD DE NACIMIENTO DEL HIJO ": segundoHijo.ciudad_nacimiento || '',
+        "NÚMERO CÉDULA HIJO ": segundoHijo.cedula || '',
+
+        "Estudios:": estudio.nivel || '',
+        "Título Obtenido:": estudio.titulo || '',
+        "Nombre de Institución Educativa / Universidad :": estudio.institucion || '',
+        "Fecha de inicio de estudios:": estudio.fecha_inicio || '',
+        "Fecha de fin de estudios:": estudio.fecha_fin || '',
+        "Número de celular": p.celular || c.telefono || '',
+        "Correo electrónico": c.email || '',
+        
+        "En el caso de tener Cónyuge, ingresa el apellido completo: (2 apellidos)": conyuge.tiene ? conyuge.apellidos || '' : '',
+        "En el caso de tener hijos, ingresa el apellido completo: (2 apellidos)": primerHijo.apellidos || '',
+        "En el caso de tener hijos, ingresa el apellido completo: (2 apellidos) ": segundoHijo.apellidos || ''
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(flatData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Nómina");
+    XLSX.writeFile(workbook, "Reporte_Nomina_Completa.xlsx");
+  }
+
   const handleToggleReviewed = async (resume_id: string, currentStatus: string | null) => {
     const isCurrentlyReviewed = currentStatus === 'REVIEWED' || currentStatus === 'MANUALLY_REVIEWED';
     const newStatus = isCurrentlyReviewed ? null : 'MANUALLY_REVIEWED';
@@ -4235,7 +4317,14 @@ export default function CandidatesAdmin() {
           <div className="table-container" style={{ padding: '40px', textAlign: 'center' }}>
             <Briefcase size={48} color="#2563eb" style={{ marginBottom: '16px' }} />
             <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Módulo de Nómina</h2>
-            <p style={{ color: '#64748b' }}>Bienvenido al panel de gestión de nómina para {user?.company_name}.</p>
+            <p style={{ color: '#64748b', marginBottom: '24px' }}>Bienvenido al panel de gestión de nómina para {user?.company_name}. Descarga el consolidado de datos.</p>
+            <button 
+              onClick={handleExportNomina} 
+              className="ranking-btn-primary" 
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              📥 Descargar Reporte Completo de Nómina (Excel)
+            </button>
           </div>
         )}
 
