@@ -921,6 +921,12 @@ export default function CandidatesAdmin() {
   const [inboxExp, setInboxExp] = useState('')
   const [inboxSector, setInboxSector] = useState('')
   const [inboxCedula, setInboxCedula] = useState('')
+  const [inboxPage, setInboxPage] = useState(1)
+
+  useEffect(() => {
+    setInboxPage(1)
+  }, [inboxSearch, inboxCargo, inboxCity, inboxExp, inboxSector, inboxCedula])
+
 
   // === ESTADOS COPILOTO IA ===
   const [showCopilot, setShowCopilot] = useState(false);
@@ -1609,6 +1615,7 @@ export default function CandidatesAdmin() {
       .select('*')
       .eq('company_slug', user.company_slug)
       .order('received_date', { ascending: false })
+      .limit(5000)
     if (data) setResumes(data)
     
     // Cargar pruebas psicométricas para que el Inbox esté actualizado
@@ -2894,8 +2901,8 @@ export default function CandidatesAdmin() {
                   <tr><th>Perfil IA</th><th>Archivo CV</th><th>Fecha</th><th>Estado</th></tr>
                 </thead>
                 <tbody>
-                  {resumes
-                    .filter(r => {
+                  {(() => {
+                    const filteredResumes = resumes.filter(r => {
                       const matchesSearch = !inboxSearch || (r.sender_name || '').toLowerCase().includes(inboxSearch.toLowerCase());
                       const matchesCargo = !inboxCargo || (r.position || '').toLowerCase().includes(inboxCargo.toLowerCase());
                       const matchesCity = !inboxCity || (r.city || '').toLowerCase().includes(inboxCity.toLowerCase());
@@ -2903,9 +2910,16 @@ export default function CandidatesAdmin() {
                       const matchesSector = !inboxSector || (r.sector || '').toLowerCase().includes(inboxSector.toLowerCase());
                       const matchesCedula = !inboxCedula || (r.cedula || '').toLowerCase().includes(inboxCedula.toLowerCase());
                       return matchesSearch && matchesCargo && matchesCity && matchesExp && matchesSector && matchesCedula;
-                    })
-                    .map(r => (
-                    <tr key={r.id}>
+                    });
+                    
+                    const ITEMS_PER_PAGE = 50;
+                    const totalPages = Math.ceil(filteredResumes.length / ITEMS_PER_PAGE);
+                    const paginatedResumes = filteredResumes.slice((inboxPage - 1) * ITEMS_PER_PAGE, inboxPage * ITEMS_PER_PAGE);
+
+                    return (
+                      <>
+                        {paginatedResumes.map(r => (
+                          <tr key={r.id}>
                       <td>
                         <div className="user-cell" style={{ alignItems: 'flex-start' }}>
                           <div
@@ -3108,6 +3122,36 @@ export default function CandidatesAdmin() {
                       </td>
                     </tr>
                   ))}
+                  {totalPages > 1 && (
+                    <tr>
+                      <td colSpan={4}>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', padding: '16px 0' }}>
+                          <button 
+                            className="track-btn" 
+                            disabled={inboxPage === 1} 
+                            onClick={() => setInboxPage(p => p - 1)}
+                            style={{ padding: '6px 12px', fontSize: '12px' }}
+                          >
+                            Anterior
+                          </button>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>
+                            Página {inboxPage} de {totalPages} ({filteredResumes.length} candidatos)
+                          </span>
+                          <button 
+                            className="track-btn" 
+                            disabled={inboxPage === totalPages || totalPages === 0} 
+                            onClick={() => setInboxPage(p => p + 1)}
+                            style={{ padding: '6px 12px', fontSize: '12px' }}
+                          >
+                            Siguiente
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </>
+                );
+              })()}
                 </tbody>
               </table>
             </div>
