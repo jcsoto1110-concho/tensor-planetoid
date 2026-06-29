@@ -562,6 +562,54 @@ export default function CandidatesAdmin() {
     }
   }
 
+  const handleCloseFormative = async () => {
+    const sessionName = formativeSessionFilter !== 'ALL' ? formativeSessionFilter : formativeSessionTitle;
+    if (!sessionName || sessionName === 'ALL') {
+      alert('Por favor selecciona una sesión específica en el filtro superior para cerrarla y archivarla.');
+      return;
+    }
+    
+    if (!confirm(`¿Estás seguro de cerrar la sesión "${sessionName}"? Sus datos se descargarán en un archivo Excel y la pantalla quedará limpia para un nuevo registro.`)) return;
+
+    const sessionCands = formativeCandidates.filter(c => c.session_title === sessionName);
+    const dataToExport = sessionCands.map(c => {
+      const cEvals = formativeEvaluations.filter(e => e.candidate_id === c.id);
+      const totalScore = cEvals.reduce((sum, ev) => sum + ev.score, 0);
+      const avgScore = cEvals.length > 0 ? Math.round(totalScore / cEvals.length) : 0;
+      
+      return {
+        'Candidato': c.email_resumes?.sender_name || 'Desconocido',
+        'Cédula': c.email_resumes?.cedula || '',
+        'Cargo': c.email_resumes?.position || '',
+        'Sesión': c.session_title,
+        'Fecha Entrevista': c.interview_date || '',
+        'Hora Entrevista': c.interview_time || '',
+        'Asistió': c.attended ? 'Sí' : 'No',
+        'Puntaje Promedio': avgScore,
+        'Fase': c.fase || 1
+      };
+    });
+
+    if (dataToExport.length > 0) {
+      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Formativas");
+      XLSX.writeFile(wb, `Formativas_${sessionName}.xlsx`);
+    }
+
+    const now = new Date();
+    const newTitle = `Formativas ${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${now.getHours()}${now.getMinutes()}`;
+    
+    setFormativeSessionTitle(newTitle);
+    setFormativeSessionFilter(newTitle);
+    
+    if (!formativeSessions.includes(newTitle)) {
+      setFormativeSessions(prev => [newTitle, ...prev]);
+    }
+
+    alert(`✅ Sesión "${sessionName}" archivada con éxito. Se ha creado la nueva sesión "${newTitle}".`);
+  };
+
   const handleCreateSupervisor = async () => {
     if (!user) return
     if (!supervisorName.trim() || !supervisorEmail.trim()) return
@@ -2353,9 +2401,9 @@ export default function CandidatesAdmin() {
       {passToRankingModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: 'white', padding: '28px', borderRadius: '12px', width: '420px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }}>
-            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>🏆 Pasar Candidato a Ranking</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>🏆 Pasar Candidato a Resumen</h3>
             <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '20px' }}>
-              Selecciona o escribe el cargo para asignar a <strong>{passToRankingModal.name}</strong> en el Ranking IA y Pipeline.
+              Selecciona o escribe el cargo para asignar a <strong>{passToRankingModal.name}</strong> en el Resumen y Pipeline.
             </p>
             
             <div style={{ marginBottom: '16px' }}>
@@ -2979,7 +3027,7 @@ export default function CandidatesAdmin() {
                             justifyContent: 'center'
                           }}
                         >
-                          <Trophy size={12} /> Pasar a Ranking
+                          <Trophy size={12} /> Pasar a Resumen
                         </button>
                         <button
                           onClick={() => handleDeleteResume(r)}
@@ -4101,6 +4149,13 @@ export default function CandidatesAdmin() {
                     style={{ width: 'auto', background: 'linear-gradient(135deg, #ef4444, #dc2626)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                   >
                     🧹 Depurar
+                  </button>
+                  <button 
+                    onClick={handleCloseFormative} 
+                    className="ranking-btn-primary" 
+                    style={{ width: 'auto', background: 'linear-gradient(135deg, #475569, #334155)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                  >
+                    🔒 Cierre de Formativa
                   </button>
                   <button 
                     onClick={() => setShowOptionsModal(true)} 
