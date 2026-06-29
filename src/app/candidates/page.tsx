@@ -1569,7 +1569,7 @@ export default function CandidatesAdmin() {
       .eq('company_slug', user.company_slug)
       .neq('status', 'DELETED')
       .order('created_at', { ascending: false })
-    if (data) setCandidates(data.filter(c => c.created_by_cedula === user.cedula))
+    if (data) setCandidates(data)
     setLoading(false)
   }
 
