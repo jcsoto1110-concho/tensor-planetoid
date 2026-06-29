@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { resume_id, cargo, status, interview_date, notes, created_by_cedula } = await req.json();
+    const { resume_id, cargo, status, interview_date, notes, created_by_cedula, company_slug } = await req.json();
 
     if (!resume_id || !cargo || !status) {
       return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
@@ -76,7 +76,8 @@ export async function POST(req: NextRequest) {
           interview_date: interview_date || null, 
           notes: notes || null, 
           updated_at: new Date().toISOString(),
-          created_by_cedula: created_by_cedula || null
+          created_by_cedula: created_by_cedula || null,
+          company_slug: company_slug || null
         },
         { onConflict: 'resume_id,cargo' }
       )
