@@ -1610,13 +1610,29 @@ export default function CandidatesAdmin() {
   const fetchResumes = async () => {
     if (!user?.company_slug) return
     setLoadingResumes(true)
-    const { data } = await supabase
-      .from('email_resumes')
-      .select('*')
-      .eq('company_slug', user.company_slug)
-      .order('received_date', { ascending: false })
-      .limit(5000)
-    if (data) setResumes(data)
+    let allData: any[] = [];
+    let page = 0;
+    const pageSize = 1000;
+    
+    while(true) {
+      const { data } = await supabase
+        .from('email_resumes')
+        .select('*')
+        .eq('company_slug', user.company_slug)
+        .order('received_date', { ascending: false })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+      if (data && data.length > 0) {
+        allData = [...allData, ...data];
+        if (data.length < pageSize) break; // Se obtuvieron todos
+        if (allData.length >= 10000) break; // Límite duro de 10000 para no explotar la memoria
+      } else {
+        break;
+      }
+      page++;
+    }
+    
+    setResumes(allData)
     
     // Cargar pruebas psicométricas para que el Inbox esté actualizado
     const { data: psychData } = await supabase.from('candidate_psychometric_tests').select('*')
