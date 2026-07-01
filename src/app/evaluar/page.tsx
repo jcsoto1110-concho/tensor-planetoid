@@ -11,6 +11,8 @@ interface EvalCandidate {
   city?: string
   age?: number | string
   gender?: string
+  sector?: string
+  cv_url?: string
 }
 
 interface EvalOption {
@@ -38,6 +40,12 @@ export default function SupervisorPortal() {
   const [proposedByCandidate, setProposedByCandidate] = useState<Record<string, string>>({})
   const [submittedCandidates, setSubmittedCandidates] = useState<Set<string>>(new Set())
   const [submittingId, setSubmittingId] = useState<string | null>(null)
+  const [commentsByCandidate, setCommentsByCandidate] = useState<Record<string, string>>({})
+  
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'evaluar' | 'resultados'>('evaluar')
+  const [allEvals, setAllEvals] = useState<any[]>([])
+  const [allSupers, setAllSupers] = useState<any[]>([])
 
   // ── Restore session ───────────────────────────────────────────────────
   useEffect(() => {
@@ -59,7 +67,7 @@ export default function SupervisorPortal() {
     if (!sup) return
     const { data: cands } = await supabase
       .from('formative_candidates')
-      .select('id, resume_id, email_resumes(sender_name, position, city, age, gender)')
+      .select('id, resume_id, session_title, email_resumes(sender_name, position, city, age, gender, sector, pdf_url)')
       .eq('is_evaluating', true)
       .order('created_at', { ascending: true })
 
@@ -72,14 +80,17 @@ export default function SupervisorPortal() {
       city: c.email_resumes?.city || '—',
       age: c.email_resumes?.age || '—',
       gender: c.email_resumes?.gender || '—',
+      sector: c.email_resumes?.sector || '—',
+      cv_url: c.email_resumes?.pdf_url || null,
+      session_title: c.session_title
     }))
-    setActiveCandidates(mapped)
+    setActiveCandidates(mapped as any)
 
     // Check which ones this supervisor already evaluated
     if (mapped.length > 0) {
       const { data: evals } = await supabase
         .from('formative_evaluations')
-        .select('candidate_id, selected_options')
+        .select('candidate_id, selected_options, notes, comments')
         .eq('supervisor_id', sup.id)
         .in('candidate_id', mapped.map(c => c.id))
 
@@ -87,6 +98,7 @@ export default function SupervisorPortal() {
         const submitted = new Set<string>()
         const preloadedCriterion: Record<string, Record<string, string>> = {}
         const preloadedProposed: Record<string, string> = {}
+        const preloadedComments: Record<string, string> = {}
         evals.forEach((e: any) => {
           submitted.add(e.candidate_id)
           // Restaurar valores por criterio si estaban guardados como objeto JSON en selected_options
@@ -99,11 +111,25 @@ export default function SupervisorPortal() {
           if (e.notes !== null && e.notes !== undefined) {
             preloadedProposed[e.candidate_id] = String(e.notes)
           }
+          if (e.comments !== null && e.comments !== undefined) {
+            preloadedComments[e.candidate_id] = String(e.comments)
+          }
         })
         setSubmittedCandidates(submitted)
         setCriterionValues(prev => ({ ...prev, ...preloadedCriterion }))
         setProposedByCandidate(prev => ({ ...prev, ...preloadedProposed }))
+        setCommentsByCandidate(prev => ({ ...prev, ...preloadedComments }))
       }
+      
+      // Fetch all evals for RESULTS tab
+      const { data: allEvaluations } = await supabase
+        .from('formative_evaluations')
+        .select('*')
+        .in('candidate_id', mapped.map(c => c.id))
+      if (allEvaluations) setAllEvals(allEvaluations)
+      
+      const { data: supers } = await supabase.from('formative_supervisors').select('*')
+      if (supers) setAllSupers(supers)
     }
   }
 
@@ -164,8 +190,8 @@ export default function SupervisorPortal() {
   // ── Set valor de un criterio para un candidato ───────────────────────────────
   const setCriterionValue = (candidateId: string, optionId: string, raw: string, maxWeight: number) => {
     if (submittedCandidates.has(candidateId)) return
-    // Clampar al máximo configurado
-    let val = raw === '' ? '' : String(Math.min(Math.max(0, Number(raw)), maxWeight))
+    // Clampar al máximo 10
+    let val = raw === '' ? '' : String(Math.min(Math.max(0, Number(raw)), 10))
     setCriterionValues(prev => ({
       ...prev,
       [candidateId]: { ...(prev[candidateId] || {}), [optionId]: val }
@@ -197,6 +223,7 @@ export default function SupervisorPortal() {
         supervisor_id: supervisor.id,
         score: finalScore,
         selected_options: selectedIds,
+        comments: commentsByCandidate[candidateId] || null,
         ...(hasProposed ? { notes: proposed } : { notes: JSON.stringify(Object.fromEntries(activeOptions)) })
       }, { onConflict: 'candidate_id,supervisor_id' })
 
@@ -239,6 +266,20 @@ export default function SupervisorPortal() {
         </div>
         {supervisor && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', display: 'flex', gap: '4px', marginRight: '16px' }}>
+              <button 
+                onClick={() => setActiveTab('evaluar')}
+                style={{ background: activeTab === 'evaluar' ? '#7c3aed' : 'transparent', color: activeTab === 'evaluar' ? 'white' : '#94a3b8', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+              >
+                🎯 Evaluar
+              </button>
+              <button 
+                onClick={() => setActiveTab('resultados')}
+                style={{ background: activeTab === 'resultados' ? '#7c3aed' : 'transparent', color: activeTab === 'resultados' ? 'white' : '#94a3b8', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+              >
+                📊 Resumen
+              </button>
+            </div>
             <span style={{ fontSize: '13px', color: '#94a3b8' }}>
               👤 <strong style={{ color: '#f8fafc' }}>{supervisor.name}</strong>
             </span>
@@ -288,6 +329,87 @@ export default function SupervisorPortal() {
           </div>
 
         /* MAIN: MATRIX */
+        ) : activeTab === 'resultados' ? (
+          <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
+            <div style={{ padding: '24px', borderBottom: '1px solid #f1f5f9' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px', color: '#0f172a' }}>Resultados de Evaluación</h2>
+              <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>Todos los supervisores · ordenado por puntaje total</p>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '800px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Candidato</th>
+                    <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Sesión</th>
+                    {allSupers.map(s => (
+                      <th key={s.id} style={{ padding: '16px 12px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>
+                        {s.name.split(' ')[0]}
+                      </th>
+                    ))}
+                    <th style={{ padding: '16px 24px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...(activeCandidates as any[])].sort((a, b) => {
+                    const totalA = allEvals.filter(e => e.candidate_id === a.id).reduce((sum, e) => sum + e.score, 0);
+                    const totalB = allEvals.filter(e => e.candidate_id === b.id).reduce((sum, e) => sum + e.score, 0);
+                    return totalB - totalA;
+                  }).map(c => {
+                    const evalsForCandidate = allEvals.filter(e => e.candidate_id === c.id);
+                    const totalScore = evalsForCandidate.reduce((sum, e) => sum + e.score, 0);
+                    const avgScore = evalsForCandidate.length > 0 ? (totalScore / evalsForCandidate.length).toFixed(0) : 0;
+                    return (
+                      <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '16px 24px' }}>
+                          <p style={{ fontWeight: 800, margin: 0, color: '#0f172a', fontSize: '14px' }}>{c.candidate_name}</p>
+                          <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>{c.candidate_cargo}</p>
+                        </td>
+                        <td style={{ padding: '16px 24px' }}>
+                          {c.session_title ? (
+                            <span style={{ fontSize: '10px', background: '#f3e8ff', color: '#d946ef', border: '1px solid #fbcfe8', padding: '2px 8px', borderRadius: '4px', fontWeight: 800, display: 'inline-block' }}>
+                              {c.session_title}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        {allSupers.map(s => {
+                          const ev = evalsForCandidate.find(e => e.supervisor_id === s.id);
+                          return (
+                            <td key={s.id} style={{ padding: '16px 12px', textAlign: 'center' }}>
+                              {ev ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <span style={{ fontWeight: 800, color: '#a78bfa', fontSize: '14px' }}>{ev.score} pts</span>
+                                  {ev.comments && (
+                                    <span style={{ fontSize: '9px', color: '#64748b', fontStyle: 'italic', maxWidth: '80px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ev.comments}>
+                                      💬 {ev.comments}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span style={{ color: '#cbd5e1' }}>—</span>
+                              )}
+                            </td>
+                          )
+                        })}
+                        <td style={{ padding: '16px 24px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '16px' }}>{totalScore}</span>
+                            <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>prom. {avgScore}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {activeCandidates.length === 0 && (
+                    <tr>
+                      <td colSpan={allSupers.length + 3} style={{ textAlign: 'center', padding: '48px', color: '#64748b' }}>
+                        No hay candidatos en evaluación.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
@@ -329,6 +451,10 @@ export default function SupervisorPortal() {
                             <div style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '148px' }}>{c.candidate_name}</div>
                             <div style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 600, marginBottom: '4px' }}>{c.candidate_cargo}</div>
                             <div style={{ fontSize: '10px', color: '#64748b' }}>{c.city}{c.age && c.age !== '—' ? ` · ${c.age} años` : ''}</div>
+                            {c.sector && c.sector !== '—' && <div style={{ fontSize: '10px', color: '#94a3b8', fontStyle: 'italic' }}>{c.sector}</div>}
+                            {c.cv_url && (
+                              <a href={c.cv_url} target="_blank" rel="noreferrer" style={{ fontSize: '10.5px', color: '#a78bfa', textDecoration: 'underline', marginTop: '4px', display: 'inline-block', fontWeight: 600 }}>Ver CV</a>
+                            )}
                             {submittedCandidates.has(c.id) && (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '10px', background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '999px', padding: '2px 8px', marginTop: '4px', fontWeight: 700 }}>
                                 <CheckCircle2 size={10} /> Enviado
@@ -358,7 +484,7 @@ export default function SupervisorPortal() {
                               {/* Sticky label */}
                               <td style={{ position: 'sticky', left: 0, zIndex: 1, background: idx % 2 === 0 ? 'rgba(15,23,42,0.98)' : 'rgba(15,23,42,0.92)', padding: '10px 20px', fontSize: '12.5px', color: '#cbd5e1', borderRight: '1px solid rgba(255,255,255,0.06)', lineHeight: 1.4 }}>
                                 <span style={{ fontWeight: 500 }}>{opt.label}</span>
-                                <span style={{ display: 'block', fontSize: '10px', color: '#475569', marginTop: '1px' }}>máx {opt.weight} pts</span>
+                                <span style={{ display: 'block', fontSize: '10px', color: '#475569', marginTop: '1px' }}>máx 10 pts</span>
                               </td>
                               {/* Input numérico por criterio, por candidato */}
                               {activeCandidates.map(c => {
@@ -405,7 +531,7 @@ export default function SupervisorPortal() {
                                       {/* Barra de progreso */}
                                       {!isSubmitted && opt.weight > 0 && (
                                         <div style={{ width: '62px', height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '999px', overflow: 'hidden' }}>
-                                          <div style={{ height: '100%', width: `${(numVal / opt.weight) * 100}%`, background: isFull ? '#7c3aed' : '#f59e0b', borderRadius: '999px', transition: 'width 0.2s' }} />
+                                          <div style={{ height: '100%', width: `${(numVal / 10) * 100}%`, background: isFull ? '#7c3aed' : '#f59e0b', borderRadius: '999px', transition: 'width 0.2s' }} />
                                         </div>
                                       )}
                                     </div>
@@ -466,6 +592,41 @@ export default function SupervisorPortal() {
                                 )}
                               </div>
                               <span style={{ display: 'block', fontSize: '10px', color: '#64748b', marginTop: '2px' }}>pts</span>
+                            </td>
+                          )
+                        })}
+                      </tr>
+
+                      {/* Fila de Comentarios */}
+                      <tr style={{ background: 'rgba(15,23,42,0.6)' }}>
+                        <td style={{ position: 'sticky', left: 0, zIndex: 1, background: 'rgba(15,23,42,0.98)', padding: '16px 20px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#f8fafc', display: 'block' }}>Comentarios</span>
+                          <span style={{ fontSize: '10px', color: '#64748b' }}>Opcional pero recomendado</span>
+                        </td>
+                        {activeCandidates.map(c => {
+                          const isSubmitted = submittedCandidates.has(c.id)
+                          return (
+                            <td key={`comments-${c.id}`} style={{ textAlign: 'center', padding: '12px 8px', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
+                              <textarea
+                                disabled={isSubmitted}
+                                value={commentsByCandidate[c.id] || ''}
+                                onChange={e => setCommentsByCandidate(prev => ({ ...prev, [c.id]: e.target.value }))}
+                                placeholder={isSubmitted ? "—" : "Deja un comentario sobre este candidato..."}
+                                style={{
+                                  width: '100%',
+                                  minWidth: '140px',
+                                  height: '60px',
+                                  background: isSubmitted ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                                  border: `1px solid ${isSubmitted ? 'transparent' : 'rgba(255,255,255,0.1)'}`,
+                                  borderRadius: '8px',
+                                  padding: '8px',
+                                  color: isSubmitted ? '#94a3b8' : '#f8fafc',
+                                  fontSize: '11px',
+                                  outline: 'none',
+                                  resize: 'none',
+                                  cursor: isSubmitted ? 'not-allowed' : 'text'
+                                }}
+                              />
                             </td>
                           )
                         })}
