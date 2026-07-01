@@ -4521,6 +4521,7 @@ export default function CandidatesAdmin() {
                         <th style={{ textAlign: 'center', width: '110px' }}>Confirmación</th>
                         <th style={{ textAlign: 'center', width: '110px' }}>Asistencia</th>
                         <th>Calificaciones Recibidas</th>
+                        <th style={{ textAlign: 'center', width: '90px' }}>Promedio</th>
                         <th style={{ textAlign: 'right' }}>Evaluación en Vivo</th>
                       </tr>
                     </thead>
@@ -4545,7 +4546,16 @@ export default function CandidatesAdmin() {
                                 </td>
                               </tr>
                             );
-                            return nameFiltered.map(c => {
+                            
+                            const sortedFiltered = [...nameFiltered].sort((a, b) => {
+                              const evalsA = formativeEvaluations.filter(e => e.candidate_id === a.id);
+                              const avgA = evalsA.length > 0 ? evalsA.reduce((sum, e) => sum + e.score, 0) / evalsA.length : -999;
+                              const evalsB = formativeEvaluations.filter(e => e.candidate_id === b.id);
+                              const avgB = evalsB.length > 0 ? evalsB.reduce((sum, e) => sum + e.score, 0) / evalsB.length : -999;
+                              return avgB - avgA;
+                            });
+
+                            return sortedFiltered.map(c => {
                             const isCurrentlyActive = activeEvaluatingCandidateId === c.id;
                             const candidateEvals = formativeEvaluations.filter(e => e.candidate_id === c.id);
                             return (
@@ -4633,6 +4643,32 @@ export default function CandidatesAdmin() {
                                         );
                                       })}
                                     </div>
+                                  )}
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                  {candidateEvals.length > 0 ? (
+                                    (() => {
+                                      const total = candidateEvals.reduce((acc, e) => acc + e.score, 0);
+                                      const avg = total / candidateEvals.length;
+                                      return (
+                                        <div style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          background: avg >= 70 ? '#ecfdf5' : avg >= 40 ? '#fffbeb' : '#fef2f2',
+                                          color: avg >= 70 ? '#059669' : avg >= 40 ? '#d97706' : '#dc2626',
+                                          border: `1px solid ${avg >= 70 ? '#a7f3d0' : avg >= 40 ? '#fde68a' : '#fecaca'}`,
+                                          fontWeight: 800,
+                                          fontSize: '14px',
+                                          padding: '4px 10px',
+                                          borderRadius: '8px'
+                                        }}>
+                                          {avg.toFixed(1)}
+                                        </div>
+                                      );
+                                    })()
+                                  ) : (
+                                    <span style={{ fontSize: '11px', color: '#cbd5e1' }}>—</span>
                                   )}
                                 </td>
                                 <td style={{ textAlign: 'right' }}>
