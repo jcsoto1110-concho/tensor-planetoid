@@ -122,7 +122,11 @@ export default function SupervisorPortal() {
             preloadedCriterion[e.candidate_id] = map
           }
           if (e.notes !== null && e.notes !== undefined) {
-            preloadedProposed[e.candidate_id] = String(e.notes)
+            const notesStr = String(e.notes)
+            // Si es un JSON guardado (por ej: {"id":"5"}), no lo mostramos como propuesto.
+            if (!notesStr.trim().startsWith('{')) {
+              preloadedProposed[e.candidate_id] = notesStr
+            }
           }
           if (e.comments !== null && e.comments !== undefined) {
             preloadedComments[e.candidate_id] = String(e.comments)
