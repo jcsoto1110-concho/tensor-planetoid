@@ -62,6 +62,19 @@ export default function SupervisorPortal() {
     if (data) setOptions(data)
   }
 
+  // Validate supervisor existence periodically
+  useEffect(() => {
+    const validateSupervisor = async () => {
+      if (!supervisor) return
+      const { data } = await supabase.from('formative_supervisors').select('id').eq('id', supervisor.id).maybeSingle()
+      if (!data) {
+        alert('Tu sesión ha expirado o el administrador ha actualizado tu perfil. Serás redirigido para ingresar nuevamente con el link más reciente.')
+        handleLogout()
+      }
+    }
+    validateSupervisor()
+  }, [supervisor?.id])
+
   // ── Fetch active candidates (is_evaluating = true) ────────────────────
   const fetchActiveCandidates = async (sup: typeof supervisor) => {
     if (!sup) return
@@ -230,7 +243,12 @@ export default function SupervisorPortal() {
       if (error) throw error
       setSubmittedCandidates(prev => new Set([...prev, candidateId]))
     } catch (e: any) {
-      alert('Error al guardar: ' + e.message)
+      if (e.message?.includes('supervisor_id_fkey')) {
+        alert('❌ Error: Tu sesión de supervisor es antigua o fue eliminada. Por favor, pide al administrador que te envíe un nuevo link de acceso.')
+        handleLogout()
+      } else {
+        alert('Error al guardar: ' + e.message)
+      }
     } finally {
       setSubmittingId(null)
     }

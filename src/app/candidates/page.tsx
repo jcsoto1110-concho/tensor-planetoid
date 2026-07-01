@@ -4871,24 +4871,79 @@ export default function CandidatesAdmin() {
                                 </span>
                               </td>
                               <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                                {c.fase === 2 ? (
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                  {c.fase === 2 ? (
+                                    <button
+                                      onClick={async () => {
+                                        try {
+                                          const { error } = await supabase
+                                            .from('formative_candidates')
+                                            .update({ fase: 1 })
+                                            .eq('id', c.id);
+                                          if (error) throw error;
+                                          setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 1 } : item));
+                                        } catch (err: any) {
+                                          alert('Error: ' + err.message);
+                                        }
+                                      }}
+                                      style={{
+                                        background: '#fef2f2',
+                                        color: '#ef4444',
+                                        border: '1px solid #fee2e2',
+                                        borderRadius: '8px',
+                                        padding: '5px 10px',
+                                        fontSize: '11.5px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s'
+                                      }}
+                                    >
+                                      Quitar Fase 2
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={async () => {
+                                        try {
+                                          const { error } = await supabase
+                                            .from('formative_candidates')
+                                            .update({ fase: 2 })
+                                            .eq('id', c.id);
+                                          if (error) throw error;
+                                          setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 2 } : item));
+                                        } catch (err: any) {
+                                          alert('Error: ' + err.message);
+                                        }
+                                      }}
+                                      style={{
+                                        background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        padding: '5px 12px',
+                                        fontSize: '11.5px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s'
+                                      }}
+                                    >
+                                      Promover a Fase 2
+                                    </button>
+                                  )}
                                   <button
                                     onClick={async () => {
+                                      if (!window.confirm(`¿Estás seguro de que deseas borrar a ${c.email_resumes?.sender_name} de Formativas?`)) return;
                                       try {
-                                        const { error } = await supabase
-                                          .from('formative_candidates')
-                                          .update({ fase: 1 })
-                                          .eq('id', c.id);
+                                        const { error } = await supabase.from('formative_candidates').delete().eq('id', c.id);
                                         if (error) throw error;
-                                        setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 1 } : item));
+                                        setFormativeCandidates(prev => prev.filter(item => item.id !== c.id));
                                       } catch (err: any) {
-                                        alert('Error: ' + err.message);
+                                        alert('Error al borrar: ' + err.message);
                                       }
                                     }}
                                     style={{
-                                      background: '#fef2f2',
-                                      color: '#ef4444',
-                                      border: '1px solid #fee2e2',
+                                      background: 'white',
+                                      color: '#64748b',
+                                      border: '1px solid #e2e8f0',
                                       borderRadius: '8px',
                                       padding: '5px 10px',
                                       fontSize: '11.5px',
@@ -4896,38 +4951,11 @@ export default function CandidatesAdmin() {
                                       cursor: 'pointer',
                                       transition: 'all 0.15s'
                                     }}
+                                    title="Borrar candidato (Depurar)"
                                   >
-                                    Quitar Fase 2
+                                    Borrar
                                   </button>
-                                ) : (
-                                  <button
-                                    onClick={async () => {
-                                      try {
-                                        const { error } = await supabase
-                                          .from('formative_candidates')
-                                          .update({ fase: 2 })
-                                          .eq('id', c.id);
-                                        if (error) throw error;
-                                        setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 2 } : item));
-                                      } catch (err: any) {
-                                        alert('Error: ' + err.message);
-                                      }
-                                    }}
-                                    style={{
-                                      background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '8px',
-                                      padding: '5px 12px',
-                                      fontSize: '11.5px',
-                                      fontWeight: 700,
-                                      cursor: 'pointer',
-                                      transition: 'all 0.15s'
-                                    }}
-                                  >
-                                    Promover a Fase 2
-                                  </button>
-                                )}
+                                </div>
                               </td>
                             </tr>
                           ))}
