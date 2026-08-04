@@ -254,6 +254,7 @@ export default function CandidatesAdmin() {
   const router = useRouter()
 
   const [candidates, setCandidates] = useState<any[]>([])
+  const [allOnboardingCandidates, setAllOnboardingCandidates] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [portalUrl, setPortalUrl] = useState(`https://uneteanuestroequipo.ec.aseyco.com/${user?.company_slug || 'superdeporte'}/onboarding`)
   const [isMounted, setIsMounted] = useState(false)
@@ -1042,8 +1043,8 @@ export default function CandidatesAdmin() {
 
     const pipelineCount = pipelineData.length;
     const formativeCount = formativeCandidates.length;
-    const onboardingCount = candidates.length;
-    const selectedCount = candidates.filter((c: any) => c.status === 'SYNCED' || c.status === 'LLENADO').length;
+    const onboardingCount = allOnboardingCandidates.filter((c: any) => c.status === 'LLENADO' || c.status === 'APPROVED' || c.status === 'SYNCED').length;
+    const selectedCount = allOnboardingCandidates.filter((c: any) => c.status === 'SYNCED').length;
 
     return {
       total,
@@ -1061,7 +1062,7 @@ export default function CandidatesAdmin() {
       onboardingCount,
       selectedCount
     };
-  }, [resumes, pipelineData, formativeCandidates, candidates]);
+  }, [resumes, pipelineData, formativeCandidates, candidates, allOnboardingCandidates]);
 
   const displayedRankingCandidates = useMemo(() => {
     if (!rankingCargo) return [];
