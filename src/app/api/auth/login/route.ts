@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
         // Fallback #3 (Producción): Para supervisores, validar directamente en Supabase
         // cuando AD y Oracle no son alcanzables desde el servidor público
-        if (!adAuthenticated && app === 'supervisor') {
+        if (!adAuthenticated && (app === 'supervisor' || app === 'zero-paper')) {
             try {
                 const cleanEmailCheck = cedula.trim().toLowerCase();
                 const shortUserCheck = cleanEmailCheck.split('@')[0];
@@ -98,6 +98,17 @@ export async function POST(request: NextRequest) {
                     console.log(`Fallback #3 Supabase supervisor auth success: ${supFallback.name}`);
                 } else {
                     console.log(`Fallback #3: Supervisor not found in Supabase for "${cleanEmailCheck}"`);
+                }
+
+                // If still not authenticated and it's zero paper, just allow it in development with a mock user
+                if (!adAuthenticated && app === 'zero-paper' && process.env.NODE_ENV === 'development') {
+                     console.log(`Fallback #4: Allowing zero-paper login in development for ${cedula}`);
+                     adAuthenticated = true;
+                     authData = {
+                         cedula: cedula,
+                         nombre: 'Admin Pruebas',
+                         success: true
+                     };
                 }
             } catch (supErr: any) {
                 console.error('Supabase fallback supervisor check error:', supErr);
