@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
 
     const { cedula, nombres, apellidos, ciudad_residencia, telefono, documento_pdf_url } = candidate;
 
+    // Preparar datos por defecto
+    const today = new Date().toISOString().split('T')[0];
+    const codigo_sap = 'PENDIENTE'; 
+    const position = 'NUEVO INGRESO';
+    const ciudad = candidate.datos_personales?.ciudad_residencia || 'QUITO';
+    const pais = candidate.datos_personales?.nacionalidad || 'ECUADOR';
+
     // 6. Insertar o Actualizar en Supabase (Tabla digi_employees)
     const { error: empError } = await supabase
       .from('digi_employees')
