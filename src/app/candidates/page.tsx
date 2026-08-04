@@ -254,7 +254,8 @@ export default function CandidatesAdmin() {
   const router = useRouter()
 
   const [candidates, setCandidates] = useState<any[]>([])
-  const [allOnboardingCandidates, setAllOnboardingCandidates] = useState<any[]>([])
+  const [onboardingDocCount, setOnboardingDocCount] = useState(0)
+  const [syncedCount, setSyncedCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [portalUrl, setPortalUrl] = useState(`https://uneteanuestroequipo.ec.aseyco.com/${user?.company_slug || 'superdeporte'}/onboarding`)
   const [isMounted, setIsMounted] = useState(false)
@@ -1043,8 +1044,8 @@ export default function CandidatesAdmin() {
 
     const pipelineCount = pipelineData.length;
     const formativeCount = formativeCandidates.length;
-    const onboardingCount = allOnboardingCandidates.filter((c: any) => c.status === 'LLENADO' || c.status === 'APPROVED' || c.status === 'SYNCED').length;
-    const selectedCount = allOnboardingCandidates.filter((c: any) => c.status === 'SYNCED').length;
+    const onboardingCount = onboardingDocCount;
+    const selectedCount = syncedCount;
 
     return {
       total,
@@ -1062,7 +1063,7 @@ export default function CandidatesAdmin() {
       onboardingCount,
       selectedCount
     };
-  }, [resumes, pipelineData, formativeCandidates, candidates, allOnboardingCandidates]);
+  }, [resumes, pipelineData, formativeCandidates, candidates, onboardingDocCount, syncedCount]);
 
   const displayedRankingCandidates = useMemo(() => {
     if (!rankingCargo) return [];
@@ -1602,6 +1603,7 @@ export default function CandidatesAdmin() {
   const fetchCandidates = async () => {
     if (!user?.company_slug) return
     setLoading(true)
+    // Candidatos activos (sin SYNCED) para la vista de onboarding
     const { data } = await supabase
       .from('onboarding_candidates')
       .select('*')
@@ -1610,6 +1612,18 @@ export default function CandidatesAdmin() {
       .neq('status', 'SYNCED')
       .order('created_at', { ascending: false })
     if (data) setCandidates(data)
+    // Todos los candidatos (incluyendo SYNCED) para las estadísticas
+    const { data: allData } = await supabase
+      .from('onboarding_candidates')
+      .select('id, status')
+      .eq('company_slug', user.company_slug)
+      .neq('status', 'DELETED')
+    if (allData) {
+      const docCount = allData.filter((c: any) => c.status === 'LLENADO' || c.status === 'APPROVED' || c.status === 'SYNCED').length
+      const sync = allData.filter((c: any) => c.status === 'SYNCED').length
+      setOnboardingDocCount(docCount)
+      setSyncedCount(sync)
+    }
     setLoading(false)
   }
 
