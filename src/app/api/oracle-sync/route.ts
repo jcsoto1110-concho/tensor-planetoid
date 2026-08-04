@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'El candidato ya fue sincronizado previamente' });
     }
 
-    const { cedula, nombres, apellidos, ciudad_residencia, telefono, documento_pdf_url } = candidate;
+    const { cedula, nombres, apellidos, ciudad_residencia, telefono, documento_pdf_url, documentos } = candidate;
 
     // Preparar datos por defecto
     const today = new Date().toISOString().split('T')[0];
@@ -50,21 +50,45 @@ export async function POST(req: NextRequest) {
 
     if (empError) throw empError;
 
-    // 7. Insertar el registro del Documento en Supabase (Tabla digi_documents)
+    // 7. Insertar los registros de Documentos en Supabase (Tabla digi_documents)
+    
+    // Si hay un PDF consolidado, lo insertamos
     if (documento_pdf_url) {
       const { error: docError } = await supabase
         .from('digi_documents')
         .insert({
           employee_id: cedula,
-          file_name: `Expediente de Ingreso (${nombres} ${apellidos})`,
+          file_name: `Expediente de Ingreso Consolidado`,
           file_type: 'application/pdf',
-          file_url: documento_pdf_url, // Usamos la URL pública directamente
+          file_url: documento_pdf_url,
           status: 'APPROVED',
           uploaded_by: 'CANDIDATO_ONBOARDING',
-          comments: 'Expediente consolidado desde portal Onboarding'
+          comments: 'Expediente consolidado'
         });
         
       if (docError) throw docError;
+    }
+
+    // Si hay documentos individuales (JSON), los insertamos uno a uno
+    if (documentos && typeof documentos === 'object') {
+      const docEntries = Object.entries(documentos);
+      for (const [docName, docUrl] of docEntries) {
+        if (docUrl) {
+          const { error: singleDocError } = await supabase
+            .from('digi_documents')
+            .insert({
+              employee_id: cedula,
+              file_name: String(docName),
+              file_type: 'application/pdf', // Asumimos PDF en su mayoría
+              file_url: String(docUrl),
+              status: 'APPROVED',
+              uploaded_by: 'CANDIDATO_ONBOARDING',
+              comments: 'Sincronizado desde Onboarding'
+            });
+            
+          if (singleDocError) console.error(`Error insertando documento ${docName}:`, singleDocError);
+        }
+      }
     }
 
     // 8. Actualizar el estado en Supabase
