@@ -417,10 +417,14 @@ export default function CandidatesAdmin() {
         )] as string[]
         sessions.sort((a, b) => b.localeCompare(a)) // Más reciente primero
         setFormativeSessions(sessions)
-        // Si hay sesiones y el filtro activo no existe, seleccionar la más reciente
-        if (sessions.length > 0 && formativeSessionFilter === 'ALL') {
-          // No auto-seleccionar, dejar que el user elija
-        }
+        
+        // Fix: Si la sesión seleccionada ya no existe (por ejemplo, se acaba de cerrar), resetear el filtro
+        setFormativeSessionFilter(prev => {
+          if (prev !== 'ALL' && !sessions.includes(prev)) {
+            return 'ALL'
+          }
+          return prev
+        })
       }
       if (sups) setFormativeSupervisors(sups)
       setFormativeAssignments([])
