@@ -1606,6 +1606,7 @@ export default function CandidatesAdmin() {
       .select('*')
       .eq('company_slug', user.company_slug)
       .neq('status', 'DELETED')
+      .neq('status', 'SYNCED')
       .order('created_at', { ascending: false })
     if (data) setCandidates(data)
     setLoading(false)
@@ -4191,7 +4192,7 @@ export default function CandidatesAdmin() {
                         {(c.status === 'LLENADO' || c.status === 'SYNCED') && (
                           <div style={{ display: 'flex', gap: '4px' }}>
                             <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
-                            <button onClick={() => alert('Ventana de Nómina próximamente...')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
+                            <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
                             <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
                             {c.status !== 'SYNCED' && (
                               <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
@@ -4321,14 +4322,23 @@ export default function CandidatesAdmin() {
           <div className="table-container" style={{ padding: '40px', textAlign: 'center' }}>
             <Briefcase size={48} color="#2563eb" style={{ marginBottom: '16px' }} />
             <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Módulo de Nómina</h2>
-            <p style={{ color: '#64748b', marginBottom: '24px' }}>Bienvenido al panel de gestión de nómina para {user?.company_name}. Descarga el consolidado de datos.</p>
-            <button 
-              onClick={handleExportNomina} 
-              className="ranking-btn-primary" 
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-            >
-              📥 Descargar Reporte Completo de Nómina (Excel)
-            </button>
+            <p style={{ color: '#64748b', marginBottom: '24px' }}>Bienvenido al panel de gestión de nómina para {user?.company_name}. Descarga el consolidado de datos o visita Zero Paper.</p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+              <button 
+                onClick={handleExportNomina} 
+                className="ranking-btn-primary" 
+                style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                📥 Descargar Reporte Completo de Nómina (Excel)
+              </button>
+              <button 
+                onClick={() => window.open('/zero-paper/admin/employees', '_blank')} 
+                className="ranking-btn-primary" 
+                style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                📁 Ir a Expedientes Digitales (Zero Paper)
+              </button>
+            </div>
           </div>
         )}
 
