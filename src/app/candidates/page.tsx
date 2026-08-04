@@ -529,22 +529,22 @@ export default function CandidatesAdmin() {
     const sessionToDepurate = formativeSessionFilter
     const sessionLabel = sessionToDepurate === 'ALL' ? 'TODAS las sesiones' : `la sesión "${sessionToDepurate}"`
     
-    // Filter candidates in current company & view that fail either condition
+    // Filter candidates in current company & view that fail BOTH conditions
     const filteredCands = formativeCandidates.filter(c => {
       const matchesSession = sessionToDepurate === 'ALL' || c.session_title === sessionToDepurate
       const matchesCompany = c.email_resumes?.company_slug === user.company_slug
-      const isNotConfirmedOrNotAttended = !c.confirmed || !c.attended
-      return matchesSession && matchesCompany && isNotConfirmedOrNotAttended
+      const isNotConfirmedAndNotAttended = !c.confirmed && !c.attended
+      return matchesSession && matchesCompany && isNotConfirmedAndNotAttended
     })
 
     if (filteredCands.length === 0) {
-      alert('No hay candidatos en esta vista que no hayan confirmado y asistido.')
+      alert('No hay candidatos en esta vista que falten por confirmar y asistir.')
       return
     }
 
     const confirmMessage = `Esta acción eliminará de forma permanente de ${sessionLabel} a los ${filteredCands.length} candidatos que:\n` +
       `- NO confirmaron (Confirmación desmarcada)\n` +
-      `O\n` +
+      `Y\n` +
       `- NO asistieron (Asistencia desmarcada)\n\n` +
       `¿Estás seguro de que deseas continuar?`
       
