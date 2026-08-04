@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { executeOracleQuery } from '@/lib/oracledb';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
     try {
@@ -50,27 +50,31 @@ export async function POST(request: NextRequest) {
             adErrorDetail = `Error de conexión: ${e.message}`;
         }
 
-        // Fallback #2: Si no está autenticado por AD, buscar en Oracle DIGI_EMPLOYEES
+        // Fallback #2: Si no está autenticado por AD, buscar en Supabase DIGI_EMPLOYEES
         if (!adAuthenticated) {
             try {
-                console.log(`Fallback login check in Oracle for cedula: ${cedula}`);
-                const dbResult = await executeOracleQuery(
-                    `SELECT id, name, apellido, position FROM digi_employees WHERE id = :id AND estado = '1'`,
-                    { id: cedula }
-                );
+                console.log(`Fallback login check in Supabase for cedula: ${cedula}`);
                 
-                if (dbResult.rows && dbResult.rows.length > 0) {
-                    const employee = dbResult.rows[0];
+                const { data: employee, error: dbErr } = await supabase
+                    .from('digi_employees')
+                    .select('id, name, apellido, position')
+                    .eq('id', cedula)
+                    .eq('estado', '1')
+                    .maybeSingle();
+                
+                if (!dbErr && employee) {
                     adAuthenticated = true;
                     authData = {
-                        cedula: employee.ID || employee.id,
-                        nombre: `${employee.NAME || employee.name} ${employee.APELLIDO || employee.apellido}`.trim(),
+                        cedula: employee.id,
+                        nombre: `${employee.name} ${employee.apellido}`.trim(),
                         success: true
                     };
                     console.log(`Fallback login success for employee: ${authData.nombre}`);
+                } else if (dbErr) {
+                    console.error('Supabase lookup error during fallback login:', dbErr);
                 }
             } catch (dbErr: any) {
-                console.error('Oracle database lookup error during fallback login:', dbErr);
+                console.error('Exception during fallback login:', dbErr);
             }
         }
 

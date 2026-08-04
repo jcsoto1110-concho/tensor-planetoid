@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeOracleQuery } from '@/lib/oracledb';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(req: NextRequest) {
     try {
@@ -7,26 +7,17 @@ export async function GET(req: NextRequest) {
         const username = searchParams.get('username');
         const cedula = searchParams.get('cedula');
 
-        let sql = 'SELECT * FROM digi_users';
-        const params: any = {};
+        let query = supabase.from('digi_users').select('*');
 
         if (username) {
-            sql += ' WHERE username = :username';
-            params.username = username;
+            query = query.eq('username', username);
         } else if (cedula) {
-            sql += ' WHERE cedula = :cedula';
-            params.cedula = cedula;
+            query = query.eq('cedula', cedula);
         }
 
-        const result = await executeOracleQuery(sql, params);
-        // Manually map to plain objects to avoid circular refs from Oracle driver
-        const data = (result.rows || []).map((row: any) => {
-            const clean: any = {};
-            for (const key of Object.keys(row)) {
-                clean[key] = row[key] instanceof Date ? row[key].toISOString() : row[key];
-            }
-            return clean;
-        });
+        const { data, error } = await query;
+        if (error) throw error;
+        
         return NextResponse.json({ success: true, data });
     } catch (error: any) {
         console.error('Error fetching users:', error);
@@ -39,18 +30,12 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { username, password, name, cedula } = body;
 
-        const sql = `
-            MERGE INTO digi_users u
-            USING (SELECT :username as username FROM dual) s
-            ON (u.username = s.username)
-            WHEN MATCHED THEN
-                UPDATE SET name = :name, cedula = :cedula, password = :password
-            WHEN NOT MATCHED THEN
-                INSERT (username, password, name, cedula)
-                VALUES (:username, :password, :name, :cedula)
-        `;
-
-        await executeOracleQuery(sql, { username, password, name, cedula });
+        const { error } = await supabase
+            .from('digi_users')
+            .upsert({ username, password, name, cedula }, { onConflict: 'username' });
+            
+        if (error) throw error;
+        
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error('Error creating/updating user:', error);

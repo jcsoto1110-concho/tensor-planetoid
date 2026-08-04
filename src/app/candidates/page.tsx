@@ -1933,7 +1933,7 @@ export default function CandidatesAdmin() {
 
   const handleApproveOnboarding = async (id: string) => {
     if (!confirm('¿Deseas aprobar este expediente?')) return;
-    const { error } = await supabase.from('onboarding_candidates').update({ status: 'SYNCED' }).eq('id', id);
+    const { error } = await supabase.from('onboarding_candidates').update({ status: 'APPROVED' }).eq('id', id);
     if (error) {
       alert('Error al aprobar: ' + error.message);
     } else {
@@ -4178,23 +4178,23 @@ export default function CandidatesAdmin() {
                     <td>{c.cedula?.startsWith('PENDIENTE') ? <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Por completar</span> : <strong>{c.cedula}</strong>}</td>
                     <td>
                       <span className="pipeline-badge" style={{ 
-                         background: c.status === 'SYNCED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff', 
-                         color: c.status === 'SYNCED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
+                         background: c.status === 'SYNCED' ? '#e0f2fe' : c.status === 'APPROVED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff', 
+                         color: c.status === 'SYNCED' ? '#0369a1' : c.status === 'APPROVED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
                          border: '1px solid currentColor',
                          opacity: 0.8
                        }}>
-                         {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'SYNCED' ? '✅ APROBADO' : '⏳ PENDIENTE'}
+                         {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'APPROVED' ? '✅ APROBADO' : c.status === 'SYNCED' ? '☁️ EN ORACLE' : '⏳ PENDIENTE'}
                        </span>
                        {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        {(c.status === 'LLENADO' || c.status === 'SYNCED') && (
+                        {(c.status === 'LLENADO' || c.status === 'APPROVED') && (
                           <div style={{ display: 'flex', gap: '4px' }}>
                             <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
                             <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
                             <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
-                            {c.status !== 'SYNCED' && (
+                            {c.status !== 'APPROVED' && (
                               <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
                             )}
                             <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🚀 Sincronizar</button>

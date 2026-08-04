@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeOracleQuery } from '@/lib/oracledb';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
     try {
-        const result = await executeOracleQuery('SELECT * FROM digi_audit_logs ORDER BY timestamp DESC');
-        return NextResponse.json({ success: true, data: result.rows });
+        const { data, error } = await supabase
+            .from('digi_audit_logs')
+            .select('*')
+            .order('timestamp', { ascending: false });
+
+        if (error) throw error;
+        return NextResponse.json({ success: true, data });
     } catch (error: any) {
         console.error('Error fetching audit logs:', error);
         return NextResponse.json({ success: false, error: String(error.message || error) }, { status: 500 });
@@ -16,12 +21,11 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { user_name, action, entity_type, entity_id, description } = body;
 
-        const sql = `
-            INSERT INTO digi_audit_logs (user_name, action, entity_type, entity_id, description)
-            VALUES (:user_name, :action, :entity_type, :entity_id, :description)
-        `;
+        const { error } = await supabase
+            .from('digi_audit_logs')
+            .insert({ user_name, action, entity_type, entity_id, description });
 
-        await executeOracleQuery(sql, { user_name, action, entity_type, entity_id, description });
+        if (error) throw error;
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

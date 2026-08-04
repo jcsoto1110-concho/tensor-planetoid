@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeOracleQuery } from '@/lib/oracledb';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const result = await executeOracleQuery('SELECT * FROM digi_employees');
-        return NextResponse.json({ success: true, data: result.rows }, {
+        const { data, error } = await supabase
+            .from('digi_employees')
+            .select('*');
+            
+        if (error) throw error;
+        
+        return NextResponse.json({ success: true, data }, {
             headers: { 'Cache-Control': 'no-store, max-age=0' }
         });
     } catch (error: any) {
@@ -20,31 +25,13 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { id, codigo_sap, name, apellido, position, entry_date, region, ciudad, departamento, responsable, pais } = body;
 
-        const sql = `
-            MERGE INTO digi_employees e
-            USING (SELECT :id as id FROM dual) s
-            ON (e.id = s.id)
-            WHEN MATCHED THEN
-                UPDATE SET 
-                    codigo_sap = :codigo_sap,
-                    name = :name,
-                    apellido = :apellido,
-                    position = :position,
-                    entry_date = TO_DATE(:entry_date, 'YYYY-MM-DD'),
-                    region = :region,
-                    ciudad = :ciudad,
-                    departamento = :departamento,
-                    responsable = :responsable,
-                    pais = :pais,
-                    estado = '1'
-            WHEN NOT MATCHED THEN
-                INSERT (id, codigo_sap, name, apellido, position, entry_date, region, ciudad, departamento, responsable, pais, estado)
-                VALUES (:id, :codigo_sap, :name, :apellido, :position, TO_DATE(:entry_date, 'YYYY-MM-DD'), :region, :ciudad, :departamento, :responsable, :pais, '1')
-        `;
+        const { error } = await supabase
+            .from('digi_employees')
+            .upsert({
+                id, codigo_sap, name, apellido, position, entry_date, region, ciudad, departamento, responsable, pais, estado: '1'
+            }, { onConflict: 'id' });
 
-        await executeOracleQuery(sql, {
-            id, codigo_sap, name, apellido, position, entry_date, region, ciudad, departamento, responsable, pais
-        });
+        if (error) throw error;
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

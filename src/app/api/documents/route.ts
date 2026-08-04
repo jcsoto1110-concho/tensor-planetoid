@@ -1,21 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeOracleQuery } from '@/lib/oracledb';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const employeeId = searchParams.get('employeeId');
 
-        let sql = 'SELECT * FROM digi_documents';
-        const params: any = {};
-
         if (employeeId) {
-            sql += ' WHERE employee_id = :employeeId';
-            params.employeeId = employeeId;
-        }
+            const { data, error } = await supabase
+                .from('digi_documents')
+                .select('*')
+                .eq('employee_id', employeeId);
 
-        const result = await executeOracleQuery(sql, params);
-        return NextResponse.json({ success: true, data: result.rows });
+            if (error) throw error;
+            return NextResponse.json({ success: true, data }, {
+                headers: { 'Cache-Control': 'no-store, max-age=0' }
+            });
+        } else {
+            const { data, error } = await supabase
+                .from('digi_documents')
+                .select('*');
+
+            if (error) throw error;
+            return NextResponse.json({ success: true, data });
+        }
     } catch (error: any) {
         console.error('Error fetching documents:', error);
         return NextResponse.json({ success: false, error: String(error.message || error) }, { status: 500 });
@@ -27,14 +35,13 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { id, employee_id, file_name, file_type, file_url, status, uploaded_by, comments } = body;
 
-        const sql = `
-            INSERT INTO digi_documents (employee_id, file_name, file_type, file_url, status, uploaded_by, comments)
-            VALUES (:employee_id, :file_name, :file_type, :file_url, :status, :uploaded_by, :comments)
-        `;
+        const { error } = await supabase
+            .from('digi_documents')
+            .insert({
+                employee_id, file_name, file_type, file_url, status, uploaded_by, comments
+            });
 
-        await executeOracleQuery(sql, {
-            employee_id, file_name, file_type, file_url, status, uploaded_by, comments
-        });
+        if (error) throw error;
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
@@ -48,17 +55,18 @@ export async function PUT(req: NextRequest) {
         const body = await req.json();
         const { id, status, approved_by, comments, rejection_reason } = body;
 
-        const sql = `
-            UPDATE digi_documents 
-            SET status = :status, 
-                approved_by = :approved_by, 
-                approved_date = CURRENT_TIMESTAMP,
-                comments = :comments,
-                rejection_reason = :rejection_reason
-            WHERE id = :id
-        `;
+        const { error } = await supabase
+            .from('digi_documents')
+            .update({
+                status,
+                approved_by,
+                comments,
+                rejection_reason,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id);
 
-        await executeOracleQuery(sql, { id, status, approved_by, comments, rejection_reason });
+        if (error) throw error;
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

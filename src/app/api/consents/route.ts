@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeOracleQuery } from '@/lib/oracledb';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(req: NextRequest) {
     try {
@@ -10,9 +10,14 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'Cedula is required' }, { status: 400 });
         }
 
-        const sql = 'SELECT * FROM digi_consents WHERE employee_cedula = :cedula ORDER BY consent_date DESC';
-        const result = await executeOracleQuery(sql, { cedula: employeeCedula });
-        return NextResponse.json({ success: true, data: result.rows });
+        const { data, error } = await supabase
+            .from('digi_consents')
+            .select('*')
+            .eq('employee_cedula', employeeCedula)
+            .order('consent_date', { ascending: false });
+
+        if (error) throw error;
+        return NextResponse.json({ success: true, data });
     } catch (error: any) {
         console.error('Error fetching consents:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -24,14 +29,18 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { employee_cedula, country, consent_text, ip_address, user_agent, accepted } = body;
 
-        const sql = `
-            INSERT INTO digi_consents (employee_cedula, country, consent_date, consent_text, ip_address, user_agent, accepted)
-            VALUES (:employee_cedula, :country, CURRENT_TIMESTAMP, :consent_text, :ip_address, :user_agent, :accepted)
-        `;
+        const { error } = await supabase
+            .from('digi_consents')
+            .insert({
+                employee_cedula,
+                country,
+                consent_text,
+                ip_address,
+                user_agent,
+                accepted: accepted ? 1 : 0
+            });
 
-        await executeOracleQuery(sql, { 
-            employee_cedula, country, consent_text, ip_address, user_agent, accepted: accepted ? 1 : 0 
-        });
+        if (error) throw error;
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

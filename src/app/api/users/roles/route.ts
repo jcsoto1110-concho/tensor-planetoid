@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeOracleQuery } from '@/lib/oracledb';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(req: NextRequest) {
     try {
@@ -11,31 +11,34 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'userId or cedula is required' }, { status: 400 });
         }
 
-        let sql = '';
-        const params: any = {};
+        let data;
 
         if (userId) {
-            sql = 'SELECT role FROM digi_user_roles WHERE user_id = :userId';
-            params.userId = userId;
+            const { data: rolesData, error } = await supabase
+                .from('digi_user_roles')
+                .select('role')
+                .eq('user_id', userId);
+            
+            if (error) throw error;
+            data = rolesData.map(r => ({ ROLE: r.role })); // Uppercase ROLE for legacy compatibility
         } else {
-            sql = `
-                SELECT r.role 
-                FROM digi_user_roles r
-                JOIN digi_users u ON r.user_id = u.id
-                WHERE u.cedula = :cedula
-            `;
-            params.cedula = cedula;
-        }
+            // Since Supabase doesn't natively support joins like SQL without foreign keys, we'll fetch user first
+            const { data: user, error: userError } = await supabase
+                .from('digi_users')
+                .select('id')
+                .eq('cedula', cedula)
+                .single();
+            
+            if (userError || !user) throw new Error('User not found');
 
-        const result = await executeOracleQuery(sql, params);
-        // Manually map to plain objects to avoid circular refs from Oracle driver
-        const data = (result.rows || []).map((row: any) => {
-            const clean: any = {};
-            for (const key of Object.keys(row)) {
-                clean[key] = row[key] instanceof Date ? row[key].toISOString() : row[key];
-            }
-            return clean;
-        });
+            const { data: rolesData, error } = await supabase
+                .from('digi_user_roles')
+                .select('role')
+                .eq('user_id', user.id);
+            
+            if (error) throw error;
+            data = rolesData.map(r => ({ ROLE: r.role }));
+        }
         
         return NextResponse.json({ success: true, data });
     } catch (error: any) {
@@ -55,12 +58,12 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { userId, role } = body;
 
-        const sql = `
-            INSERT INTO digi_user_roles (user_id, role)
-            VALUES (:userId, :role)
-        `;
+        const { error } = await supabase
+            .from('digi_user_roles')
+            .insert({ user_id: userId, role });
 
-        await executeOracleQuery(sql, { userId, role });
+        if (error) throw error;
+        
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error('Error assigning role:', error);
@@ -74,8 +77,12 @@ export async function DELETE(req: NextRequest) {
         const userId = searchParams.get('userId');
         const role = searchParams.get('role');
 
-        const sql = 'DELETE FROM digi_user_roles WHERE user_id = :userId AND role = :role';
-        await executeOracleQuery(sql, { userId, role });
+        const { error } = await supabase
+            .from('digi_user_roles')
+            .delete()
+            .match({ user_id: userId, role });
+
+        if (error) throw error;
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
