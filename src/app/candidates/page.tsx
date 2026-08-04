@@ -1943,7 +1943,7 @@ export default function CandidatesAdmin() {
   }
 
   const handleSyncToOracle = async (id: string) => {
-    if (!confirm('¿Deseas sincronizar este candidato con Oracle? Asegúrate de haber revisado sus documentos.')) return;
+    if (!confirm('¿Deseas sincronizar este candidato con el sistema de digitalización? Asegúrate de haber revisado sus documentos.')) return;
     await fetch('/api/oracle-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
     fetchCandidates();
   }

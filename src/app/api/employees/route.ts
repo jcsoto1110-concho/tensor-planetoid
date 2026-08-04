@@ -5,13 +5,25 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const { data, error } = await supabase
-            .from('digi_employees')
-            .select('*');
+        let allData: any[] = [];
+        let from = 0;
+        const step = 1000;
+
+        while (true) {
+            const { data: chunk, error } = await supabase
+                .from('digi_employees')
+                .select('*')
+                .range(from, from + step - 1);
+                
+            if (error) throw error;
+            if (!chunk || chunk.length === 0) break;
             
-        if (error) throw error;
+            allData = [...allData, ...chunk];
+            if (chunk.length < step) break;
+            from += step;
+        }
         
-        return NextResponse.json({ success: true, data }, {
+        return NextResponse.json({ success: true, data: allData }, {
             headers: { 'Cache-Control': 'no-store, max-age=0' }
         });
     } catch (error: any) {

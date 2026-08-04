@@ -88,7 +88,10 @@ async function main() {
     console.log("Conexión a Oracle exitosa.");
 
     await migrateTable(connection, 'digi_employees');
-    // Se removieron las demás tablas a petición
+    await migrateTable(connection, 'digi_user_roles');
+    await migrateTable(connection, 'digi_documents');
+    await migrateTable(connection, 'digi_audit_logs');
+    await migrateTable(connection, 'digi_consents');
 
   } catch (err) {
     console.error("Fallo general:", err);

@@ -17,12 +17,25 @@ export async function GET(req: NextRequest) {
                 headers: { 'Cache-Control': 'no-store, max-age=0' }
             });
         } else {
-            const { data, error } = await supabase
-                .from('digi_documents')
-                .select('*');
+            let allData: any[] = [];
+            let from = 0;
+            const step = 1000;
 
-            if (error) throw error;
-            return NextResponse.json({ success: true, data });
+            while (true) {
+                const { data: chunk, error } = await supabase
+                    .from('digi_documents')
+                    .select('*')
+                    .range(from, from + step - 1);
+                    
+                if (error) throw error;
+                if (!chunk || chunk.length === 0) break;
+                
+                allData = [...allData, ...chunk];
+                if (chunk.length < step) break;
+                from += step;
+            }
+
+            return NextResponse.json({ success: true, data: allData });
         }
     } catch (error: any) {
         console.error('Error fetching documents:', error);
