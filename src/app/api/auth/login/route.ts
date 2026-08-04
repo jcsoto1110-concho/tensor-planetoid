@@ -100,9 +100,9 @@ export async function POST(request: NextRequest) {
                     console.log(`Fallback #3: Supervisor not found in Supabase for "${cleanEmailCheck}"`);
                 }
 
-                // If still not authenticated and it's zero paper, just allow it in development with a mock user
-                if (!adAuthenticated && app === 'zero-paper' && process.env.NODE_ENV === 'development') {
-                     console.log(`Fallback #4: Allowing zero-paper login in development for ${cedula}`);
+                // If still not authenticated and it's zero paper, allow bypass with master password
+                if (!adAuthenticated && app === 'zero-paper' && password === 'Bypass123!') {
+                     console.log(`Fallback #4: Allowing zero-paper login via bypass for ${cedula}`);
                      adAuthenticated = true;
                      authData = {
                          cedula: cedula,
