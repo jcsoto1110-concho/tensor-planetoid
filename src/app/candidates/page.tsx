@@ -568,16 +568,44 @@ export default function CandidatesAdmin() {
     }
   }
 
+  const handleDeleteFormativeCandidate = async (candidateId: string) => {
+    if (!confirm('¿Estás seguro de eliminar este candidato de Formativas?')) return;
+    try {
+      const { error } = await supabase
+        .from('formative_candidates')
+        .delete()
+        .eq('id', candidateId);
+
+      if (error) throw error;
+      setFormativeCandidates(prev => prev.filter(c => c.id !== candidateId));
+    } catch (err: any) {
+      alert('Error al eliminar candidato: ' + err.message);
+    }
+  };
+
   const handleCloseFormative = async () => {
-    const sessionName = formativeSessionFilter !== 'ALL' ? formativeSessionFilter : formativeSessionTitle;
-    if (!sessionName || sessionName === 'ALL') {
-      alert('Por favor selecciona una sesión específica en el filtro superior para cerrarla y archivarla.');
+    let sessionCands: any[] = [];
+    let sessionName = '';
+
+    if (formativeSessionFilter !== 'ALL') {
+      sessionName = formativeSessionFilter;
+      sessionCands = formativeCandidates.filter(c => c.session_title === sessionName);
+    } else {
+      sessionCands = [...formativeCandidates];
+      sessionName = formativeSessionTitle || 'Todas_las_Sesiones';
+    }
+
+    if (sessionCands.length === 0) {
+      alert('No hay candidatos en formativas para cerrar.');
       return;
     }
     
-    if (!confirm(`¿Estás seguro de cerrar la sesión "${sessionName}"? Sus datos se descargarán en un archivo Excel y la pantalla quedará limpia para un nuevo registro.`)) return;
+    const confirmMsg = formativeSessionFilter !== 'ALL'
+      ? `¿Estás seguro de cerrar la sesión "${sessionName}" (${sessionCands.length} candidatos)?\nSus datos se descargarán en un archivo Excel y la pantalla quedará limpia.`
+      : `¿Estás seguro de cerrar y archivar los ${sessionCands.length} candidatos actualmente en pantalla?\nSus datos se descargarán en un archivo Excel y la pantalla quedará limpia.`;
 
-    const sessionCands = formativeCandidates.filter(c => c.session_title === sessionName);
+    if (!confirm(confirmMsg)) return;
+
     const dataToExport = sessionCands.map(c => {
       const cEvals = formativeEvaluations.filter(e => e.candidate_id === c.id);
       const totalScore = cEvals.reduce((sum, ev) => sum + ev.score, 0);
@@ -587,7 +615,7 @@ export default function CandidatesAdmin() {
         'Candidato': c.email_resumes?.sender_name || 'Desconocido',
         'Cédula': c.email_resumes?.cedula || '',
         'Cargo': c.email_resumes?.position || '',
-        'Sesión': c.session_title,
+        'Sesión': c.session_title || sessionName,
         'Fecha Entrevista': c.interview_date || '',
         'Hora Entrevista': c.interview_time || '',
         'Asistió': c.attended ? 'Sí' : 'No',
@@ -605,11 +633,11 @@ export default function CandidatesAdmin() {
 
     const resumeIdsToArchive = sessionCands.map(c => c.resume_id).filter(Boolean);
     if (resumeIdsToArchive.length > 0) {
-      const { error } = await supabase.from('candidate_tracking')
+      const { error: trackErr } = await supabase.from('candidate_tracking')
         .update({ status: 'FORMATIVA_CERRADA' })
         .in('resume_id', resumeIdsToArchive);
         
-      if (!error) {
+      if (!trackErr) {
         setTrackingMap(prev => {
           const newMap = { ...prev };
           resumeIdsToArchive.forEach(id => {
@@ -619,27 +647,32 @@ export default function CandidatesAdmin() {
         });
         fetchPipeline();
       }
-      
-      // Eliminar de formativas para que no salgan más en la pantalla
-      await supabase.from('formative_candidates')
-        .delete()
-        .in('resume_id', resumeIdsToArchive);
-        
-      // Actualizar estado local
-      setFormativeCandidates(prev => prev.filter(c => c.session_title !== sessionName));
     }
+
+    const candidateIdsToDelete = sessionCands.map(c => c.id).filter(Boolean);
+    if (candidateIdsToDelete.length > 0) {
+      const { error: delErr } = await supabase
+        .from('formative_candidates')
+        .delete()
+        .in('id', candidateIdsToDelete);
+
+      if (delErr) {
+        console.error('Error al eliminar candidatos de formativas:', delErr);
+        alert('⚠️ Hubo un error al eliminar los candidatos en la base de datos: ' + delErr.message);
+        return;
+      }
+    }
+
+    const deletedIdSet = new Set(candidateIdsToDelete);
+    setFormativeCandidates(prev => prev.filter(c => !deletedIdSet.has(c.id)));
 
     const now = new Date();
     const newTitle = `Formativas ${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${now.getHours()}${now.getMinutes()}`;
     
     setFormativeSessionTitle(newTitle);
-    setFormativeSessionFilter(newTitle);
-    
-    if (!formativeSessions.includes(newTitle)) {
-      setFormativeSessions(prev => [newTitle, ...prev]);
-    }
+    setFormativeSessionFilter('ALL');
 
-    alert(`✅ Sesión "${sessionName}" archivada con éxito. Se ha creado la nueva sesión "${newTitle}".`);
+    alert(`✅ ${sessionCands.length} candidato(s) de formativas fueron cerrados y archivados con éxito.`);
   };
 
   const handleExportMedica = () => {
@@ -4749,6 +4782,22 @@ export default function CandidatesAdmin() {
                                     }}
                                   >
                                     {c.is_evaluating ? '⏹ Quitar' : '🎯 Evaluar'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteFormativeCandidate(c.id)}
+                                    title="Eliminar candidato de Formativas"
+                                    style={{
+                                      background: '#fef2f2',
+                                      color: '#ef4444',
+                                      border: '1px solid #fecaca',
+                                      borderRadius: '8px',
+                                      padding: '6px 10px',
+                                      fontSize: '12px',
+                                      cursor: 'pointer',
+                                      marginLeft: '6px'
+                                    }}
+                                  >
+                                    🗑️
                                   </button>
                                   {c.is_evaluating && (
                                     <span style={{ fontSize: '10px', color: '#7c3aed', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '4px', justifyContent: 'flex-end' }}>
