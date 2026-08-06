@@ -383,8 +383,36 @@ export default function SupervisorPortal() {
                     return (
                       <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '16px 24px' }}>
-                          <p style={{ fontWeight: 800, margin: 0, color: '#0f172a', fontSize: '14px' }}>{c.candidate_name}</p>
-                          <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>{c.candidate_cargo}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                            <div>
+                              <p style={{ fontWeight: 800, margin: 0, color: '#0f172a', fontSize: '14px' }}>{c.candidate_name}</p>
+                              <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>{c.candidate_cargo}</p>
+                            </div>
+                            {c.cv_url && (
+                              <a 
+                                href={c.cv_url} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  background: '#f3e8ff',
+                                  color: '#7c3aed',
+                                  border: '1px solid #ddd6fe',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  textDecoration: 'none',
+                                  whiteSpace: 'nowrap'
+                                }}
+                                title="Ver VC / CV (Hoja de Vida)"
+                              >
+                                📄 Ver VC
+                              </a>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: '16px 24px' }}>
                           {c.session_title ? (

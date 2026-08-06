@@ -4590,13 +4590,41 @@ export default function CandidatesAdmin() {
                             return (
                               <tr key={c.id} style={{ background: isCurrentlyActive ? 'rgba(59, 130, 246, 0.03)' : 'inherit' }}>
                                 <td>
-                                  <p style={{ fontWeight: 700, margin: 0, color: '#1e293b' }}>{c.email_resumes?.sender_name || 'Candidato'}</p>
-                                  <p style={{ fontSize: '12px', color: '#64748b', margin: '1px 0 0' }}>{c.email_resumes?.sender_email || '—'}</p>
-                                  {c.session_title && (
-                                    <span style={{ fontSize: '9px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-block', marginTop: '2px' }}>
-                                      {c.session_title}
-                                    </span>
-                                  )}
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                    <div>
+                                      <p style={{ fontWeight: 700, margin: 0, color: '#1e293b' }}>{c.email_resumes?.sender_name || 'Candidato'}</p>
+                                      <p style={{ fontSize: '12px', color: '#64748b', margin: '1px 0 0' }}>{c.email_resumes?.sender_email || '—'}</p>
+                                      {c.session_title && (
+                                        <span style={{ fontSize: '9px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-block', marginTop: '2px' }}>
+                                          {c.session_title}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {c.email_resumes?.pdf_url && (
+                                      <a 
+                                        href={c.email_resumes.pdf_url} 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '3px',
+                                          background: '#eff6ff',
+                                          color: '#2563eb',
+                                          border: '1px solid #bfdbfe',
+                                          padding: '3px 8px',
+                                          borderRadius: '6px',
+                                          fontSize: '11px',
+                                          fontWeight: 700,
+                                          textDecoration: 'none',
+                                          whiteSpace: 'nowrap'
+                                        }}
+                                        title="Ver VC / CV (Hoja de Vida)"
+                                      >
+                                        📄 Ver VC
+                                      </a>
+                                    )}
+                                  </div>
                                 </td>
                                 <td style={{ fontWeight: 600, color: '#475569' }}>{c.email_resumes?.position || '—'}</td>
                                 <td>
@@ -4865,8 +4893,36 @@ export default function CandidatesAdmin() {
                           ) : resultsData.map((c: any, idx: number) => (
                             <tr key={c.id} style={{ background: idx % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f1f5f9' }}>
                               <td style={{ padding: '12px 16px' }}>
-                                <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>{c.email_resumes?.sender_name || '—'}</p>
-                                <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{c.email_resumes?.position || '—'}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                  <div>
+                                    <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>{c.email_resumes?.sender_name || '—'}</p>
+                                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{c.email_resumes?.position || '—'}</p>
+                                  </div>
+                                  {c.email_resumes?.pdf_url && (
+                                    <a 
+                                      href={c.email_resumes.pdf_url} 
+                                      target="_blank" 
+                                      rel="noreferrer"
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '3px',
+                                        background: '#f3e8ff',
+                                        color: '#7c3aed',
+                                        border: '1px solid #ddd6fe',
+                                        padding: '3px 8px',
+                                        borderRadius: '6px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        textDecoration: 'none',
+                                        whiteSpace: 'nowrap'
+                                      }}
+                                      title="Ver VC / CV (Hoja de Vida)"
+                                    >
+                                      📄 Ver VC
+                                    </a>
+                                  )}
+                                </div>
                               </td>
                               <td style={{ padding: '12px 16px' }}>
                                 {c.session_title ? (
