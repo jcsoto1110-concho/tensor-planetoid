@@ -269,15 +269,39 @@ export default function OnboardingTabs() {
           const timestamp = Date.now();
           const fileName = `${formData.cedula}/${formData.cedula}_${prefix}_${timestamp}.${fileExt}`;
           
-          const { error: uploadError } = await supabase.storage
-            .from('candidate-documents')
-            .upload(fileName, fileToUpload, { upsert: true });
-          
-          if (uploadError) throw new Error(`Error al subir ${docName}: ${uploadError.message}`);
+          let publicUrl = '';
+          try {
+            const { error: uploadError } = await supabase.storage
+              .from('candidate-documents')
+              .upload(fileName, fileToUpload, { upsert: true });
+            
+            if (uploadError) throw uploadError;
 
-          const { data: { publicUrl } } = supabase.storage
-            .from('candidate-documents')
-            .getPublicUrl(fileName);
+            const { data } = supabase.storage
+              .from('candidate-documents')
+              .getPublicUrl(fileName);
+            publicUrl = data.publicUrl;
+          } catch (directErr: any) {
+            console.warn(`Intento directo de subida falló para ${docName}, usando servidor como alternativa...`, directErr);
+            // Fallback al endpoint del servidor /api/upload-onboarding-doc
+            const bodyData = new FormData();
+            bodyData.append('file', fileToUpload);
+            bodyData.append('cedula', formData.cedula);
+            bodyData.append('prefix', prefix);
+
+            const res = await fetch('/api/upload-onboarding-doc', {
+              method: 'POST',
+              body: bodyData,
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || `Error al subir ${docName}`);
+            }
+
+            const resData = await res.json();
+            publicUrl = resData.publicUrl;
+          }
           
           documentosUrls[docName] = publicUrl;
         }
