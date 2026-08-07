@@ -199,75 +199,46 @@ export default function ApplyPage() {
     setError('')
 
     try {
-      // 1. Verificar si ya existe la cédula
-      const { data: existing, error: checkError } = await supabase
-        .from('email_resumes')
-        .select('id')
-        .eq('cedula', formData.cedula)
-        .limit(1)
+      const bodyData = new FormData()
+      bodyData.append('file', file)
+      bodyData.append('companySlug', companySlug)
+      bodyData.append('cedula', formData.cedula)
+      bodyData.append('nombre', formData.nombre)
+      bodyData.append('email', formData.email.toLowerCase())
+      bodyData.append('celular', formData.celular)
+      bodyData.append('cargo', formData.cargo)
+      bodyData.append('ciudad', formData.ciudad)
+      bodyData.append('experiencia', formData.experiencia)
+      bodyData.append('edad', formData.edad)
+      bodyData.append('herramientas', formData.herramientas)
+      bodyData.append('logro', formData.logro)
+      bodyData.append('birth_date', formData.birth_date || '')
+      bodyData.append('civil_status', formData.civil_status || '')
+      bodyData.append('home_address', formData.home_address || '')
+      bodyData.append('sector', formData.sector || '')
+      bodyData.append('education_level', formData.education_level || '')
+      bodyData.append('education_institution', formData.education_institution || '')
+      bodyData.append('education_title', formData.education_title || '')
+      bodyData.append('heard_from', formData.heard_from || '')
+      bodyData.append('genero', formData.genero || '')
+      bodyData.append('likes_sports', formData.likes_sports || '')
+      bodyData.append('sports_practiced', formData.sports_practiced || '')
+      bodyData.append('work_culture_motivation', formData.work_culture_motivation || '')
 
-      if (checkError) throw checkError
-      if (existing && existing.length > 0) {
-        setError('Ya te has postulado anteriormente con este número de cédula. ¡Gracias por tu interés!')
-        setLoading(false)
-        return
+      const res = await fetch('/api/submit-postulacion', {
+        method: 'POST',
+        body: bodyData,
+      })
+
+      const resData = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        throw new Error(resData.error || 'Error al enviar la postulación')
       }
-
-      // 2. Subir CV a Storage (Usamos el mismo formato que scan-emails para compatibilidad con IA)
-      const emailUid = `WEB${Date.now()}`
-      const fileExt = file.name.split('.').pop()
-      const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-      const storageFileName = `resume_${emailUid.substring(0, 8)}_${sanitizedOriginalName}`
-      
-      const { error: uploadError } = await supabase.storage
-        .from('candidate-documents')
-        .upload(storageFileName, file)
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('candidate-documents')
-        .getPublicUrl(storageFileName)
-
-      // 2. Insertar en email_resumes
-      const { error: dbError } = await supabase.from('email_resumes').insert([{
-        email_uid: emailUid,
-        sender_email: formData.email,
-        sender_name: formData.nombre,
-        cedula: formData.cedula,
-        subject: `Postulación Web: ${formData.cargo}`,
-        received_date: new Date().toISOString(),
-        file_name: file.name,
-        pdf_url: publicUrl,
-        sender_phone: formData.celular,
-        classification_status: 'PENDING',
-        position: formData.cargo,
-        city: formData.ciudad,
-        experience_years: formData.experiencia,
-        age: formData.edad,
-        skills: formData.herramientas,
-        main_achievement: formData.logro,
-        key_tools: formData.herramientas,
-        ai_summary: `CED: ${formData.cedula} | TEL: ${formData.celular} | LOGRO: ${formData.logro} | HERRAMIENTAS: ${formData.herramientas} | CONSENTIMIENTO LOPDP: ACEPTADO`,
-        company_slug: companySlug,
-        birth_date: formData.birth_date || null,
-        civil_status: formData.civil_status || null,
-        home_address: formData.home_address || null,
-        sector: formData.sector || null,
-        education_level: formData.education_level || null,
-        education_institution: formData.education_institution || null,
-        education_title: formData.education_title || null,
-        heard_from: formData.heard_from || null,
-        gender: formData.genero || null,
-        likes_sports: formData.likes_sports || null,
-        sports_practiced: formData.sports_practiced || null,
-        work_culture_motivation: formData.work_culture_motivation || null
-      }])
-
-      if (dbError) throw dbError
 
       setIsSuccess(true)
     } catch (err: any) {
+      console.error('Error al postular:', err)
       setError(err.message || 'Error al enviar la postulación')
     } finally {
       setLoading(false)
