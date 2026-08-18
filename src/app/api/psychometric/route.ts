@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { MASTER_QUESTIONS, PsychometricQuestion } from '@/lib/psychometricQuestions';
 
 // Función para desordenar un arreglo aleatoriamente
