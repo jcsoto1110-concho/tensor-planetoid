@@ -383,6 +383,12 @@ export default function CandidatesAdmin() {
   const [newOptionCategory, setNewOptionCategory] = useState('Formación')
   const [savingOption, setSavingOption] = useState(false)
 
+  // Unir Formativas
+  const [showMergeModal, setShowMergeModal] = useState(false)
+  const [selectedSourceSessions, setSelectedSourceSessions] = useState<string[]>([])
+  const [targetSessionName, setTargetSessionName] = useState('')
+  const [mergingSessions, setMergingSessions] = useState(false)
+
   const fetchFormativeData = async () => {
     if (!user) return
     try {
@@ -580,6 +586,52 @@ export default function CandidatesAdmin() {
       setFormativeCandidates(prev => prev.filter(c => c.id !== candidateId));
     } catch (err: any) {
       alert('Error al eliminar candidato: ' + err.message);
+    }
+  };
+
+  const handleMergeSessions = async () => {
+    if (selectedSourceSessions.length === 0) {
+      alert('Por favor selecciona al menos una sesión de origen para unir.');
+      return;
+    }
+    const finalTarget = targetSessionName.trim();
+    if (!finalTarget) {
+      alert('Por favor ingresa o selecciona el nombre de la sesión de destino.');
+      return;
+    }
+
+    const candsToMerge = formativeCandidates.filter(c => selectedSourceSessions.includes(c.session_title));
+    if (candsToMerge.length === 0) {
+      alert('No se encontraron candidatos en las sesiones seleccionadas.');
+      return;
+    }
+
+    const confirmMsg = `¿Estás seguro de unir ${candsToMerge.length} candidato(s) de las sesiones seleccionadas en "${finalTarget}"?`;
+    if (!confirm(confirmMsg)) return;
+
+    setMergingSessions(true);
+    try {
+      const candidateIds = candsToMerge.map(c => c.id);
+      const { error } = await supabase
+        .from('formative_candidates')
+        .update({ session_title: finalTarget })
+        .in('id', candidateIds);
+
+      if (error) throw error;
+
+      setFormativeCandidates(prev => prev.map(c => 
+        candidateIds.includes(c.id) ? { ...c, session_title: finalTarget } : c
+      ));
+
+      setFormativeSessionTitle(finalTarget);
+      setFormativeSessionFilter(finalTarget);
+      setShowMergeModal(false);
+      await fetchFormativeData();
+      alert(`✅ ¡Éxito! ${candsToMerge.length} candidato(s) han sido unidos a la sesión "${finalTarget}".`);
+    } catch (err: any) {
+      alert('Error al unir formativas: ' + err.message);
+    } finally {
+      setMergingSessions(false);
     }
   };
 
@@ -2426,6 +2478,150 @@ export default function CandidatesAdmin() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMergeModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🔗 Unir / Fusionar Formativas
+              </h3>
+              <button onClick={() => setShowMergeModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
+            </div>
+            
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', lineHeight: 1.5 }}>
+              Combina candidatos de dos o más sesiones de formativas en una sola sesión unificada sin perder sus calificaciones ni datos de evaluación.
+            </p>
+
+            {/* Paso 1: Seleccionar sesiones a unir */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                1. Selecciona las sesiones que deseas unir:
+              </label>
+              
+              {formativeSessions.length === 0 ? (
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '13px', textAlign: 'center' }}>
+                  No hay sesiones activas para unir.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  {formativeSessions.map(sessionName => {
+                    const count = formativeCandidates.filter(c => c.session_title === sessionName).length;
+                    const isChecked = selectedSourceSessions.includes(sessionName);
+                    return (
+                      <label 
+                        key={sessionName}
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between', 
+                          padding: '8px 12px', 
+                          borderRadius: '8px', 
+                          background: isChecked ? '#eff6ff' : 'white', 
+                          border: `1.5px solid ${isChecked ? '#93c5fd' : '#e2e8f0'}`,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <input 
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedSourceSessions(prev => [...prev, sessionName]);
+                              } else {
+                                setSelectedSourceSessions(prev => prev.filter(s => s !== sessionName));
+                              }
+                            }}
+                            style={{ width: '16px', height: '16px', accentColor: '#0284c7', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: isChecked ? '#1e40af' : '#1e293b' }}>
+                            {sessionName}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 800, background: isChecked ? '#dbeafe' : '#f1f5f9', color: isChecked ? '#1e40af' : '#64748b', padding: '2px 8px', borderRadius: '999px' }}>
+                          {count} {count === 1 ? 'candidato' : 'candidatos'}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSourceSessions([...formativeSessions])}
+                  style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                >
+                  Seleccionar todas
+                </button>
+                <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                  {selectedSourceSessions.length} seleccionada(s) ({formativeCandidates.filter(c => selectedSourceSessions.includes(c.session_title)).length} candidatos)
+                </span>
+              </div>
+            </div>
+
+            {/* Paso 2: Nombre de la sesión unificada */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                2. Nombre de la sesión unificada resultante:
+              </label>
+              <input 
+                type="text"
+                value={targetSessionName}
+                onChange={e => setTargetSessionName(e.target.value)}
+                placeholder="Ej: Formativas 20261002"
+                style={{ width: '100%', border: '1.5px solid #0284c7', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', fontWeight: 700, background: '#f0f9ff', color: '#0369a1', outline: 'none', boxSizing: 'border-box' }}
+              />
+              
+              {/* Sugerencias de nombres existentes */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', alignSelf: 'center' }}>Sugerencias:</span>
+                {formativeSessions.map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setTargetSessionName(s)}
+                    style={{
+                      background: targetSessionName === s ? '#0284c7' : '#f1f5f9',
+                      color: targetSessionName === s ? 'white' : '#475569',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Botones de acción */}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <button 
+                onClick={() => setShowMergeModal(false)} 
+                className="track-btn"
+                disabled={mergingSessions}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="ranking-btn-primary" 
+                style={{ width: 'auto', background: 'linear-gradient(135deg, #0284c7, #0369a1)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                onClick={handleMergeSessions}
+                disabled={mergingSessions || selectedSourceSessions.length === 0 || !targetSessionName.trim()}
+              >
+                {mergingSessions ? '⏳ Uniendo...' : '🔗 Unir Sesiones'}
+              </button>
             </div>
           </div>
         </div>
@@ -4442,6 +4638,18 @@ export default function CandidatesAdmin() {
                     style={{ width: 'auto', background: 'linear-gradient(135deg, #ef4444, #dc2626)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                   >
                     🧹 Depurar
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setSelectedSourceSessions(formativeSessions);
+                      setTargetSessionName(formativeSessions[0] || formativeSessionTitle || '');
+                      setShowMergeModal(true);
+                    }} 
+                    className="ranking-btn-primary" 
+                    style={{ width: 'auto', background: 'linear-gradient(135deg, #0284c7, #0369a1)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                    title="Unir dos o más sesiones formativas en una sola"
+                  >
+                    🔗 Unir Formativas
                   </button>
                   <button 
                     onClick={handleCloseFormative} 
