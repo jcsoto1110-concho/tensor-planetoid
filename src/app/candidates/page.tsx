@@ -1227,6 +1227,32 @@ export default function CandidatesAdmin() {
     });
   }, [rankingCargo, rankingResults, trackingMap, resumes, candidates, pipelineData, formativeCandidates]);
 
+  // Filtro inteligente para la pestaña Resumen (Pipeline)
+  const filteredPipelineData = useMemo(() => {
+    return pipelineData
+      .filter(p => {
+        // Verificar si el candidato ya está registrado en Onboarding
+        const isInOnboarding = candidates.some(c => 
+          c.email && p.candidate?.sender_email && 
+          c.email.toLowerCase().trim() === p.candidate.sender_email.toLowerCase().trim()
+        );
+        const isArchived = ['FORMATIVA_CERRADA', 'ONBOARDING', 'EN_ONBOARDING', 'CONTRATADO', 'APROBADO_ONBOARDING'].includes(p.status);
+
+        if (pipelineFilter === 'ONBOARDING') {
+          return isInOnboarding || p.status === 'ONBOARDING' || p.status === 'EN_ONBOARDING';
+        }
+        if (pipelineFilter === 'FORMATIVA_CERRADA') {
+          return p.status === 'FORMATIVA_CERRADA';
+        }
+        if (pipelineFilter === 'ALL') {
+          // En "Todos los activos", ocultar los que ya están en Onboarding o cerrados/contratados
+          return !isInOnboarding && !isArchived;
+        }
+        return p.status === pipelineFilter && !isInOnboarding;
+      })
+      .filter(p => !pipelineCargoFilter || (p.cargo && p.cargo.toLowerCase().includes(pipelineCargoFilter.toLowerCase())));
+  }, [pipelineData, candidates, pipelineFilter, pipelineCargoFilter]);
+
   useEffect(() => {
     setIsMounted(true)
     if (!authLoading && !user) {
@@ -1391,7 +1417,11 @@ export default function CandidatesAdmin() {
 
       if (onboardErr) throw new Error("Error al registrar en Onboarding: " + onboardErr.message);
       
+      // Actualizar candidate_tracking para marcarlo en ONBOARDING
+      await supabase.from('candidate_tracking').update({ status: 'ONBOARDING' }).eq('resume_id', resumeId);
+      
       fetchCandidates(); 
+      fetchPipeline();
 
       const mailRes = await fetch('/api/send-approval-email', {
         method: 'POST',
@@ -1477,6 +1507,11 @@ export default function CandidatesAdmin() {
 
         if (onboardErr) throw onboardErr;
 
+        // Actualizar candidate_tracking para marcarlo en ONBOARDING
+        if (c.resume_id) {
+          await supabase.from('candidate_tracking').update({ status: 'ONBOARDING' }).eq('resume_id', c.resume_id);
+        }
+
         const mailRes = await fetch('/api/send-approval-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1497,6 +1532,7 @@ export default function CandidatesAdmin() {
 
     setSendingBulkOnboarding(false);
     fetchCandidates();
+    fetchPipeline();
     alert(`✅ Envío masivo completado.\nExitosos: ${successCount}\nErrores: ${errorCount}`);
   }
 
@@ -2033,19 +2069,35 @@ export default function CandidatesAdmin() {
 
   const handleApproveOnboarding = async (id: string) => {
     if (!confirm('¿Deseas aprobar este expediente?')) return;
+    const cand = candidates.find(c => c.id === id);
     const { error } = await supabase.from('onboarding_candidates').update({ status: 'APPROVED' }).eq('id', id);
     if (error) {
       alert('Error al aprobar: ' + error.message);
     } else {
+      if (cand?.email) {
+        const resume = resumes.find(r => r.sender_email?.toLowerCase() === cand.email.toLowerCase());
+        if (resume?.id) {
+          await supabase.from('candidate_tracking').update({ status: 'CONTRATADO' }).eq('resume_id', resume.id);
+        }
+      }
       setViewingOnboarding(null);
       fetchCandidates();
+      fetchPipeline();
     }
   }
 
   const handleSyncToOracle = async (id: string) => {
     if (!confirm('¿Deseas sincronizar este candidato con el sistema de digitalización? Asegúrate de haber revisado sus documentos.')) return;
+    const cand = candidates.find(c => c.id === id);
     await fetch('/api/oracle-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    if (cand?.email) {
+      const resume = resumes.find(r => r.sender_email?.toLowerCase() === cand.email.toLowerCase());
+      if (resume?.id) {
+        await supabase.from('candidate_tracking').update({ status: 'CONTRATADO' }).eq('resume_id', resume.id);
+      }
+    }
     fetchCandidates();
+    fetchPipeline();
   }
 
   const handleRejectOnboarding = async () => {
@@ -4007,11 +4059,12 @@ export default function CandidatesAdmin() {
                   onChange={e => setPipelineFilter(e.target.value)}
                   style={{ border: 'none', background: 'none', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none' }}
                 >
-                  <option value="ALL">Todos los estados</option>
+                  <option value="ALL">Todos los activos</option>
                   <option value="PENDIENTE">⏳ Pendientes</option>
                   <option value="MENSAJE_ENVIADO">📨 Mensaje Enviado</option>
                   <option value="ENTREVISTA_PROGRAMADA">📅 Citados</option>
                   <option value="ENTREVISTA_APROBADA">✅ Aprobados</option>
+                  <option value="ONBOARDING">🚀 En Onboarding</option>
                   <option value="RECHAZADO">❌ Rechazados</option>
                 </select>
               </div>
@@ -4039,17 +4092,14 @@ export default function CandidatesAdmin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pipelineData.length === 0 ? (
+                  {filteredPipelineData.length === 0 ? (
                     <tr>
                       <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
                         No hay candidatos en el resumen actualmente.
                       </td>
                     </tr>
                   ) : (
-                    pipelineData
-                      .filter(p => pipelineFilter === 'ALL' || p.status === pipelineFilter)
-                      .filter(p => !pipelineCargoFilter || p.cargo.toLowerCase().includes(pipelineCargoFilter.toLowerCase()))
-                      .map(p => (
+                    filteredPipelineData.map(p => (
                       <tr key={p.id}>
                         <td style={{ textAlign: 'center' }}>
                           {(() => {
