@@ -375,6 +375,21 @@ export default function CandidatesAdmin() {
     `Te recomendamos asistir con un estilo semiformal y zapatos deportivos. Por favor confirma tu asistencia.`
   )
   
+  // === WHATSAPP GRUPO ONBOARDING ===
+  const [showOnboardingWhatsAppModal, setShowOnboardingWhatsAppModal] = useState(false)
+  const [onboardingGroupLink, setOnboardingGroupLink] = useState('')
+  const [onboardingWhatsappTemplateText, setOnboardingWhatsappTemplateText] = useState(
+    `¡Hola {nombre}! 🎉 Te damos la más cordial bienvenida a Superdeporte S.A. / Marathon. ⚽\n\n` +
+    `Has sido seleccionado para iniciar tu proceso de Onboarding e ingreso formal a la compañía.\n\n` +
+    `📌 Por favor completa tus datos y sube tus documentos en nuestro portal:\n` +
+    `🌐 https://uneteanuestroequipo.ec.aseyco.com/superdeporte/onboarding\n\n` +
+    `Únete a nuestro grupo oficial de WhatsApp de Onboarding para coordinar la inducción y documentación:\n` +
+    `👉 {enlace_grupo}\n\n` +
+    `¡Muchos éxitos en tu inicio!`
+  )
+  const [onboardingStatusFilter, setOnboardingStatusFilter] = useState<string>('ALL')
+  const [onboardingSearchFilter, setOnboardingSearchFilter] = useState<string>('')
+  
   const [supervisorName, setSupervisorName] = useState('')
   const [supervisorEmail, setSupervisorEmail] = useState('')
   const [savingSupervisor, setSavingSupervisor] = useState(false)
@@ -1286,10 +1301,21 @@ export default function CandidatesAdmin() {
         const matchCargo = !pipelineCargoFilter || (p.cargo && p.cargo.toLowerCase().includes(pipelineCargoFilter.toLowerCase()));
         const nameQuery = pipelineNameFilter.toLowerCase().trim();
         const matchName = !nameQuery || (
+          // Candidato
+          (p.candidate?.sender_name && p.candidate.sender_name.toLowerCase().includes(nameQuery)) ||
           (p.candidate_name && p.candidate_name.toLowerCase().includes(nameQuery)) ||
-          (p.cedula && p.cedula.includes(nameQuery)) ||
+          (p.candidate?.sender_email && p.candidate.sender_email.toLowerCase().includes(nameQuery)) ||
           (p.email && p.email.toLowerCase().includes(nameQuery)) ||
-          (p.telefono && p.telefono.includes(nameQuery))
+          (p.candidate?.sender_phone && p.candidate.sender_phone.includes(nameQuery)) ||
+          (p.telefono && String(p.telefono).includes(nameQuery)) ||
+          (p.candidate?.cedula && p.candidate.cedula.includes(nameQuery)) ||
+          (p.cedula && p.cedula.includes(nameQuery)) ||
+          // Usuario Reclutador
+          (p.recruiter_name && p.recruiter_name.toLowerCase().includes(nameQuery)) ||
+          (p.created_by_cedula && p.created_by_cedula.toLowerCase().includes(nameQuery)) ||
+          (p.created_by_user && p.created_by_user.toLowerCase().includes(nameQuery)) ||
+          // Notas
+          (p.notes && p.notes.toLowerCase().includes(nameQuery))
         );
         return matchCargo && matchName;
       });
@@ -2595,6 +2621,178 @@ export default function CandidatesAdmin() {
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button onClick={() => setShowWhatsAppModal(false)} className="track-btn">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL GRUPO DE WHATSAPP ONBOARDING */}
+      {showOnboardingWhatsAppModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '720px', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '24px' }} alt="WA" />
+                Grupo de WhatsApp - Candidatos Onboarding ({candidates.length})
+              </h3>
+              <button onClick={() => setShowOnboardingWhatsAppModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
+            </div>
+
+            {/* Enlace de Grupo de WhatsApp */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '16px', borderRadius: '14px', marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#166534', marginBottom: '6px', textTransform: 'uppercase' }}>
+                🔗 Enlace del Grupo de WhatsApp (Invite Link)
+              </label>
+              <input 
+                type="text"
+                placeholder="Pega aquí el enlace de tu grupo de WhatsApp: https://chat.whatsapp.com/..."
+                value={onboardingGroupLink}
+                onChange={e => setOnboardingGroupLink(e.target.value)}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #86efac', fontSize: '13px', background: 'white', color: '#1e293b', outline: 'none' }}
+              />
+              <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#15803d' }}>
+                💡 Este enlace reemplazará automáticamente la etiqueta <code>{'{enlace_grupo}'}</code> en los mensajes que envíes a cada candidato.
+              </p>
+            </div>
+            
+            {/* Template de Mensaje */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', margin: 0, textTransform: 'uppercase' }}>
+                  Plantilla de Mensaje de Invitación
+                </label>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(onboardingWhatsappTemplateText);
+                    alert('¡Plantilla copiada al portapapeles!');
+                  }}
+                  className="track-btn"
+                  style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #cbd5e1' }}
+                >
+                  📋 Copiar Plantilla
+                </button>
+              </div>
+              <textarea 
+                value={onboardingWhatsappTemplateText}
+                onChange={e => setOnboardingWhatsappTemplateText(e.target.value)}
+                style={{ width: '100%', height: '140px', padding: '12px', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '13px', color: '#334155', fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
+              />
+            </div>
+
+            {(() => {
+              const activeOnboardCandidates = candidates.filter(c => c.status !== 'DELETED');
+              
+              const handleCopyAllPhones = () => {
+                const phones = activeOnboardCandidates
+                  .map(c => {
+                    let p = String(c.telefono || '').replace(/\D/g, '');
+                    if (p.startsWith('0')) p = '593' + p.substring(1);
+                    else if (p.length === 9) p = '593' + p;
+                    return p ? `+${p}` : null;
+                  })
+                  .filter(Boolean);
+                
+                navigator.clipboard.writeText(phones.join(', '));
+                alert(`¡${phones.length} teléfonos copiados al portapapeles! Puedes pegarlos directamente en WhatsApp para crear tu grupo.`);
+              };
+
+              const formatWhatsAppLink = (phone: string, candidateName: string) => {
+                let cleanPhone = String(phone || '').replace(/\D/g, '');
+                if (cleanPhone.startsWith('0')) {
+                  cleanPhone = '593' + cleanPhone.substring(1);
+                } else if (cleanPhone.length === 9 && (cleanPhone.startsWith('9') || cleanPhone.startsWith('8'))) {
+                  cleanPhone = '593' + cleanPhone;
+                }
+                
+                let text = onboardingWhatsappTemplateText
+                  .replace(/\{nombre\}/g, candidateName.split(' ')[0] || candidateName)
+                  .replace(/\{enlace_grupo\}/g, onboardingGroupLink || '(Enlace pendiente)');
+
+                return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+              };
+
+              return (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
+                      Candidatos Registrados ({activeOnboardCandidates.length})
+                    </span>
+                    <button 
+                      onClick={handleCopyAllPhones}
+                      className="ranking-btn-primary" 
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #10b981, #059669)', fontSize: '12.5px', padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      disabled={activeOnboardCandidates.length === 0}
+                    >
+                      📋 Copiar todos los teléfonos (+593...)
+                    </button>
+                  </div>
+
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', maxHeight: '250px', overflowY: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                      <thead style={{ background: '#f8fafc', position: 'sticky', top: 0, zIndex: 1 }}>
+                        <tr style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>
+                          <th style={{ padding: '10px 16px' }}>Candidato</th>
+                          <th style={{ padding: '10px 16px' }}>Cargo</th>
+                          <th style={{ padding: '10px 16px' }}>Teléfono</th>
+                          <th style={{ padding: '10px 16px', textAlign: 'right' }}>Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeOnboardCandidates.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                              No hay candidatos en Onboarding actualmente.
+                            </td>
+                          </tr>
+                        ) : (
+                          activeOnboardCandidates.map(c => {
+                            const name = `${c.nombres} ${c.apellidos || ''}`.trim();
+                            const phone = c.telefono || '';
+                            const link = phone ? formatWhatsAppLink(phone, name) : '';
+                            
+                            return (
+                              <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '10px 16px', fontWeight: 600 }}>{name}</td>
+                                <td style={{ padding: '10px 16px', color: '#64748b' }}>{c.cargo || '—'}</td>
+                                <td style={{ padding: '10px 16px', fontFamily: 'monospace' }}>{phone || '—'}</td>
+                                <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                                  {link ? (
+                                    <a 
+                                      href={link} 
+                                      target="_blank" 
+                                      rel="noreferrer"
+                                      className="ranking-btn-primary" 
+                                      style={{ 
+                                        padding: '5px 12px', 
+                                        fontSize: '11px', 
+                                        background: '#25d366', 
+                                        color: 'white', 
+                                        textDecoration: 'none', 
+                                        borderRadius: '6px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                      }}
+                                    >
+                                      💬 Enviar Invitación
+                                    </a>
+                                  ) : (
+                                    <span style={{ color: '#94a3b8', fontSize: '11px', fontStyle: 'italic' }}>Sin teléfono</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button onClick={() => setShowOnboardingWhatsAppModal(false)} className="track-btn">Cerrar</button>
             </div>
           </div>
         </div>
@@ -4205,7 +4403,7 @@ export default function CandidatesAdmin() {
                 <div className="filter-input" style={{ flex: '1.4', minWidth: '220px' }}>
                   <Search size={18} color="#94a3b8" />
                   <input 
-                    placeholder="Buscar por nombre, cédula..." 
+                    placeholder="Buscar por candidato, cédula o usuario reclutador..." 
                     value={pipelineNameFilter} 
                     onChange={e => setPipelineNameFilter(e.target.value)} 
                   />
@@ -4664,92 +4862,183 @@ export default function CandidatesAdmin() {
 
         {/* --- ONBOARDING --- */}
         {activeTab === 'onboarding' && (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Candidato</th>
-                  <th>Cargo</th>
-                  <th>Fecha Formativa</th>
-                  <th>Cédula</th>
-                  <th>Estado Onboarding</th>
-                  <th style={{ textAlign: 'right' }}>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {candidates.map(c => {
-                  const fInfo = getCandidateFormativaInfo(c);
-                  return (
-                    <tr key={c.id}>
-                      <td>
-                        <div className="user-cell">
-                          <div className="user-avatar"><User size={20} /></div>
-                          <div>
-                            <p className="user-name">{c.nombres} {c.apellidos}</p>
-                            <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>{c.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ color: '#475569', fontWeight: 600 }}>{c.cargo}</td>
-                      <td>
-                        {fInfo?.date ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              📅 {fInfo.date}
-                            </span>
-                            {fInfo.session && (
-                              <span style={{ 
-                                fontSize: '10px', 
-                                fontWeight: 700, 
-                                color: '#0369a1', 
-                                background: '#f0f9ff', 
-                                border: '1px solid #bae6fd', 
-                                padding: '1px 6px', 
-                                borderRadius: '4px', 
-                                width: 'fit-content' 
-                              }}>
-                                🎯 {fInfo.session}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>—</span>
-                        )}
-                      </td>
-                      <td>{c.cedula?.startsWith('PENDIENTE') ? <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Por completar</span> : <strong>{c.cedula}</strong>}</td>
-                      <td>
-                        <span className="pipeline-badge" style={{ 
-                           background: c.status === 'SYNCED' ? '#e0f2fe' : c.status === 'APPROVED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff', 
-                           color: c.status === 'SYNCED' ? '#0369a1' : c.status === 'APPROVED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
-                           border: '1px solid currentColor',
-                           opacity: 0.8
-                         }}>
-                           {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'APPROVED' ? '✅ APROBADO' : c.status === 'SYNCED' ? '☁️ EN SAP' : '⏳ PENDIENTE'}
-                         </span>
-                         {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                          {(c.status === 'LLENADO' || c.status === 'APPROVED') && (
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                              <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
-                              <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
-                              <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
-                              {c.status !== 'APPROVED' && (
-                                <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
-                              )}
-                              <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🚀 Sincronizar</button>
+          <div style={{ display: 'grid', gap: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <div className="filter-bar" style={{ margin: 0, flex: 1, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="filter-input" style={{ flex: '1.4', minWidth: '220px' }}>
+                  <Search size={18} color="#94a3b8" />
+                  <input 
+                    placeholder="Buscar por nombre, cédula o cargo..." 
+                    value={onboardingSearchFilter} 
+                    onChange={e => setOnboardingSearchFilter(e.target.value)} 
+                  />
+                  {onboardingSearchFilter && (
+                    <button 
+                      onClick={() => setOnboardingSearchFilter('')} 
+                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
+                      title="Limpiar búsqueda"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <select 
+                  value={onboardingStatusFilter} 
+                  onChange={e => setOnboardingStatusFilter(e.target.value)}
+                  style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '160px' }}
+                >
+                  <option value="ALL">Todos los estados ({candidates.length})</option>
+                  <option value="PENDING">⏳ Pendientes</option>
+                  <option value="LLENADO">📝 Llenados</option>
+                  <option value="APPROVED">✅ Aprobados</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button 
+                  onClick={() => setShowOnboardingWhatsAppModal(true)} 
+                  className="ranking-btn-primary" 
+                  style={{ 
+                    width: 'auto', 
+                    background: 'linear-gradient(135deg, #25d366, #128c7e)', 
+                    color: 'white', 
+                    padding: '10px 18px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    fontWeight: 700,
+                    boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '18px' }} alt="WA" />
+                  💬 Grupo de WhatsApp ({candidates.length})
+                </button>
+                <button 
+                  onClick={exportToExcel} 
+                  className="track-btn" 
+                  style={{ padding: '10px 14px', background: 'white', borderColor: '#e2e8f0', color: '#475569', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <FileSpreadsheet size={16} color="#10b981" /> Exportar
+                </button>
+              </div>
+            </div>
+
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Candidato</th>
+                    <th>Cargo</th>
+                    <th>Fecha Formativa</th>
+                    <th>Cédula</th>
+                    <th>Estado Onboarding</th>
+                    <th style={{ textAlign: 'right' }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const filtered = candidates.filter(c => {
+                      const matchStatus = onboardingStatusFilter === 'ALL' || c.status === onboardingStatusFilter;
+                      const q = onboardingSearchFilter.toLowerCase().trim();
+                      const matchSearch = !q || (
+                        (c.nombres && c.nombres.toLowerCase().includes(q)) ||
+                        (c.apellidos && c.apellidos.toLowerCase().includes(q)) ||
+                        (c.email && c.email.toLowerCase().includes(q)) ||
+                        (c.cedula && c.cedula.includes(q)) ||
+                        (c.telefono && String(c.telefono).includes(q)) ||
+                        (c.cargo && c.cargo.toLowerCase().includes(q))
+                      );
+                      return matchStatus && matchSearch;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                            No se encontraron candidatos en Onboarding con los filtros aplicados.
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return filtered.map(c => {
+                      const fInfo = getCandidateFormativaInfo(c);
+                      return (
+                        <tr key={c.id}>
+                          <td>
+                            <div className="user-cell">
+                              <div className="user-avatar"><User size={20} /></div>
+                              <div>
+                                <p className="user-name">{c.nombres} {c.apellidos}</p>
+                                <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>{c.email}</p>
+                              </div>
                             </div>
-                          )}
-                          {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
-                          <button onClick={() => handleDelete(c.id)} className="track-btn" style={{ color: '#64748b', padding: '6px' }} title="Eliminar registro"><Trash2 size={14} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                          </td>
+                          <td style={{ color: '#475569', fontWeight: 600 }}>{c.cargo}</td>
+                          <td>
+                            {fInfo?.date ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  📅 {fInfo.date}
+                                </span>
+                                {fInfo.session && (
+                                  <span style={{ 
+                                    fontSize: '10px', 
+                                    fontWeight: 700, 
+                                    color: '#0369a1', 
+                                    background: '#f0f9ff', 
+                                    border: '1px solid #bae6fd', 
+                                    padding: '1px 6px', 
+                                    borderRadius: '4px', 
+                                    width: 'fit-content' 
+                                  }}>
+                                    🎯 {fInfo.session}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>—</span>
+                            )}
+                          </td>
+                          <td>{c.cedula?.startsWith('PENDIENTE') ? <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Por completar</span> : <strong>{c.cedula}</strong>}</td>
+                          <td>
+                            <span className="pipeline-badge" style={{ 
+                               background: c.status === 'SYNCED' ? '#e0f2fe' : c.status === 'APPROVED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff', 
+                               color: c.status === 'SYNCED' ? '#0369a1' : c.status === 'APPROVED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
+                               border: '1px solid currentColor',
+                               opacity: 0.8
+                             }}>
+                               {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'APPROVED' ? '✅ APROBADO' : c.status === 'SYNCED' ? '☁️ EN SAP' : '⏳ PENDIENTE'}
+                             </span>
+                             {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                              {(c.status === 'LLENADO' || c.status === 'APPROVED') && (
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
+                                  <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
+                                  <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
+                                  {c.status !== 'APPROVED' && (
+                                    <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
+                                  )}
+                                  <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🚀 Sincronizar</button>
+                                </div>
+                              )}
+                              {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
+                              <button onClick={() => handleDelete(c.id)} className="track-btn" style={{ color: '#64748b', padding: '6px' }} title="Eliminar registro"><Trash2 size={14} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
