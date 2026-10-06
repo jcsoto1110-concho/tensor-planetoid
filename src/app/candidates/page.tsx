@@ -388,6 +388,7 @@ export default function CandidatesAdmin() {
     `¡Muchos éxitos en tu inicio!`
   )
   const [onboardingStatusFilter, setOnboardingStatusFilter] = useState<string>('ALL')
+  const [onboardingFormativaFilter, setOnboardingFormativaFilter] = useState<string>('ALL')
   const [onboardingSearchFilter, setOnboardingSearchFilter] = useState<string>('')
   
   const [supervisorName, setSupervisorName] = useState('')
@@ -2319,20 +2320,68 @@ export default function CandidatesAdmin() {
       };
     }
 
-    // 3. Buscar en pipelineData
+    // 3. Buscar en pipelineData o trackingMap / resumes
     const pItem = pipelineData.find((p: any) => {
-      const pEmail = (p.candidate?.sender_email || '').toLowerCase().trim();
-      return cEmail && pEmail && cEmail === pEmail;
+      const pEmail = (p.candidate?.sender_email || p.email || '').toLowerCase().trim();
+      const pPhone = (p.candidate?.sender_phone || p.telefono || '').replace(/\D/g, '').slice(-9);
+      const pName = (p.candidate?.sender_name || p.candidate_name || '').toLowerCase().trim();
+      return (cEmail && pEmail && cEmail === pEmail) ||
+             (cPhone.length >= 7 && pPhone && cPhone === pPhone) ||
+             (cName.length > 5 && pName.length > 5 && (cName === pName || cName.includes(pName) || pName.includes(cName)));
     });
 
-    if (pItem?.interview_date) {
-      const parts = String(pItem.interview_date).split('T')[0].split('-');
-      const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : String(pItem.interview_date);
-      return {
-        date: dateFormatted,
-        session: null,
-        time: pItem.interview_time || null
-      };
+    if (pItem) {
+      const rawDate = pItem.interview_date || pItem.updated_at || pItem.created_at;
+      if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          const dateFormatted = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+          return {
+            date: dateFormatted,
+            session: pItem.cargo ? `Formativas ${pItem.cargo}` : 'Formativas',
+            time: pItem.interview_time || null
+          };
+        }
+      }
+    }
+
+    // 4. Buscar en resumes / trackingMap
+    const matchedResume = resumes.find((r: any) => {
+      const rEmail = (r.sender_email || r.email || '').toLowerCase().trim();
+      const rPhone = (r.sender_phone || r.phone || r.cellphone || '').replace(/\D/g, '').slice(-9);
+      const rName = (r.sender_name || r.name || '').toLowerCase().trim();
+      return (cEmail && rEmail && cEmail === rEmail) ||
+             (cPhone.length >= 7 && rPhone && cPhone === rPhone) ||
+             (cName.length > 5 && rName.length > 5 && (cName === rName || cName.includes(rName) || rName.includes(cName)));
+    });
+
+    if (matchedResume) {
+      const t = trackingMap[matchedResume.id];
+      const rawDate = t?.interview_date || t?.updated_at || t?.created_at || matchedResume.received_date || matchedResume.created_at;
+      if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          const dateFormatted = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+          return {
+            date: dateFormatted,
+            session: t?.cargo || matchedResume.position ? `Formativas ${t?.cargo || matchedResume.position}` : 'Formativas',
+            time: null
+          };
+        }
+      }
+    }
+
+    // 5. Fallback con la fecha de ingreso/creación en Onboarding
+    if (c.created_at) {
+      const d = new Date(c.created_at);
+      if (!isNaN(d.getTime())) {
+        const dateFormatted = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        return {
+          date: dateFormatted,
+          session: c.cargo ? `Formativas ${c.cargo}` : 'Formativas',
+          time: null
+        };
+      }
     }
 
     return null;
@@ -4883,6 +4932,25 @@ export default function CandidatesAdmin() {
                   )}
                 </div>
                 <select 
+                  value={onboardingFormativaFilter} 
+                  onChange={e => setOnboardingFormativaFilter(e.target.value)}
+                  style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '180px' }}
+                >
+                  <option value="ALL">🎯 Todas las Formativas</option>
+                  {Array.from(new Set(
+                    candidates
+                      .map(c => {
+                        const f = getCandidateFormativaInfo(c);
+                        return f?.session || f?.date || null;
+                      })
+                      .filter(Boolean)
+                  )).sort().map(f => (
+                    <option key={f as string} value={f as string}>
+                      🎯 {f}
+                    </option>
+                  ))}
+                </select>
+                <select 
                   value={onboardingStatusFilter} 
                   onChange={e => setOnboardingStatusFilter(e.target.value)}
                   style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '160px' }}
@@ -4941,7 +5009,22 @@ export default function CandidatesAdmin() {
                 <tbody>
                   {(() => {
                     const filtered = candidates.filter(c => {
+                      const fInfo = getCandidateFormativaInfo(c);
+                      
+                      // Filtro por Formativa
+                      if (onboardingFormativaFilter !== 'ALL') {
+                        const matchF = fInfo && (
+                          fInfo.session === onboardingFormativaFilter ||
+                          fInfo.date === onboardingFormativaFilter ||
+                          (fInfo.session && fInfo.session.includes(onboardingFormativaFilter))
+                        );
+                        if (!matchF) return false;
+                      }
+
+                      // Filtro por estado
                       const matchStatus = onboardingStatusFilter === 'ALL' || c.status === onboardingStatusFilter;
+
+                      // Filtro por texto
                       const q = onboardingSearchFilter.toLowerCase().trim();
                       const matchSearch = !q || (
                         (c.nombres && c.nombres.toLowerCase().includes(q)) ||
@@ -4949,7 +5032,9 @@ export default function CandidatesAdmin() {
                         (c.email && c.email.toLowerCase().includes(q)) ||
                         (c.cedula && c.cedula.includes(q)) ||
                         (c.telefono && String(c.telefono).includes(q)) ||
-                        (c.cargo && c.cargo.toLowerCase().includes(q))
+                        (c.cargo && c.cargo.toLowerCase().includes(q)) ||
+                        (fInfo?.session && fInfo.session.toLowerCase().includes(q)) ||
+                        (fInfo?.date && fInfo.date.toLowerCase().includes(q))
                       );
                       return matchStatus && matchSearch;
                     });
