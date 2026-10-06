@@ -40,12 +40,12 @@ const DiscLineChart = ({ D, I, S, C }: { D: number; I: number; S: number; C: num
           const isMain = tick === 0 || tick === 50 || tick === 100;
           return (
             <g key={tick}>
-              <line 
-                x1={paddingLeft} 
-                y1={getY(tick)} 
-                x2={width - paddingRight} 
-                y2={getY(tick)} 
-                stroke={isMain ? '#cbd5e1' : '#f1f5f9'} 
+              <line
+                x1={paddingLeft}
+                y1={getY(tick)}
+                x2={width - paddingRight}
+                y2={getY(tick)}
+                stroke={isMain ? '#cbd5e1' : '#f1f5f9'}
                 strokeWidth={isMain ? '1.5' : '1'}
                 strokeDasharray={isMain ? '0' : '3 3'}
               />
@@ -58,13 +58,13 @@ const DiscLineChart = ({ D, I, S, C }: { D: number; I: number; S: number; C: num
           );
         })}
 
-        <rect 
-          x={paddingLeft} 
-          y={getY(60)} 
-          width={chartWidth} 
-          height={getY(40) - getY(60)} 
-          fill="rgba(226, 232, 240, 0.4)" 
-          pointerEvents="none" 
+        <rect
+          x={paddingLeft}
+          y={getY(60)}
+          width={chartWidth}
+          height={getY(40) - getY(60)}
+          fill="rgba(226, 232, 240, 0.4)"
+          pointerEvents="none"
         />
         <text x={width - paddingRight - 8} y={getY(50) + 4} textAnchor="end" fontSize="9" fontWeight="800" fill="#94a3b8" letterSpacing="0.5px">
           INTENSIDAD MEDIA
@@ -74,12 +74,12 @@ const DiscLineChart = ({ D, I, S, C }: { D: number; I: number; S: number; C: num
           <line key={i} x1={x} y1={paddingTop} x2={x} y2={paddingTop + chartHeight} stroke="#e2e8f0" strokeWidth="1.5" />
         ))}
 
-        <path 
-          d={pathD} 
-          fill="none" 
-          stroke="url(#disc-grad)" 
-          strokeWidth="4" 
-          strokeLinecap="round" 
+        <path
+          d={pathD}
+          fill="none"
+          stroke="url(#disc-grad)"
+          strokeWidth="4"
+          strokeLinecap="round"
           strokeLinejoin="round"
           style={{ filter: 'drop-shadow(0px 3px 6px rgba(59, 130, 246, 0.35))' }}
         />
@@ -98,13 +98,13 @@ const DiscLineChart = ({ D, I, S, C }: { D: number; I: number; S: number; C: num
           const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'];
           return (
             <g key={i}>
-              <circle 
-                cx={xCoords[i]} 
-                cy={getY(val)} 
-                r="7" 
-                fill={colors[i]} 
-                stroke="#ffffff" 
-                strokeWidth="2.5" 
+              <circle
+                cx={xCoords[i]}
+                cy={getY(val)}
+                r="7"
+                fill={colors[i]}
+                stroke="#ffffff"
+                strokeWidth="2.5"
                 style={{ filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.2))' }}
               />
               <text x={xCoords[i]} y={getY(val) - 12} textAnchor="middle" fontSize="11" fontWeight="800" fill="#1e293b">
@@ -166,16 +166,16 @@ const CognitiveFlowRow = ({ letter, name, desc, score }: { letter: string; name:
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 60px', gap: '16px', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid #f1f5f9' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ 
-          width: '32px', 
-          height: '32px', 
-          borderRadius: '50%', 
-          background: '#eff6ff', 
-          color: '#2563eb', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          fontWeight: 800, 
+        <div style={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          background: '#eff6ff',
+          color: '#2563eb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 800,
           fontSize: '14px',
           border: '1.5px solid #dbeafe',
           flexShrink: 0
@@ -195,14 +195,14 @@ const CognitiveFlowRow = ({ letter, name, desc, score }: { letter: string; name:
           <div style={{ background: score > 66 ? 'rgba(59, 130, 246, 0.3)' : 'transparent' }} />
         </div>
 
-        <div style={{ 
-          position: 'absolute', 
-          left: 0, 
-          height: '10px', 
-          width: `${score}%`, 
-          background: 'linear-gradient(90deg, #3b82f6 0%, #6366f1 100%)', 
+        <div style={{
+          position: 'absolute',
+          left: 0,
+          height: '10px',
+          width: `${score}%`,
+          background: 'linear-gradient(90deg, #3b82f6 0%, #6366f1 100%)',
           borderRadius: '9999px 0 0 9999px',
-          pointerEvents: 'none' 
+          pointerEvents: 'none'
         }} />
 
         <div style={{ position: 'absolute', bottom: '-4px', left: 0, width: '100%', display: 'flex', justifyContent: 'space-between', padding: '0 4px', fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -211,21 +211,21 @@ const CognitiveFlowRow = ({ letter, name, desc, score }: { letter: string; name:
           <span>Fluye</span>
         </div>
 
-        <div style={{ 
-          position: 'absolute', 
-          left: `calc(${score}% - 12px)`, 
-          top: '-1px', 
-          display: 'flex', 
-          flexDirection: 'column', 
+        <div style={{
+          position: 'absolute',
+          left: `calc(${score}% - 12px)`,
+          top: '-1px',
+          display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           transition: 'left 0.5s ease-out',
           zIndex: 10
         }}>
-          <div style={{ 
-            background: 'white', 
-            borderRadius: '50%', 
-            padding: '2px', 
-            boxShadow: '0 4px 10px rgba(0,0,0,0.15)', 
+          <div style={{
+            background: 'white',
+            borderRadius: '50%',
+            padding: '2px',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
             border: `1.5px solid ${isLow ? '#ef4444' : isMid ? '#f59e0b' : '#10b981'}`,
             display: 'flex',
             alignItems: 'center',
@@ -270,7 +270,7 @@ export default function CandidatesAdmin() {
   const [viewingOnboarding, setViewingOnboarding] = useState<any | null>(null)
   const [rejectionModal, setRejectionModal] = useState<{ id: string; email: string; name: string } | null>(null)
   const [rejectionObs, setRejectionObs] = useState('')
-  
+
   // Datos para Selección
   const [resumes, setResumes] = useState<any[]>([])
   const [loadingResumes, setLoadingResumes] = useState(false)
@@ -348,7 +348,7 @@ export default function CandidatesAdmin() {
   const [activeEvaluatingCandidateId, setActiveEvaluatingCandidateId] = useState<string | null>(null)
   const [formativeSessionTitle, setFormativeSessionTitle] = useState(() => {
     const today = new Date()
-    const ymd = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`
+    const ymd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
     return `Formativas ${ymd}`
   })
   const [formativeSessionFilter, setFormativeSessionFilter] = useState<string>('ALL')
@@ -358,13 +358,13 @@ export default function CandidatesAdmin() {
   const [fase2MinScore, setFase2MinScore] = useState(0)
   const [promotingFase2, setPromotingFase2] = useState(false)
   const [sendingBulkOnboarding, setSendingBulkOnboarding] = useState(false)
-  
+
   // Modals / Inputs
   const [showMassCitationModal, setShowMassCitationModal] = useState(false)
   const [massCitationDate, setMassCitationDate] = useState('')
   const [massCitationTime, setMassCitationTime] = useState('09:00')
   const [sendingMassCitation, setSendingMassCitation] = useState(false)
-  
+
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [whatsappTemplateText, setWhatsappTemplateText] = useState(
     `Estimad@ candidat@, te invitamos a participar en nuestro proceso de selección para nuestras tiendas Marathon en Quito, llamado "Formativas". ⚽\n` +
@@ -374,7 +374,7 @@ export default function CandidatesAdmin() {
     `📍Dirección: Av. Galo Plaza Lasso 13205 y De los Cerezos.\n` +
     `Te recomendamos asistir con un estilo semiformal y zapatos deportivos. Por favor confirma tu asistencia.`
   )
-  
+
   // === WHATSAPP GRUPO ONBOARDING ===
   const [showOnboardingWhatsAppModal, setShowOnboardingWhatsAppModal] = useState(false)
   const [onboardingGroupLink, setOnboardingGroupLink] = useState('')
@@ -390,11 +390,11 @@ export default function CandidatesAdmin() {
   const [onboardingStatusFilter, setOnboardingStatusFilter] = useState<string>('ALL')
   const [onboardingFormativaFilter, setOnboardingFormativaFilter] = useState<string>('ALL')
   const [onboardingSearchFilter, setOnboardingSearchFilter] = useState<string>('')
-  
+
   const [supervisorName, setSupervisorName] = useState('')
   const [supervisorEmail, setSupervisorEmail] = useState('')
   const [savingSupervisor, setSavingSupervisor] = useState(false)
-  
+
   const [showOptionsModal, setShowOptionsModal] = useState(false)
   const [newOptionLabel, setNewOptionLabel] = useState('')
   const [newOptionWeight, setNewOptionWeight] = useState(10)
@@ -424,13 +424,13 @@ export default function CandidatesAdmin() {
 
       const { data: evals } = await supabase.from('formative_evaluations').select('*')
       const { data: opts } = await supabase.from('formative_options').select('*').order('category', { ascending: true })
-      
+
       const { data: activeRec } = await supabase
         .from('recruiter_active_candidate')
         .select('active_candidate_id')
         .eq('recruiter_user', user.cedula)
         .maybeSingle()
-      
+
       if (cands) {
         // Filtrar sólo por empresa para ver todos los candidatos de la compañía
         const filteredCands = cands.filter((c: any) => c.email_resumes?.company_slug === user.company_slug)
@@ -443,7 +443,7 @@ export default function CandidatesAdmin() {
         )] as string[]
         sessions.sort((a, b) => b.localeCompare(a)) // Más reciente primero
         setFormativeSessions(sessions)
-        
+
         // Fix: Si la sesión seleccionada ya no existe (por ejemplo, se acaba de cerrar), resetear el filtro
         setFormativeSessionFilter(prev => {
           if (prev !== 'ALL' && !sessions.includes(prev)) {
@@ -503,7 +503,7 @@ export default function CandidatesAdmin() {
       alert('Por favor selecciona fecha y hora.')
       return
     }
-    
+
     setSendingMassCitation(true)
     try {
       const candidatesPayload = formativeCandidates.map(c => ({
@@ -554,7 +554,7 @@ export default function CandidatesAdmin() {
     if (!user) return
     const sessionToDepurate = formativeSessionFilter
     const sessionLabel = sessionToDepurate === 'ALL' ? 'TODAS las sesiones' : `la sesión "${sessionToDepurate}"`
-    
+
     // Filter candidates in current company & view that fail BOTH conditions
     const filteredCands = formativeCandidates.filter(c => {
       const matchesSession = sessionToDepurate === 'ALL' || c.session_title === sessionToDepurate
@@ -573,7 +573,7 @@ export default function CandidatesAdmin() {
       `Y\n` +
       `- NO asistieron (Asistencia desmarcada)\n\n` +
       `¿Estás seguro de que deseas continuar?`
-      
+
     if (!window.confirm(confirmMessage)) return
 
     try {
@@ -582,9 +582,9 @@ export default function CandidatesAdmin() {
         .from('formative_candidates')
         .delete()
         .in('id', idsToDelete)
-        
+
       if (error) throw error
-      
+
       alert(`✅ Depuración completada. Se removieron ${idsToDelete.length} candidatos.`)
       await fetchFormativeData()
     } catch (e: any) {
@@ -637,7 +637,7 @@ export default function CandidatesAdmin() {
 
       if (error) throw error;
 
-      setFormativeCandidates(prev => prev.map(c => 
+      setFormativeCandidates(prev => prev.map(c =>
         candidateIds.includes(c.id) ? { ...c, session_title: finalTarget } : c
       ));
 
@@ -669,7 +669,7 @@ export default function CandidatesAdmin() {
       alert('No hay candidatos en formativas para cerrar.');
       return;
     }
-    
+
     const confirmMsg = formativeSessionFilter !== 'ALL'
       ? `¿Estás seguro de cerrar la sesión "${sessionName}" (${sessionCands.length} candidatos)?\nSus datos se descargarán en un archivo Excel y la pantalla quedará limpia.`
       : `¿Estás seguro de cerrar y archivar los ${sessionCands.length} candidatos actualmente en pantalla?\nSus datos se descargarán en un archivo Excel y la pantalla quedará limpia.`;
@@ -680,7 +680,7 @@ export default function CandidatesAdmin() {
       const cEvals = formativeEvaluations.filter(e => e.candidate_id === c.id);
       const totalScore = cEvals.reduce((sum, ev) => sum + ev.score, 0);
       const avgScore = cEvals.length > 0 ? Math.round(totalScore / cEvals.length) : 0;
-      
+
       return {
         'Candidato': c.email_resumes?.sender_name || 'Desconocido',
         'Cédula': c.email_resumes?.cedula || '',
@@ -706,7 +706,7 @@ export default function CandidatesAdmin() {
       const { error: trackErr } = await supabase.from('candidate_tracking')
         .update({ status: 'FORMATIVA_CERRADA' })
         .in('resume_id', resumeIdsToArchive);
-        
+
       if (!trackErr) {
         setTrackingMap(prev => {
           const newMap = { ...prev };
@@ -737,8 +737,8 @@ export default function CandidatesAdmin() {
     setFormativeCandidates(prev => prev.filter(c => !deletedIdSet.has(c.id)));
 
     const now = new Date();
-    const newTitle = `Formativas ${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${now.getHours()}${now.getMinutes()}`;
-    
+    const newTitle = `Formativas ${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${now.getHours()}${now.getMinutes()}`;
+
     setFormativeSessionTitle(newTitle);
     setFormativeSessionFilter('ALL');
 
@@ -1170,7 +1170,7 @@ export default function CandidatesAdmin() {
 
   const displayedRankingCandidates = useMemo(() => {
     if (!rankingCargo) return [];
-    
+
     const trackedResumeIds = Object.keys(trackingMap).filter(resumeId => {
       const tracking = trackingMap[resumeId];
       return tracking && tracking.cargo === rankingCargo && tracking.status !== 'FORMATIVA_CERRADA';
@@ -1335,7 +1335,7 @@ export default function CandidatesAdmin() {
       setPortalUrl(`https://uneteanuestroequipo.ec.aseyco.com/${user.company_slug}/onboarding`)
       const savedKey = localStorage.getItem('openai_api_key')
       if (savedKey) setOpenAiKey(savedKey)
-      
+
       // Ajustar pestaña inicial según el perfil
       if (user.perfil === 'NOMINA' && activeTab !== 'nomina') {
         setActiveTab('nomina')
@@ -1366,7 +1366,7 @@ export default function CandidatesAdmin() {
     const data = await res.json()
     if (data.data) {
       // Filtrar solo por empresa para el resumen global
-      setPipelineData(data.data.filter((p: any) => 
+      setPipelineData(data.data.filter((p: any) =>
         p.candidate?.company_slug === user.company_slug
       ))
     }
@@ -1427,7 +1427,7 @@ export default function CandidatesAdmin() {
     const result = await res.json()
     if (result.success) {
       setPipelineData(prev => prev.map(p => p.id === trackingId ? { ...p, status, interview_date: interview_date || p.interview_date, notes: notes || p.notes } : p))
-      
+
       if (status === 'ENTREVISTA_APROBADA') {
         handleSendApprovalEmail(resumeId)
       }
@@ -1494,11 +1494,11 @@ export default function CandidatesAdmin() {
       }
 
       if (onboardErr) throw new Error("Error al registrar en Onboarding: " + onboardErr.message);
-      
+
       // Actualizar candidate_tracking para marcarlo en ONBOARDING
       await supabase.from('candidate_tracking').update({ status: 'ONBOARDING' }).eq('resume_id', resumeId);
-      
-      fetchCandidates(); 
+
+      fetchCandidates();
       fetchPipeline();
 
       const mailRes = await fetch('/api/send-approval-email', {
@@ -1625,7 +1625,7 @@ export default function CandidatesAdmin() {
   const handleSendPsychometricEmail = async (candidate: any, cargo: string) => {
     if (!candidate || !candidate.id) return
     if (!confirm(`¿Deseas enviar la citación de evaluación psicométrica a ${candidate.sender_email}?`)) return
-    
+
     setSendingPsychometricId(candidate.id)
     try {
       const res = await fetch('/api/send-test-email', {
@@ -1726,11 +1726,11 @@ export default function CandidatesAdmin() {
       const res = await fetch('/api/rank-candidates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          cargo: rankingCargo, 
-          ciudad: rankingCiudad, 
-          funciones: rankingFunciones, 
-          apiKey: openAiKey, 
+        body: JSON.stringify({
+          cargo: rankingCargo,
+          ciudad: rankingCiudad,
+          funciones: rankingFunciones,
+          apiKey: openAiKey,
           cedula: user?.cedula,
           company_slug: user?.company_slug,
           filterSector: rankingFilterSector,
@@ -1762,9 +1762,9 @@ export default function CandidatesAdmin() {
         .from('email_resumes')
         .update({ classification_status: 'REVIEWED' })
         .eq('id', id);
-      
+
       if (error) throw error;
-      
+
       // Actualizar estado local
       setResumes(prev => prev.map(r => r.id === id ? { ...r, classification_status: 'REVIEWED' } : r));
     } catch (e: any) {
@@ -1789,14 +1789,14 @@ export default function CandidatesAdmin() {
     const res = await fetch('/api/candidate-tracking', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        resume_id, 
-        cargo: rankingCargo, 
-        status, 
-        interview_date, 
-        notes, 
+      body: JSON.stringify({
+        resume_id,
+        cargo: rankingCargo,
+        status,
+        interview_date,
+        notes,
         created_by_cedula: user?.cedula,
-        company_slug: user?.company_slug 
+        company_slug: user?.company_slug
       })
     })
     const data = await res.json()
@@ -1841,15 +1841,15 @@ export default function CandidatesAdmin() {
     let allData: any[] = [];
     let page = 0;
     const pageSize = 1000;
-    
-    while(true) {
+
+    while (true) {
       const { data } = await supabase
         .from('email_resumes')
         .select('*')
         .eq('company_slug', user.company_slug)
         .order('received_date', { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
-        
+
       if (data && data.length > 0) {
         allData = [...allData, ...data];
         if (data.length < pageSize) break; // Se obtuvieron todos
@@ -1859,13 +1859,13 @@ export default function CandidatesAdmin() {
       }
       page++;
     }
-    
+
     setResumes(allData)
-    
+
     // Cargar pruebas psicométricas para que el Inbox esté actualizado
     const { data: psychData } = await supabase.from('candidate_psychometric_tests').select('*')
     if (psychData) setPsychometricTests(psychData)
-    
+
     setLoadingResumes(false)
   }
 
@@ -1918,7 +1918,7 @@ export default function CandidatesAdmin() {
         "NACIONALIDAD DEL CÓNYUGE": conyuge.nacionalidad || '',
         "CIUDAD DE NACIMIENTO CÓNYUGE": conyuge.ciudad_nacimiento || '',
         "NÚMERO CÉDULA CÓNYUGE": conyuge.cedula || '',
-        
+
         "EN EL CASO DE TENER HIJOS, INGRESE EL NOMBRE COMPLETO: (2 NOMBRES)": primerHijo.nombres ? `${primerHijo.nombres} ${primerHijo.apellidos}`.trim() : '',
         "FECHA DE NACIMIENTO DEL HIJO:": primerHijo.fecha_nacimiento || '',
         "NACIONALIDAD DEL HIJO:": primerHijo.nacionalidad || '',
@@ -1938,7 +1938,7 @@ export default function CandidatesAdmin() {
         "Fecha de fin de estudios:": estudio.fecha_fin || '',
         "Número de celular": p.celular || c.telefono || '',
         "Correo electrónico": c.email || '',
-        
+
         "En el caso de tener Cónyuge, ingresa el apellido completo: (2 apellidos)": conyuge.tiene ? conyuge.apellidos || '' : '',
         "En el caso de tener hijos, ingresa el apellido completo: (2 apellidos)": primerHijo.apellidos || '',
         "En el caso de tener hijos, ingresa el apellido completo: (2 apellidos) ": segundoHijo.apellidos || ''
@@ -1954,7 +1954,7 @@ export default function CandidatesAdmin() {
   const handleToggleReviewed = async (resume_id: string, currentStatus: string | null) => {
     const isCurrentlyReviewed = currentStatus === 'REVIEWED' || currentStatus === 'MANUALLY_REVIEWED';
     const newStatus = isCurrentlyReviewed ? null : 'MANUALLY_REVIEWED';
-    
+
     const { error } = await supabase
       .from('email_resumes')
       .update({ classification_status: newStatus })
@@ -2009,12 +2009,12 @@ export default function CandidatesAdmin() {
 
   const handleSendContactEmail = async (email: string, name: string, cargo: string, interviewDate?: string, notes?: string) => {
     const isInterview = !!interviewDate;
-    const confirmMsg = isInterview 
+    const confirmMsg = isInterview
       ? `¿Enviar citación de entrevista a ${email} para el ${interviewDate}?`
       : `¿Enviar correo de contacto inicial a ${email}?`;
-      
+
     if (!confirm(confirmMsg)) return;
-    
+
     try {
       const res = await fetch('/api/send-contact-email', {
         method: 'POST',
@@ -2051,7 +2051,7 @@ export default function CandidatesAdmin() {
     if (!user) return
     setScanning(true)
     try {
-      const res = await fetch('/api/scan-emails', { 
+      const res = await fetch('/api/scan-emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cedula: user.cedula, company_slug: user.company_slug })
@@ -2068,10 +2068,10 @@ export default function CandidatesAdmin() {
     }
     setAnalyzingId(id)
     try {
-      const res = await fetch('/api/analyze-resume', { 
-        method: 'POST', 
+      const res = await fetch('/api/analyze-resume', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, apiKey: openAiKey }) 
+        body: JSON.stringify({ id, apiKey: openAiKey })
       })
       const data = await res.json()
       if (res.ok) {
@@ -2097,12 +2097,12 @@ export default function CandidatesAdmin() {
       const res = await fetch('/api/candidate-tracking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          resume_id: resumeId, 
-          cargo: cargo, 
-          status: 'MENSAJE_ENVIADO', 
+        body: JSON.stringify({
+          resume_id: resumeId,
+          cargo: cargo,
+          status: 'MENSAJE_ENVIADO',
           created_by_cedula: user?.cedula,
-          company_slug: user?.company_slug 
+          company_slug: user?.company_slug
         })
       });
       const data = await res.json();
@@ -2193,9 +2193,9 @@ export default function CandidatesAdmin() {
       const res = await fetch('/api/send-rejection-onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: rejectionModal.email, 
-          name: rejectionModal.name, 
+        body: JSON.stringify({
+          email: rejectionModal.email,
+          name: rejectionModal.name,
           observation: rejectionObs,
           portalUrl: portalUrl
         })
@@ -2203,9 +2203,9 @@ export default function CandidatesAdmin() {
       if (res.ok) {
         // Obtenemos los datos actuales para no sobrescribir datos personales si los hay
         const { data: current } = await supabase.from('onboarding_candidates').select('datos_personales').eq('id', rejectionModal.id).single();
-        
-        const { error: updateErr } = await supabase.from('onboarding_candidates').update({ 
-          status: 'PENDING', 
+
+        const { error: updateErr } = await supabase.from('onboarding_candidates').update({
+          status: 'PENDING',
           // observaciones: rejectionObs, // Comentado hasta que se corra el SQL
           cedula: `PENDIENTE-${rejectionModal.email}`,
           datos_personales: { ...(current?.datos_personales || {}), observation_fallback: rejectionObs }, // Guardamos aquí temporalmente
@@ -2214,7 +2214,7 @@ export default function CandidatesAdmin() {
           estudios: null,
           documentos: null
         }).eq('id', rejectionModal.id);
-        
+
         if (updateErr) {
           alert('Error al resetear datos en la base: ' + updateErr.message);
           return;
@@ -2326,8 +2326,8 @@ export default function CandidatesAdmin() {
       const pPhone = (p.candidate?.sender_phone || p.telefono || '').replace(/\D/g, '').slice(-9);
       const pName = (p.candidate?.sender_name || p.candidate_name || '').toLowerCase().trim();
       return (cEmail && pEmail && cEmail === pEmail) ||
-             (cPhone.length >= 7 && pPhone && cPhone === pPhone) ||
-             (cName.length > 5 && pName.length > 5 && (cName === pName || cName.includes(pName) || pName.includes(cName)));
+        (cPhone.length >= 7 && pPhone && cPhone === pPhone) ||
+        (cName.length > 5 && pName.length > 5 && (cName === pName || cName.includes(pName) || pName.includes(cName)));
     });
 
     if (pItem) {
@@ -2351,8 +2351,8 @@ export default function CandidatesAdmin() {
       const rPhone = (r.sender_phone || r.phone || r.cellphone || '').replace(/\D/g, '').slice(-9);
       const rName = (r.sender_name || r.name || '').toLowerCase().trim();
       return (cEmail && rEmail && cEmail === rEmail) ||
-             (cPhone.length >= 7 && rPhone && cPhone === rPhone) ||
-             (cName.length > 5 && rName.length > 5 && (cName === rName || cName.includes(rName) || rName.includes(cName)));
+        (cPhone.length >= 7 && rPhone && cPhone === rPhone) ||
+        (cName.length > 5 && rName.length > 5 && (cName === rName || cName.includes(rName) || rName.includes(cName)));
     });
 
     if (matchedResume) {
@@ -2392,11 +2392,11 @@ export default function CandidatesAdmin() {
     const total = resumes.length;
     const byCargo: Record<string, number> = {};
     const byCity: Record<string, number> = {};
-    
+
     resumes.forEach(r => {
       const cargo = (r.position || 'No Especificado').trim();
       const city = (r.city || 'No Especificada').trim();
-      
+
       byCargo[cargo] = (byCargo[cargo] || 0) + 1;
       byCity[city] = (byCity[city] || 0) + 1;
     });
@@ -2404,7 +2404,7 @@ export default function CandidatesAdmin() {
     const topCargos = Object.entries(byCargo)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
-      
+
     const topCities = Object.entries(byCity)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
@@ -2531,9 +2531,9 @@ export default function CandidatesAdmin() {
             </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowMassCitationModal(false)} className="track-btn">Cancelar</button>
-              <button 
-                className="ranking-btn-primary" 
-                style={{ width: 'auto' }} 
+              <button
+                className="ranking-btn-primary"
+                style={{ width: 'auto' }}
                 onClick={handleSendMassCitation}
                 disabled={sendingMassCitation || !massCitationDate}
               >
@@ -2553,13 +2553,13 @@ export default function CandidatesAdmin() {
               </h3>
               <button onClick={() => setShowWhatsAppModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
             </div>
-            
+
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', margin: 0, textTransform: 'uppercase' }}>
                   Mensaje de Invitación Template (Puedes editarlo)
                 </label>
-                <button 
+                <button
                   onClick={() => {
                     navigator.clipboard.writeText(whatsappTemplateText);
                     alert('¡Mensaje copiado al portapapeles!');
@@ -2570,7 +2570,7 @@ export default function CandidatesAdmin() {
                   📋 Copiar Mensaje
                 </button>
               </div>
-              <textarea 
+              <textarea
                 value={whatsappTemplateText}
                 onChange={e => setWhatsappTemplateText(e.target.value)}
                 style={{ width: '100%', height: '150px', padding: '12px', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '13.5px', color: '#334155', fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
@@ -2579,13 +2579,13 @@ export default function CandidatesAdmin() {
 
             {(() => {
               const activeSessionCandidates = formativeCandidates.filter(c => formativeSessionFilter === 'ALL' || c.session_title === formativeSessionFilter);
-              
+
               const handleCopyPhones = () => {
                 const phones = activeSessionCandidates
                   .map(c => c.email_resumes?.sender_phone)
                   .filter(Boolean)
                   .map(p => p.replace(/\s+/g, '')); // clean spaces
-                
+
                 navigator.clipboard.writeText(phones.join(','));
                 alert('¡Teléfonos copiados al portapapeles!');
               };
@@ -2606,9 +2606,9 @@ export default function CandidatesAdmin() {
                     <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
                       Candidatos en la sesión ({activeSessionCandidates.length})
                     </span>
-                    <button 
+                    <button
                       onClick={handleCopyPhones}
-                      className="ranking-btn-primary" 
+                      className="ranking-btn-primary"
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #10b981, #059669)', fontSize: '12.5px', padding: '8px 16px', borderRadius: '8px' }}
                       disabled={activeSessionCandidates.length === 0}
                     >
@@ -2638,16 +2638,16 @@ export default function CandidatesAdmin() {
                             const phone = c.email_resumes?.sender_phone || '';
                             const cleanPhone = phone.trim();
                             const link = cleanPhone ? formatWhatsAppLink(cleanPhone, whatsappTemplateText) : '';
-                            
+
                             return (
                               <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                 <td style={{ padding: '10px 16px', fontWeight: 600 }}>{name}</td>
                                 <td style={{ padding: '10px 16px', fontFamily: 'monospace' }}>{phone || '—'}</td>
                                 <td style={{ padding: '10px 16px', textAlign: 'right' }}>
                                   {cleanPhone ? (
-                                    <a 
-                                      href={link} 
-                                      target="_blank" 
+                                    <a
+                                      href={link}
+                                      target="_blank"
                                       rel="noopener noreferrer"
                                       style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e8f5e9', color: '#2e7d32', border: '1px solid #a5d6a7', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none' }}
                                     >
@@ -2679,12 +2679,45 @@ export default function CandidatesAdmin() {
       {showOnboardingWhatsAppModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '720px', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
               <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '24px' }} alt="WA" />
-                Grupo de WhatsApp - Candidatos Onboarding ({candidates.length})
+                Creación y Gestión de Grupo de WhatsApp - Onboarding
               </h3>
               <button onClick={() => setShowOnboardingWhatsAppModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
+            </div>
+
+            {/* GUÍA PASO A PASO */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '18px' }}>
+              <h4 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                📌 ¿Cómo crear y gestionar el grupo paso a paso?
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                <div style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '10px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#2563eb', background: '#eff6ff', padding: '2px 6px', borderRadius: '4px' }}>PASO 1</span>
+                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#475569' }}>
+                    Haz clic en el botón verde <strong>"Copiar todos los teléfonos"</strong> para tener los números de todos los candidatos.
+                  </p>
+                </div>
+                <div style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '10px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#16a34a', background: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>PASO 2</span>
+                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#475569' }}>
+                    Abre <a href="https://web.whatsapp.com" target="_blank" rel="noreferrer" style={{ color: '#16a34a', fontWeight: 700 }}>WhatsApp</a> y crea un <strong>Nuevo Grupo</strong> (ej: <em>"Onboarding Marathon"</em>).
+                  </p>
+                </div>
+                <div style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '10px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#d97706', background: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>PASO 3</span>
+                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#475569' }}>
+                    En WhatsApp, entra a la info del grupo y copia el <strong>Enlace de invitación</strong>.
+                  </p>
+                </div>
+                <div style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '10px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#9333ea', background: '#faf5ff', padding: '2px 6px', borderRadius: '4px' }}>PASO 4</span>
+                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#475569' }}>
+                    Pega el enlace abajo y haz clic en <strong>"Enviar Invitación"</strong> a cada candidato para que se unan con 1 clic.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Enlace de Grupo de WhatsApp */}
@@ -2692,7 +2725,7 @@ export default function CandidatesAdmin() {
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#166534', marginBottom: '6px', textTransform: 'uppercase' }}>
                 🔗 Enlace del Grupo de WhatsApp (Invite Link)
               </label>
-              <input 
+              <input
                 type="text"
                 placeholder="Pega aquí el enlace de tu grupo de WhatsApp: https://chat.whatsapp.com/..."
                 value={onboardingGroupLink}
@@ -2703,14 +2736,14 @@ export default function CandidatesAdmin() {
                 💡 Este enlace reemplazará automáticamente la etiqueta <code>{'{enlace_grupo}'}</code> en los mensajes que envíes a cada candidato.
               </p>
             </div>
-            
+
             {/* Template de Mensaje */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', margin: 0, textTransform: 'uppercase' }}>
                   Plantilla de Mensaje de Invitación
                 </label>
-                <button 
+                <button
                   onClick={() => {
                     navigator.clipboard.writeText(onboardingWhatsappTemplateText);
                     alert('¡Plantilla copiada al portapapeles!');
@@ -2721,7 +2754,7 @@ export default function CandidatesAdmin() {
                   📋 Copiar Plantilla
                 </button>
               </div>
-              <textarea 
+              <textarea
                 value={onboardingWhatsappTemplateText}
                 onChange={e => setOnboardingWhatsappTemplateText(e.target.value)}
                 style={{ width: '100%', height: '140px', padding: '12px', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '13px', color: '#334155', fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
@@ -2730,7 +2763,7 @@ export default function CandidatesAdmin() {
 
             {(() => {
               const activeOnboardCandidates = candidates.filter(c => c.status !== 'DELETED');
-              
+
               const handleCopyAllPhones = () => {
                 const phones = activeOnboardCandidates
                   .map(c => {
@@ -2740,7 +2773,7 @@ export default function CandidatesAdmin() {
                     return p ? `+${p}` : null;
                   })
                   .filter(Boolean);
-                
+
                 navigator.clipboard.writeText(phones.join(', '));
                 alert(`¡${phones.length} teléfonos copiados al portapapeles! Puedes pegarlos directamente en WhatsApp para crear tu grupo.`);
               };
@@ -2752,7 +2785,7 @@ export default function CandidatesAdmin() {
                 } else if (cleanPhone.length === 9 && (cleanPhone.startsWith('9') || cleanPhone.startsWith('8'))) {
                   cleanPhone = '593' + cleanPhone;
                 }
-                
+
                 let text = onboardingWhatsappTemplateText
                   .replace(/\{nombre\}/g, candidateName.split(' ')[0] || candidateName)
                   .replace(/\{enlace_grupo\}/g, onboardingGroupLink || '(Enlace pendiente)');
@@ -2766,9 +2799,9 @@ export default function CandidatesAdmin() {
                     <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
                       Candidatos Registrados ({activeOnboardCandidates.length})
                     </span>
-                    <button 
+                    <button
                       onClick={handleCopyAllPhones}
-                      className="ranking-btn-primary" 
+                      className="ranking-btn-primary"
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #10b981, #059669)', fontSize: '12.5px', padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}
                       disabled={activeOnboardCandidates.length === 0}
                     >
@@ -2798,7 +2831,7 @@ export default function CandidatesAdmin() {
                             const name = `${c.nombres} ${c.apellidos || ''}`.trim();
                             const phone = c.telefono || '';
                             const link = phone ? formatWhatsAppLink(phone, name) : '';
-                            
+
                             return (
                               <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                 <td style={{ padding: '10px 16px', fontWeight: 600 }}>{name}</td>
@@ -2806,17 +2839,17 @@ export default function CandidatesAdmin() {
                                 <td style={{ padding: '10px 16px', fontFamily: 'monospace' }}>{phone || '—'}</td>
                                 <td style={{ padding: '10px 16px', textAlign: 'right' }}>
                                   {link ? (
-                                    <a 
-                                      href={link} 
-                                      target="_blank" 
+                                    <a
+                                      href={link}
+                                      target="_blank"
                                       rel="noreferrer"
-                                      className="ranking-btn-primary" 
-                                      style={{ 
-                                        padding: '5px 12px', 
-                                        fontSize: '11px', 
-                                        background: '#25d366', 
-                                        color: 'white', 
-                                        textDecoration: 'none', 
+                                      className="ranking-btn-primary"
+                                      style={{
+                                        padding: '5px 12px',
+                                        fontSize: '11px',
+                                        background: '#25d366',
+                                        color: 'white',
+                                        textDecoration: 'none',
                                         borderRadius: '6px',
                                         display: 'inline-flex',
                                         alignItems: 'center',
@@ -2863,8 +2896,8 @@ export default function CandidatesAdmin() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
                   <label className="ranking-label">Texto del Comentario / Opción</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={newOptionLabel}
                     onChange={e => setNewOptionLabel(e.target.value)}
                     placeholder="Ej: ME ENCANTA COMO SE DESENVUELVE..."
@@ -2875,8 +2908,8 @@ export default function CandidatesAdmin() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label className="ranking-label">Peso / Puntaje</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       value={newOptionWeight}
                       onChange={e => setNewOptionWeight(parseInt(e.target.value) || 0)}
                       className="ranking-input"
@@ -2885,7 +2918,7 @@ export default function CandidatesAdmin() {
                   </div>
                   <div>
                     <label className="ranking-label">Categoría</label>
-                    <select 
+                    <select
                       value={newOptionCategory}
                       onChange={e => setNewOptionCategory(e.target.value)}
                       className="ranking-select"
@@ -2899,7 +2932,7 @@ export default function CandidatesAdmin() {
                     </select>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={handleCreateOption}
                   disabled={savingOption || !newOptionLabel.trim()}
                   className="ranking-btn-primary"
@@ -2921,7 +2954,7 @@ export default function CandidatesAdmin() {
                       {opt.category} • Peso: <strong style={{ color: opt.weight >= 0 ? '#166534' : '#991b1b' }}>{opt.weight >= 0 ? `+${opt.weight}` : opt.weight}</strong>
                     </span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleDeleteOption(opt.id)}
                     style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
                   >
@@ -2943,7 +2976,7 @@ export default function CandidatesAdmin() {
               </h3>
               <button onClick={() => setShowMergeModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
             </div>
-            
+
             <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', lineHeight: 1.5 }}>
               Combina candidatos de dos o más sesiones de formativas en una sola sesión unificada sin perder sus calificaciones ni datos de evaluación.
             </p>
@@ -2953,7 +2986,7 @@ export default function CandidatesAdmin() {
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
                 1. Selecciona las sesiones que deseas unir:
               </label>
-              
+
               {formativeSessions.length === 0 ? (
                 <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '13px', textAlign: 'center' }}>
                   No hay sesiones activas para unir.
@@ -2964,22 +2997,22 @@ export default function CandidatesAdmin() {
                     const count = formativeCandidates.filter(c => c.session_title === sessionName).length;
                     const isChecked = selectedSourceSessions.includes(sessionName);
                     return (
-                      <label 
+                      <label
                         key={sessionName}
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'space-between', 
-                          padding: '8px 12px', 
-                          borderRadius: '8px', 
-                          background: isChecked ? '#eff6ff' : 'white', 
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          background: isChecked ? '#eff6ff' : 'white',
                           border: `1.5px solid ${isChecked ? '#93c5fd' : '#e2e8f0'}`,
                           cursor: 'pointer',
                           transition: 'all 0.15s'
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <input 
+                          <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={(e) => {
@@ -3003,7 +3036,7 @@ export default function CandidatesAdmin() {
                   })}
                 </div>
               )}
-              
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
                 <button
                   type="button"
@@ -3023,14 +3056,14 @@ export default function CandidatesAdmin() {
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
                 2. Nombre de la sesión unificada resultante:
               </label>
-              <input 
+              <input
                 type="text"
                 value={targetSessionName}
                 onChange={e => setTargetSessionName(e.target.value)}
                 placeholder="Ej: Formativas 20261002"
                 style={{ width: '100%', border: '1.5px solid #0284c7', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', fontWeight: 700, background: '#f0f9ff', color: '#0369a1', outline: 'none', boxSizing: 'border-box' }}
               />
-              
+
               {/* Sugerencias de nombres existentes */}
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                 <span style={{ fontSize: '11px', color: '#64748b', alignSelf: 'center' }}>Sugerencias:</span>
@@ -3058,15 +3091,15 @@ export default function CandidatesAdmin() {
 
             {/* Botones de acción */}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-              <button 
-                onClick={() => setShowMergeModal(false)} 
+              <button
+                onClick={() => setShowMergeModal(false)}
                 className="track-btn"
                 disabled={mergingSessions}
               >
                 Cancelar
               </button>
-              <button 
-                className="ranking-btn-primary" 
+              <button
+                className="ranking-btn-primary"
                 style={{ width: 'auto', background: 'linear-gradient(135deg, #0284c7, #0369a1)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                 onClick={handleMergeSessions}
                 disabled={mergingSessions || selectedSourceSessions.length === 0 || !targetSessionName.trim()}
@@ -3094,7 +3127,7 @@ export default function CandidatesAdmin() {
             <textarea className="ranking-textarea" style={{ minHeight: '180px' }} value={rankingFunciones} onChange={e => setRankingFunciones(e.target.value)} />
             <div style={{ display: 'flex', gap: '10px' }}>
               <button className="ranking-btn-primary" onClick={() => { handleSavePosition(); setShowJobMaintenance(false); }}>Guardar</button>
-              {editingPositionId && <button onClick={handleDeletePosition} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '8px' }}><Trash2 size={16}/></button>}
+              {editingPositionId && <button onClick={handleDeletePosition} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '8px' }}><Trash2 size={16} /></button>}
             </div>
           </div>
         </div>
@@ -3106,15 +3139,15 @@ export default function CandidatesAdmin() {
             <h3 style={{ marginBottom: '16px' }}>Configuración IA (OpenAI)</h3>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>OpenAI API Key</label>
-              <input 
-                className="ranking-input" 
-                type="password" 
+              <input
+                className="ranking-input"
+                type="password"
                 placeholder="sk-..."
-                value={openAiKey} 
+                value={openAiKey}
                 onChange={e => {
                   setOpenAiKey(e.target.value)
                   localStorage.setItem('openai_api_key', e.target.value)
-                }} 
+                }}
               />
             </div>
             <button className="ranking-btn-primary" onClick={() => setShowSettings(false)}>Guardar y Cerrar</button>
@@ -3157,8 +3190,8 @@ export default function CandidatesAdmin() {
                     <span style={{ color: '#94a3b8', fontSize: '11px', display: 'block', fontWeight: 700, textTransform: 'uppercase' }}>Nombre Completo</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ color: '#1e293b', fontWeight: 600 }}>{viewingFormData.sender_name || '—'}</span>
-                      <button 
-                        onClick={() => handleUpdateName(viewingFormData.id, viewingFormData.sender_name || '')} 
+                      <button
+                        onClick={() => handleUpdateName(viewingFormData.id, viewingFormData.sender_name || '')}
                         style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
                         title="Editar Nombre"
                       >
@@ -3170,8 +3203,8 @@ export default function CandidatesAdmin() {
                     <span style={{ color: '#94a3b8', fontSize: '11px', display: 'block', fontWeight: 700, textTransform: 'uppercase' }}>Email</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ color: '#1e293b', fontWeight: 600 }}>{viewingFormData.sender_email || '—'}</span>
-                      <button 
-                        onClick={() => handleUpdateEmail(viewingFormData.id, viewingFormData.sender_email || '')} 
+                      <button
+                        onClick={() => handleUpdateEmail(viewingFormData.id, viewingFormData.sender_email || '')}
                         style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
                         title="Editar Email"
                       >
@@ -3183,8 +3216,8 @@ export default function CandidatesAdmin() {
                     <span style={{ color: '#94a3b8', fontSize: '11px', display: 'block', fontWeight: 700, textTransform: 'uppercase' }}>Teléfono</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ color: '#1e293b', fontWeight: 600 }}>{viewingFormData.sender_phone || '—'}</span>
-                      <button 
-                        onClick={() => handleUpdatePhone(viewingFormData.id, viewingFormData.sender_phone || '')} 
+                      <button
+                        onClick={() => handleUpdatePhone(viewingFormData.id, viewingFormData.sender_phone || '')}
                         style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
                         title="Editar Teléfono"
                       >
@@ -3282,12 +3315,12 @@ export default function CandidatesAdmin() {
             <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '20px' }}>
               Selecciona o escribe el cargo para asignar a <strong>{passToRankingModal.name}</strong> en el Resumen y Pipeline.
             </p>
-            
+
             <div style={{ marginBottom: '16px' }}>
               <label className="ranking-label">Seleccionar Cargo Existente</label>
-              <select 
-                className="ranking-select" 
-                value={selectedRankingCargo} 
+              <select
+                className="ranking-select"
+                value={selectedRankingCargo}
                 onChange={e => {
                   setSelectedRankingCargo(e.target.value);
                   if (e.target.value) setCustomRankingCargo('');
@@ -3302,32 +3335,32 @@ export default function CandidatesAdmin() {
 
             <div style={{ marginBottom: '24px' }}>
               <label className="ranking-label">O ingresar cargo personalizado</label>
-              <input 
-                type="text" 
-                className="ranking-input" 
-                placeholder="Ej: Cajero Principal..." 
-                value={customRankingCargo} 
+              <input
+                type="text"
+                className="ranking-input"
+                placeholder="Ej: Cajero Principal..."
+                value={customRankingCargo}
                 onChange={e => {
                   setCustomRankingCargo(e.target.value);
                   if (e.target.value) setSelectedRankingCargo('');
-                }} 
+                }}
               />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button 
+              <button
                 onClick={() => {
                   setPassToRankingModal(null);
                   setSelectedRankingCargo('');
                   setCustomRankingCargo('');
-                }} 
+                }}
                 className="track-btn"
               >
                 Cancelar
               </button>
-              <button 
-                className="ranking-btn-primary" 
-                style={{ width: 'auto' }} 
+              <button
+                className="ranking-btn-primary"
+                style={{ width: 'auto' }}
                 onClick={async () => {
                   const finalCargo = selectedRankingCargo || customRankingCargo;
                   if (!finalCargo) {
@@ -3380,12 +3413,12 @@ export default function CandidatesAdmin() {
       )}
 
       <div className="admin-main">
-        <header 
-          className="onboarding-header" 
-          style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
+        <header
+          className="onboarding-header"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             background: 'linear-gradient(135deg, #002f6c 0%, #001a3d 100%)',
             padding: '20px 40px',
             borderBottom: '1px solid rgba(255,255,255,0.1)',
@@ -3396,7 +3429,7 @@ export default function CandidatesAdmin() {
         >
           {/* Subtle light effect */}
           <div style={{ position: 'absolute', top: '-50%', left: '-10%', width: '40%', height: '200%', background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', transform: 'rotate(-15deg)', pointerEvents: 'none' }} />
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '40px', position: 'relative', zIndex: 1 }}>
             <div>
               <h1 className="onboarding-title" style={{ fontSize: '28px', letterSpacing: '0.5px', marginBottom: '4px', color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
@@ -3405,23 +3438,23 @@ export default function CandidatesAdmin() {
               <p className="onboarding-subtitle" style={{ color: '#94a3b8', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>Panel de Gestión Administrativa</p>
             </div>
           </div>
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px', position: 'relative', zIndex: 1 }}>
             <div style={{ textAlign: 'right' }}>
               <p style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#ffffff' }}>{user?.name}</p>
               <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>Cédula: {user?.cedula}</p>
             </div>
-            
+
             <div style={{ height: '40px', width: '1px', background: 'rgba(255,255,255,0.15)' }} />
-            
-            <button 
+
+            <button
               onClick={logout}
-              style={{ 
-                background: 'rgba(239, 68, 68, 0.15)', 
-                border: '1px solid rgba(239, 68, 68, 0.3)', 
-                color: '#fca5a5', 
-                padding: '10px 20px', 
-                borderRadius: '12px', 
+              style={{
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#fca5a5',
+                padding: '10px 20px',
+                borderRadius: '12px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -3507,1182 +3540,1108 @@ export default function CandidatesAdmin() {
             </button>
           </div>
 
-        <div className="tabs-nav">
-          {(!user?.perfil || user.perfil.trim().toUpperCase() === 'RECLUTADOR' || user.perfil.trim().toUpperCase() === 'ADMIN') && (
-            <>
-              <button className={`tab-btn ${activeTab === 'seleccion' ? 'active' : ''}`} onClick={() => setActiveTab('seleccion')}>Inbox</button>
-              <button className={`tab-btn ${activeTab === 'ranking' ? 'active' : ''}`} onClick={() => setActiveTab('ranking')}>🏆 Ranking IA</button>
-              <button className={`tab-btn ${activeTab === 'pipeline' ? 'active' : ''}`} onClick={() => { setActiveTab('pipeline'); fetchPipeline() }}>📑 Resumen</button>
-              <button className={`tab-btn ${activeTab === 'formativas' ? 'active' : ''}`} onClick={() => { setActiveTab('formativas'); fetchFormativeData() }}>🎯 Formativas</button>
-              <button className={`tab-btn ${activeTab === 'onboarding' ? 'active' : ''}`} onClick={() => setActiveTab('onboarding')}>🚀 Onboarding</button>
-              <button className={`tab-btn ${activeTab === 'estadisticas' ? 'active' : ''}`} onClick={() => setActiveTab('estadisticas')}>📈 Estadísticas</button>
-            </>
-          )}
-          {(!user?.perfil || user.perfil.trim().toUpperCase() === 'NOMINA' || user.perfil.trim().toUpperCase() === 'ADMIN') && (
-            <button className={`tab-btn ${activeTab === 'nomina' ? 'active' : ''}`} onClick={() => setActiveTab('nomina')}>💼 Nómina</button>
-          )}
-        </div>
-
-        {/* --- BANDEJA --- */}
-        {activeTab === 'seleccion' && (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '16px' }}>
-              <button onClick={() => setShowSettings(true)} style={{ background: 'white', border: '1px solid #ddd', padding: '8px', borderRadius: '6px' }}><Settings size={16}/></button>
-              {/* BOTÓN DESACTIVADO TEMPORALMENTE - para reactivar quitar display:none */}
-              <button onClick={handleScanEmails} disabled={scanning} className="ai-btn" style={{ background: '#3b82f6', display: 'none' }}><RefreshCw size={16} className={scanning ? "animate-spin" : ""}/> {scanning ? 'Escaneando...' : 'Buscar Nuevos Correos'}</button>
-            </div>
-
-            {/* Metricas de Candidatos por Cargo y Ciudad */}
-            <div style={{ 
-              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', 
-              color: 'white', 
-              padding: '20px 24px', 
-              borderRadius: '16px', 
-              marginBottom: '20px', 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-              gap: '24px',
-              boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-              border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-              {/* Total Card */}
-              <div style={{ 
-                borderRight: '1px solid rgba(255,255,255,0.1)', 
-                paddingRight: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center'
-              }}>
-                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Candidatos</span>
-                <span style={{ fontSize: '42px', fontWeight: 900, color: '#3b82f6', lineHeight: 1, margin: '6px 0 2px' }}>{inboxMetrics.total}</span>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>Postulantes registrados</span>
-              </div>
-
-              {/* Cargos Card */}
-              <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}>
-                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>Candidatos por Cargo</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '80px', overflowY: 'auto' }}>
-                  {inboxMetrics.topCargos.map(([cargo, count]) => (
-                    <div key={cargo} style={{ 
-                      background: 'rgba(255,255,255,0.05)', 
-                      border: '1px solid rgba(255,255,255,0.1)', 
-                      padding: '4px 10px', 
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '12px'
-                    }}>
-                      <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{cargo}</span>
-                      <span style={{ background: '#3b82f6', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>{count}</span>
-                    </div>
-                  ))}
-                  {inboxMetrics.topCargos.length === 0 && <span style={{ fontSize: '12px', color: '#64748b' }}>Sin datos disponibles</span>}
-                </div>
-              </div>
-
-              {/* Ciudades Card */}
-              <div>
-                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>Candidatos por Ciudad</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '80px', overflowY: 'auto' }}>
-                  {inboxMetrics.topCities.map(([city, count]) => (
-                    <div key={city} style={{ 
-                      background: 'rgba(255,255,255,0.05)', 
-                      border: '1px solid rgba(255,255,255,0.1)', 
-                      padding: '4px 10px', 
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '12px'
-                    }}>
-                      <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{city}</span>
-                      <span style={{ background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>{count}</span>
-                    </div>
-                  ))}
-                  {inboxMetrics.topCities.length === 0 && <span style={{ fontSize: '12px', color: '#64748b' }}>Sin datos disponibles</span>}
-                </div>
-              </div>
-            </div>
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px', 
-              marginBottom: '20px', 
-              background: 'white', 
-              padding: '16px', 
-              borderRadius: '12px', 
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              flexWrap: 'wrap',
-              alignItems: 'center'
-            }}>
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <label className="form-label">Buscar por nombre</label>
-                <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
-                  <User size={18} color="#6b7280" />
-                  <input 
-                    type="text" 
-                    placeholder="Ej: Daniel Molina..." 
-                    value={inboxSearch}
-                    onChange={(e) => setInboxSearch(e.target.value)}
-                    style={{ background: 'transparent' }}
-                  />
-                </div>
-              </div>
-              <div style={{ width: '150px' }}>
-                <label className="form-label">Cédula</label>
-                <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
-                  <User size={18} color="#6b7280" />
-                  <input 
-                    type="text" 
-                    placeholder="Ej: 1712217502..." 
-                    value={inboxCedula}
-                    onChange={(e) => setInboxCedula(e.target.value)}
-                    style={{ background: 'transparent' }}
-                  />
-                </div>
-              </div>
-              <div style={{ width: '180px' }}>
-                <label className="form-label">Cargo</label>
-                <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
-                  <Briefcase size={18} color="#6b7280" />
-                  <input 
-                    type="text" 
-                    placeholder="Ej: Cajero..." 
-                    value={inboxCargo}
-                    onChange={(e) => setInboxCargo(e.target.value)}
-                    style={{ background: 'transparent' }}
-                  />
-                </div>
-              </div>
-              <div style={{ width: '150px' }}>
-                <label className="form-label">Ciudad</label>
-                <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
-                  <MapPin size={18} color="#6b7280" />
-                  <input 
-                    type="text" 
-                    placeholder="Ej: Quito..." 
-                    value={inboxCity}
-                    onChange={(e) => setInboxCity(e.target.value)}
-                    style={{ background: 'transparent' }}
-                  />
-                </div>
-              </div>
-              <div style={{ width: '150px' }}>
-                <label className="form-label">Sector</label>
-                <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
-                  <MapPin size={18} color="#6b7280" />
-                  <input 
-                    type="text" 
-                    placeholder="Ej: Carcelén..." 
-                    value={inboxSector}
-                    onChange={(e) => setInboxSector(e.target.value)}
-                    style={{ background: 'transparent' }}
-                  />
-                </div>
-              </div>
-              <div style={{ width: '100px' }}>
-                <label className="form-label">Min. Años</label>
-                <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
-                  <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: 'bold' }}>+</span>
-                  <input 
-                    type="number" 
-                    placeholder="Exp" 
-                    value={inboxExp}
-                    onChange={(e) => setInboxExp(e.target.value)}
-                    style={{ background: 'transparent' }}
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
-                <button 
-                  className="track-btn" 
-                  onClick={() => { setInboxSearch(''); setInboxCargo(''); setInboxCity(''); setInboxExp(''); setInboxSector(''); setInboxCedula(''); }}
-                >
-                  Limpiar
-                </button>
-                <button 
-                  className="track-btn" 
-                  style={{ background: '#f8fafc', color: '#2563eb', borderColor: '#dbeafe' }}
-                  onClick={() => fetchResumes()}
-                  disabled={loadingResumes}
-                >
-                  {loadingResumes ? 'Cargando...' : 'Actualizar'}
-                </button>
-              </div>
-            </div>
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr><th>Perfil IA</th><th>Archivo CV</th><th>Fecha</th><th>Estado</th></tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const filteredResumes = resumes.filter(r => {
-                      const matchesSearch = !inboxSearch || (r.sender_name || '').toLowerCase().includes(inboxSearch.toLowerCase());
-                      const matchesCargo = !inboxCargo || (r.position || '').toLowerCase().includes(inboxCargo.toLowerCase());
-                      const matchesCity = !inboxCity || (r.city || '').toLowerCase().includes(inboxCity.toLowerCase());
-                      const matchesExp = !inboxExp || (parseInt(r.experience_years || '0') >= parseInt(inboxExp));
-                      const matchesSector = !inboxSector || (r.sector || '').toLowerCase().includes(inboxSector.toLowerCase());
-                      const matchesCedula = !inboxCedula || (r.cedula || '').toLowerCase().includes(inboxCedula.toLowerCase());
-                      return matchesSearch && matchesCargo && matchesCity && matchesExp && matchesSector && matchesCedula;
-                    });
-                    
-                    const ITEMS_PER_PAGE = 50;
-                    const totalPages = Math.ceil(filteredResumes.length / ITEMS_PER_PAGE);
-                    const paginatedResumes = filteredResumes.slice((inboxPage - 1) * ITEMS_PER_PAGE, inboxPage * ITEMS_PER_PAGE);
-
-                    return (
-                      <>
-                        {paginatedResumes.map(r => (
-                          <tr key={r.id}>
-                      <td>
-                        <div className="user-cell" style={{ alignItems: 'flex-start' }}>
-                          <div
-                            className="user-avatar"
-                            onClick={() => r.email_uid?.startsWith('WEB') ? setViewingFormData(r) : undefined}
-                            title={r.email_uid?.startsWith('WEB') ? 'Ver formulario completo' : ''}
-                            style={{ 
-                              background: r.email_uid?.startsWith('WEB') ? '#eff6ff' : (r.classification_status === 'REVIEWED' ? '#f0fdf4' : '#f3e8ff'), 
-                              color: r.email_uid?.startsWith('WEB') ? '#3b82f6' : (r.classification_status === 'REVIEWED' ? '#16a34a' : '#9333ea'),
-                              cursor: r.email_uid?.startsWith('WEB') ? 'pointer' : 'default',
-                              transition: 'transform 0.15s, box-shadow 0.15s',
-                              boxShadow: r.email_uid?.startsWith('WEB') ? '0 0 0 2px rgba(59,130,246,0.15)' : 'none'
-                            }}
-                          >
-                            {r.email_uid?.startsWith('WEB') ? <UploadCloud size={20} /> : (r.classification_status === 'REVIEWED' ? <Brain size={20} /> : <Mail size={20} />)}
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <p className="user-name" style={{ margin: 0 }}>{r.sender_name || 'Sin Nombre'}</p>
-                              <span style={{ 
-                                fontSize: '10px', 
-                                padding: '2px 6px', 
-                                borderRadius: '4px', 
-                                background: r.email_uid?.startsWith('WEB') ? '#dbeafe' : '#f1f5f9',
-                                color: r.email_uid?.startsWith('WEB') ? '#1e40af' : '#475569',
-                                fontWeight: 'bold'
-                              }}>
-                                {r.email_uid?.startsWith('WEB') ? 'WEB' : 'EMAIL'}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <p style={{ color: '#9ca3af', fontSize: '12px', margin: 0 }}>{r.sender_email}</p>
-                              <button 
-                                onClick={() => handleUpdateEmail(r.id, r.sender_email || '')} 
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
-                                title="Editar Correo"
-                              >
-                                <Settings size={12} />
-                              </button>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                              {r.sender_phone ? (
-                                <p style={{ color: '#3b82f6', fontSize: '12px', fontWeight: 'bold', margin: 0 }}>📞 {r.sender_phone}</p>
-                              ) : (
-                                <p style={{ color: '#94a3b8', fontSize: '11px', margin: 0 }}>Sín teléfono</p>
-                              )}
-                              <button 
-                                onClick={() => handleUpdatePhone(r.id, r.sender_phone || '')} 
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
-                                title="Editar Teléfono"
-                              >
-                                <Settings size={12} />
-                              </button>
-                            </div>
-                            
-                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: (r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#16a34a' : '#64748b', cursor: 'pointer', background: (r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#f0fdf4' : '#f8fafc', border: `1px solid ${(r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#bbf7d0' : '#e2e8f0'}`, padding: '4px 8px', borderRadius: '6px', marginBottom: '8px' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED'}
-                                onChange={() => handleToggleReviewed(r.id, r.classification_status || null)}
-                                style={{ cursor: 'pointer' }}
-                              />
-                              {(r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '✓ Perfil Revisado' : 'Marcar como Revisado'}
-                            </label>
-                            
-                            {/* Mostramos los datos si está REVISADO o si ya tiene cargo extraído */}
-                            {(r.classification_status === 'REVIEWED' || r.position) ? (
-                              <div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
-                                  {r.city && <span className="ai-tag"><MapPin size={12} /> {r.city}</span>}
-                                  {r.position && <span className="ai-tag"><Briefcase size={12} /> {r.position}</span>}
-                                  {r.age && <span className="ai-tag" style={{ background: '#fce7f3', color: '#9d174d' }}><User size={12} /> {r.age} años</span>}
-                                  {r.experience_years && <span className="ai-tag" style={{ background: '#fef9c3', color: '#854d0e' }}>⏱ {r.experience_years} años</span>}
-                                  {r.skills && r.skills.split(',').map((s: string, i: number) => i < 3 && <span key={i} className="ai-tag" style={{ background: '#f0fdf4', color: '#166534' }}>{s.trim()}</span>)}
-                                </div>
-                                {r.ai_summary && (
-                                  <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', fontSize: '12px', fontStyle: 'italic', color: '#475569', borderLeft: '3px solid #cbd5e1', marginBottom: '8px' }}>
-                                    "{r.ai_summary}"
-                                  </div>
-                                )}
-
-                                {/* Datos adicionales de postulación web */}
-                                {(r.birth_date || r.civil_status || r.home_address || r.education_level || r.likes_sports || r.heard_from) && (
-                                  <div style={{ 
-                                    display: 'grid', 
-                                    gridTemplateColumns: '1fr 1fr', 
-                                    gap: '10px', 
-                                    marginTop: '8px', 
-                                    padding: '12px', 
-                                    background: '#f8fafc', 
-                                    borderRadius: '10px', 
-                                    border: '1px solid #e2e8f0',
-                                    fontSize: '12px',
-                                    color: '#334155'
-                                  }}>
-                                    <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '2px', fontWeight: '800', color: '#002f6c', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                      📝 Datos Adicionales Formulario
-                                    </div>
-                                    {r.birth_date && (
-                                      <p style={{ margin: 0 }}><strong>F. Nacimiento:</strong> {new Date(r.birth_date + 'T12:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                    )}
-                                    {r.civil_status && (
-                                      <p style={{ margin: 0 }}><strong>Estado Civil:</strong> {r.civil_status}</p>
-                                    )}
-                                    {r.sector && (
-                                      <p style={{ margin: 0 }}><strong>Sector:</strong> {r.sector}</p>
-                                    )}
-                                    {r.heard_from && (
-                                      <p style={{ margin: 0 }}><strong>Medio de Contacto:</strong> {r.heard_from}</p>
-                                    )}
-                                    {r.home_address && (
-                                      <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>Dirección:</strong> {r.home_address}</p>
-                                    )}
-                                    {r.education_level && (
-                                      <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>Estudios:</strong> {r.education_level} {r.education_institution ? `en ${r.education_institution}` : ''} {r.education_title ? ` - Título: ${r.education_title}` : ''}</p>
-                                    )}
-                                    {r.likes_sports && (
-                                      <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>¿Le gusta el deporte?:</strong> {r.likes_sports === 'Si' ? `Sí, practica: ${r.sports_practiced || '—'}` : 'No'}</p>
-                                    )}
-                                    {r.work_culture_motivation && (
-                                      <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>Motivación Laboral:</strong> {r.work_culture_motivation}</p>
-                                    )}
-                                  </div>
-                                )}
-                                {/* Botón de IA extra por si quieren profundizar aunque ya tengan datos básicos */}
-                                {r.classification_status !== 'REVIEWED' && (
-                                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                                    <button className="ai-btn" style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }} onClick={() => handleAnalyzeResume(r.id)} disabled={analyzingId === r.id}>
-                                      {analyzingId === r.id ? 'Analizando...' : 'Profundizar con IA'}
-                                    </button>
-                                    {/* Oculto: Aceptar Directo (Sin IA) */}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                                <button className="ai-btn" onClick={() => handleAnalyzeResume(r.id)} disabled={analyzingId === r.id}>
-                                  {analyzingId === r.id ? 'Analizando...' : 'Analizar con IA'}
-                                </button>
-                                {/* Oculto: Aceptar Directo (Sin IA) */}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        {r.pdf_url && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <a href={r.pdf_url} target="_blank" className="pdf-link" style={{ fontWeight: 600 }}>
-                              <FileText size={16} /> Ver CV
-                            </a>
-                            <span style={{ fontSize: '10px', color: '#64748b', wordBreak: 'break-all', maxWidth: '150px' }}>
-                              {r.file_name}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ fontSize: '13px' }}>{r.received_date ? new Date(r.received_date).toLocaleDateString() : '—'}</td>
-                      <td>
-                        {/* Solo mostrar REVISADO, ocultar badge PENDIENTE */}
-                        {r.classification_status === 'REVIEWED' && (
-                          <span className="status-badge status-synced" style={{ marginBottom: '6px', display: 'inline-block' }}>REVISADO</span>
-                        )}
-                        <button
-                          onClick={() => {
-                            setSelectedRankingCargo(r.position || '');
-                            setPassToRankingModal({ id: r.id, name: r.sender_name || 'Sin Nombre', defaultCargo: r.position || '' });
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            background: '#eff6ff',
-                            color: '#2563eb',
-                            border: '1px solid #bfdbfe',
-                            borderRadius: '8px',
-                            padding: '5px 10px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            marginBottom: '6px',
-                            width: '100%',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <Trophy size={12} /> Pasar a Resumen
-                        </button>
-                        <button
-                          onClick={() => handleDeleteResume(r)}
-                          title="Borrar candidato y PDF adjunto"
-                          style={{
-                            marginTop: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            background: '#fff1f2',
-                            color: '#dc2626',
-                            border: '1px solid #fca5a5',
-                            borderRadius: '8px',
-                            padding: '5px 10px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          <Trash2 size={12} /> Borrar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {totalPages > 1 && (
-                    <tr>
-                      <td colSpan={4}>
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', padding: '16px 0' }}>
-                          <button 
-                            className="track-btn" 
-                            disabled={inboxPage === 1} 
-                            onClick={() => setInboxPage(p => p - 1)}
-                            style={{ padding: '6px 12px', fontSize: '12px' }}
-                          >
-                            Anterior
-                          </button>
-                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>
-                            Página {inboxPage} de {totalPages} ({filteredResumes.length} candidatos)
-                          </span>
-                          <button 
-                            className="track-btn" 
-                            disabled={inboxPage === totalPages || totalPages === 0} 
-                            onClick={() => setInboxPage(p => p + 1)}
-                            style={{ padding: '6px 12px', fontSize: '12px' }}
-                          >
-                            Siguiente
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                  </>
-                );
-              })()}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-
-        {/* --- RANKING IA --- */}
-        {activeTab === 'ranking' && (
-          <div className="ranking-layout">
-            <div className="ranking-form-card">
-              <p style={{ fontWeight: 700, margin: '0 0 16px' }}><Trophy size={18} color="#7c3aed" /> Evaluación por Cargo</p>
-              <label className="ranking-label">Seleccionar Cargo</label>
-              <select className="ranking-select" value={editingPositionId || ''} onChange={e => {
-                const p = jobPositions.find(pos => pos.id === e.target.value);
-                if (p) handleLoadPosition(p);
-                else { setEditingPositionId(null); setRankingCargo(''); setRankingFunciones(''); }
-              }}>
-                <option value="">Seleccionar...</option>
-                {jobPositions.map(p => <option key={p.id} value={p.id}>{p.cargo} {p.ciudad ? `· ${p.ciudad}` : ''}</option>)}
-              </select>
-              <button onClick={() => setShowJobMaintenance(true)} style={{ width: '100%', padding: '8px', background: '#f3f4f6', border: 'none', borderRadius: '8px', marginBottom: '12px' }}>⚙️ Ajustar Perfil</button>
-              
-              {/* Filtros Adicionales */}
-              <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '16px', paddingTop: '16px', marginBottom: '16px' }}>
-                <p style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  🔍 Filtros de Optimización IA
-                </p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div>
-                    <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Sector de Vivienda</label>
-                    <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterSector} onChange={e => setRankingFilterSector(e.target.value)}>
-                      <option value="ALL">Todos los Sectores</option>
-                      <option value="Norte">Norte</option>
-                      <option value="Centro">Centro</option>
-                      <option value="Sur">Sur</option>
-                      <option value="Cumbayá">Cumbayá</option>
-                      <option value="Valle de los Chillos">Valle de los Chillos</option>
-                      <option value="Via la Costa">Via la Costa</option>
-                      <option value="Samborondon">Samborondon</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Ciudad de Residencia</label>
-                    <select
-                      className="ranking-select"
-                      style={{ marginBottom: 0, padding: '8px 12px' }}
-                      value={rankingFilterCiudad}
-                      onChange={e => setRankingFilterCiudad(e.target.value)}
-                    >
-                      <option value="">Todas las Ciudades</option>
-                      <option value="Quito">Quito</option>
-                      <option value="Guayaquil">Guayaquil</option>
-                      <option value="Cuenca">Cuenca</option>
-                      <option value="Manta">Manta</option>
-                      <option value="Portoviejo">Portoviejo</option>
-                      <option value="Machala">Machala</option>
-                      <option value="Loja">Loja</option>
-                      <option value="Ambato">Ambato</option>
-                      <option value="Santo Domingo">Santo Domingo</option>
-                      <option value="Ibarra">Ibarra</option>
-                      <option value="Otra">Otra / Provincia</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Región</label>
-                    <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterRegion} onChange={e => setRankingFilterRegion(e.target.value)}>
-                      <option value="ALL">Todas las Regiones</option>
-                      <option value="Costa">Costa</option>
-                      <option value="Sierra">Sierra</option>
-                      <option value="Oriente">Oriente</option>
-                      <option value="Insular">Insular</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Edad</label>
-                    <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterEdad} onChange={e => setRankingFilterEdad(e.target.value)}>
-                      <option value="ALL">Todas las Edades</option>
-                      <option value="18-25">18 a 25 años</option>
-                      <option value="26-35">26 a 35 años</option>
-                      <option value="36-45">36 a 45 años</option>
-                      <option value="46+">46 años o más</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Género</label>
-                    <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterGenero} onChange={e => setRankingFilterGenero(e.target.value)}>
-                      <option value="ALL">Todos los Géneros</option>
-                      <option value="Masculino">Masculino</option>
-                      <option value="Femenino">Femenino</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <button className="ranking-btn-primary" onClick={handleRankCandidates} disabled={rankingLoading}><Brain size={16} /> {rankingLoading ? 'Evaluando...' : 'Evaluar con IA'}</button>
-              
-              {rankingError && (
-                <div style={{ color: '#ef4444', background: '#fee2e2', border: '1px solid #fca5a5', padding: '12px', borderRadius: '8px', marginTop: '12px', fontSize: '13px', fontWeight: 600 }}>
-                  ⚠️ {rankingError}
-                </div>
-              )}
-            </div>
-            <div>
-              {displayedRankingCandidates && displayedRankingCandidates.length > 0 ? (
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr><th>#</th><th>Candidato</th><th>Ciudad</th><th>Puntaje</th><th>CV</th><th style={{ textAlign: 'right' }}>Acción</th></tr>
-                    </thead>
-                    <tbody>
-                      {displayedRankingCandidates.map((r, idx) => {
-                        const status = trackingMap[r.id]?.status || 'PENDIENTE';
-                        const isUpd = trackingUpdating === r.id;
-                        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null;
-                        const scoreColor = r.score >= 85 ? 'linear-gradient(90deg, #10b981, #22c55e)' : r.score >= 60 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #ef4444, #f87171)';
-                        
-                        return (
-                          <tr key={`${r.id}-${idx}`} className="rank-row">
-                            <td className="rank-number">
-                              {medal ? <span className="medal-badge">{medal}</span> : idx + 1}
-                            </td>
-                            <td>
-                              <div className="user-cell" style={{ alignItems: 'flex-start' }}>
-                                <div className="user-avatar" style={{ background: '#f3e8ff', color: '#9333ea', width: '36px', height: '36px' }}><User size={18}/></div>
-                                <div>
-                                  <p style={{ fontWeight: 700, margin: '0 0 2px', fontSize: '15px', color: '#1e293b' }}>{r.name || r.sender_name || 'Sin Nombre'}</p>
-                                  <p className="justification-text" style={{ fontSize: '12px', lineHeight: '1.4', color: '#64748b' }}>{r.justification}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td style={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
-                              <MapPin size={12} style={{ marginRight: '4px' }} /> {r.city}
-                            </td>
-                            <td>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div className="score-bar-wrap">
-                                  <div className="score-bar-fill" style={{ width: `${r.score}%`, background: scoreColor }} />
-                                </div>
-                                <span style={{ fontWeight: 800, fontSize: '15px', color: '#1e293b' }}>{r.score}</span>
-                              </div>
-                            </td>
-                            <td>{r.pdf_url && <a href={r.pdf_url} target="_blank" className="pdf-link" style={{ fontWeight: 600 }}><FileText size={16}/> CV</a>}</td>
-                            <td style={{ textAlign: 'right' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
-                                {status === 'PENDIENTE' ? (
-                                  <>
-                                    <button className="ai-btn-accept" onClick={() => updateTracking(r.id, 'MENSAJE_ENVIADO')} disabled={isUpd}>
-                                      {isUpd ? '...' : 'Aceptar Candidato'}
-                                    </button>
-                                    <button
-                                      className="track-btn"
-                                      style={{ color: '#f59e0b', borderColor: '#fde68a', background: 'rgba(245, 158, 11, 0.05)', fontSize: '11px', padding: '4px 10px' }}
-                                      onClick={() => handleSendThankYouEmail(r.id, r.sender_email || r.email || '', r.name || r.sender_name || '', rankingCargo)}
-                                      disabled={sendingThankYouId === r.id}
-                                      title="Enviar correo de agradecimiento por postulación"
-                                    >
-                                      {sendingThankYouId === r.id ? '⏳ Enviando...' : '🙏 Agradecer'}
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="pipeline-badge" style={{ background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0', marginBottom: '4px' }}>
-                                      ✅ SELECCIONADO
-                                    </span>
-                                    
-                                    {/* Panel de Seguimiento Completo */}
-                                    {r.sender_phone && status === 'MENSAJE_ENVIADO' && (
-                                      <a 
-                                        href={`https://wa.me/${r.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent('Estimado candidato, hemos recibido su CV para el cargo de ' + rankingCargo + ', ¿podemos agendar una reunión para la entrevista?')}`} 
-                                        target="_blank" 
-                                        className="wa-link"
-                                      >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '14px' }} /> Reenviar WA
-                                      </a>
-                                    )}
-                                    
-                                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                      {status === 'MENSAJE_ENVIADO' && (
-                                        <button className="track-btn" onClick={() => setInterviewModal({ id: r.id, name: r.sender_name, resumeId: r.id, cargo: rankingCargo })}>📅 Citar</button>
-                                      )}
-                                      <button className="track-btn" style={{ color: '#94a3b8' }} onClick={() => updateTracking(r.id, 'PENDIENTE')}>↺ Reiniciar</button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : rankingCargo ? (
-                <div style={{ background: 'white', padding: '48px', borderRadius: '16px', textAlign: 'center', border: '1px dashed #cbd5e1', color: '#64748b' }}>
-                  <Trophy size={48} color="#cbd5e1" style={{ marginBottom: '16px', display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#334155', marginBottom: '8px' }}>No hay candidatos en este ranking</h3>
-                  <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '320px', margin: '0 auto' }}>
-                    Agrega candidatos desde el <strong>Inbox</strong> usando el botón "Pasar a Ranking", o haz clic en <strong>Evaluar con IA</strong> para analizar a todos los postulantes.
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        )}
-
-        {/* --- ESTADÍSTICAS --- */}
-        {activeTab === 'estadisticas' && (
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#002f6c', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <TrendingUp size={24} /> Dashboard de Estadísticas Avanzadas
-            </h2>
-
-            {!stats ? (
-              <div style={{ background: 'white', padding: '48px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8', border: '1px solid #e2e8f0' }}>
-                No hay suficientes datos cargados para generar estadísticas.
-              </div>
-            ) : (
+          <div className="tabs-nav">
+            {(!user?.perfil || user.perfil.trim().toUpperCase() === 'RECLUTADOR' || user.perfil.trim().toUpperCase() === 'ADMIN') && (
               <>
-                {/* KPI Cards Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-                  <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ background: '#eff6ff', color: '#2563eb', padding: '12px', borderRadius: '12px' }}><Users size={24} /></div>
-                    <div>
-                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Postulantes</span>
-                      <h3 style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: '#1e293b' }}>{stats.total}</h3>
-                    </div>
-                  </div>
-
-                  <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ background: '#fdf2f8', color: '#db2777', padding: '12px', borderRadius: '12px' }}><User size={24} /></div>
-                    <div>
-                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Edad Promedio</span>
-                      <h3 style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: '#1e293b' }}>{stats.averageAge} años</h3>
-                    </div>
-                  </div>
-
-                  <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px', borderRadius: '12px' }}><Activity size={24} /></div>
-                    <div>
-                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Afinidad Deporte</span>
-                      <h3 style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: '#1e293b' }}>{stats.likesSportsPct}% Sí</h3>
-                    </div>
-                  </div>
-
-                  <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ background: '#f7fee7', color: '#4d7c0f', padding: '12px', borderRadius: '12px' }}><Award size={24} /></div>
-                    <div>
-                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Cargo Top</span>
-                      <h3 style={{ margin: '4px 0 0', fontSize: '15px', fontWeight: 800, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>
-                        {stats.topPositions[0]?.name || 'N/A'}
-                      </h3>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Embudo de Selección y Conversión */}
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    📊 Embudo de Selección y Conversión de Procesos
-                  </h3>
-                  <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#64748b' }}>
-                    Porcentaje de avance y conversión desde la postulación inicial hasta la contratación (candidatos que completaron Onboarding).
-                  </p>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', position: 'relative' }}>
-                    {[
-                      { 
-                        title: 'Postulantes', 
-                        subtitle: 'Inbox General', 
-                        count: stats.total, 
-                        pct: 100, 
-                        color: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
-                        desc: 'CVs recibidos' 
-                      },
-                      { 
-                        title: 'En Resumen', 
-                        subtitle: 'Pipeline Activo', 
-                        count: stats.pipelineCount, 
-                        pct: stats.total > 0 ? Math.round((stats.pipelineCount / stats.total) * 100) : 0, 
-                        color: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)', 
-                        desc: 'Pre-seleccionados' 
-                      },
-                      { 
-                        title: 'Formativas', 
-                        subtitle: 'Evaluación Práctica', 
-                        count: stats.formativeCount, 
-                        pct: stats.total > 0 ? Math.round((stats.formativeCount / stats.total) * 100) : 0, 
-                        color: 'linear-gradient(135deg, #db2777 0%, #9d174d 100%)', 
-                        desc: 'En capacitación' 
-                      },
-                      { 
-                        title: 'Onboarding', 
-                        subtitle: 'Ingreso Inicial', 
-                        count: stats.onboardingCount, 
-                        pct: stats.total > 0 ? Math.round((stats.onboardingCount / stats.total) * 100) : 0, 
-                        color: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)', 
-                        desc: 'Subiendo documentos' 
-                      },
-                      { 
-                        title: 'Seleccionados', 
-                        subtitle: 'Contratados', 
-                        count: stats.selectedCount, 
-                        pct: stats.total > 0 ? Math.round((stats.selectedCount / stats.total) * 100) : 0, 
-                        color: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', 
-                        desc: 'Completaron proceso' 
-                      }
-                    ].map((step, idx) => (
-                      <div key={idx} style={{ 
-                        background: '#f8fafc', 
-                        border: '1px solid #e2e8f0', 
-                        borderRadius: '12px', 
-                        padding: '16px', 
-                        textAlign: 'center', 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        position: 'relative',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                      }}>
-                        <div style={{ 
-                          width: '100%', 
-                          height: '6px', 
-                          background: step.color, 
-                          borderRadius: '999px',
-                          marginBottom: '12px' 
-                        }} />
-                        
-                        <div>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{step.title}</span>
-                          <div style={{ fontSize: '28px', fontWeight: 900, color: '#1e293b', margin: '4px 0' }}>{step.count}</div>
-                          <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '8px' }}>{step.subtitle}</span>
-                        </div>
-                        
-                        <div style={{ 
-                          background: step.pct > 0 ? '#f0fdf4' : '#f1f5f9', 
-                          color: step.pct > 0 ? '#15803d' : '#64748b', 
-                          padding: '4px 8px', 
-                          borderRadius: '8px', 
-                          fontSize: '12px', 
-                          fontWeight: 'bold' 
-                        }}>
-                          {step.pct}% conversión
-                        </div>
-                        <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '8px' }}>{step.desc}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Charts Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-                  
-                  {/* 1. Medios de Adquisición */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Medios de Adquisición</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {Object.entries(stats.heardFromMap).map(([key, val]) => {
-                        const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
-                        return (
-                          <div key={key}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
-                              <span>{key}</span>
-                              <strong>{val} ({pct}%)</strong>
-                            </div>
-                            <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
-                              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6, #6366f1)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* 2. Distribución de Sectores */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Distribución por Sectores</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {Object.entries(stats.sectorsMap).map(([key, val]) => {
-                        const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
-                        return (
-                          <div key={key}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
-                              <span>{key}</span>
-                              <strong>{val} ({pct}%)</strong>
-                            </div>
-                            <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
-                              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #ec4899, #f43f5e)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* 3. Niveles de Educación */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Nivel de Educación</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {Object.entries(stats.educationMap).map(([key, val]) => {
-                        const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
-                        return (
-                          <div key={key}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
-                              <span>{key}</span>
-                              <strong>{val} ({pct}%)</strong>
-                            </div>
-                            <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
-                              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* 4. Rangos de Edad */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Distribución por Rangos de Edad</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {Object.entries(stats.ageRanges).map(([key, val]) => {
-                        const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
-                        return (
-                          <div key={key}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
-                              <span>{key} años</span>
-                              <strong>{val} ({pct}%)</strong>
-                            </div>
-                            <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
-                              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #8b5cf6, #d946ef)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Top Positions Section */}
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    🏆 Cargos Más Solicitados
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                    {stats.topPositions.map((pos, idx) => (
-                      <div key={pos.name} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <span style={{ fontSize: '11px', fontWeight: 900, color: idx === 0 ? '#b45309' : idx === 1 ? '#475569' : '#7c2d12', background: idx === 0 ? '#fef3c7' : idx === 1 ? '#f1f5f9' : '#ffedd5', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
-                            Top {idx + 1}
-                          </span>
-                          <h4 style={{ margin: '8px 0 0', fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>{pos.name}</h4>
-                        </div>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#475569' }}>{pos.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <button className={`tab-btn ${activeTab === 'seleccion' ? 'active' : ''}`} onClick={() => setActiveTab('seleccion')}>Inbox</button>
+                <button className={`tab-btn ${activeTab === 'ranking' ? 'active' : ''}`} onClick={() => setActiveTab('ranking')}>🏆 Ranking IA</button>
+                <button className={`tab-btn ${activeTab === 'pipeline' ? 'active' : ''}`} onClick={() => { setActiveTab('pipeline'); fetchPipeline() }}>📑 Resumen</button>
+                <button className={`tab-btn ${activeTab === 'formativas' ? 'active' : ''}`} onClick={() => { setActiveTab('formativas'); fetchFormativeData() }}>🎯 Formativas</button>
+                <button className={`tab-btn ${activeTab === 'onboarding' ? 'active' : ''}`} onClick={() => setActiveTab('onboarding')}>🚀 Onboarding</button>
+                <button className={`tab-btn ${activeTab === 'estadisticas' ? 'active' : ''}`} onClick={() => setActiveTab('estadisticas')}>📈 Estadísticas</button>
               </>
             )}
+            {(!user?.perfil || user.perfil.trim().toUpperCase() === 'NOMINA' || user.perfil.trim().toUpperCase() === 'ADMIN') && (
+              <button className={`tab-btn ${activeTab === 'nomina' ? 'active' : ''}`} onClick={() => setActiveTab('nomina')}>💼 Nómina</button>
+            )}
           </div>
-        )}
 
-        {/* --- PIPELINE / RESUMEN --- */}
-        {activeTab === 'pipeline' && (
-          <div style={{ display: 'grid', gap: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <div className="filter-bar" style={{ margin: 0, flex: 1, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div className="filter-input" style={{ flex: '1.4', minWidth: '220px' }}>
-                  <Search size={18} color="#94a3b8" />
-                  <input 
-                    placeholder="Buscar por candidato, cédula o usuario reclutador..." 
-                    value={pipelineNameFilter} 
-                    onChange={e => setPipelineNameFilter(e.target.value)} 
-                  />
-                  {pipelineNameFilter && (
-                    <button 
-                      onClick={() => setPipelineNameFilter('')} 
-                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
-                      title="Limpiar búsqueda"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-                <div className="filter-input" style={{ flex: '1', minWidth: '180px' }}>
-                  <Briefcase size={18} color="#94a3b8" />
-                  <input 
-                    placeholder="Filtrar por cargo..." 
-                    value={pipelineCargoFilter} 
-                    onChange={e => setPipelineCargoFilter(e.target.value)} 
-                  />
-                  {pipelineCargoFilter && (
-                    <button 
-                      onClick={() => setPipelineCargoFilter('')} 
-                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
-                      title="Limpiar filtro de cargo"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-                <select 
-                  value={pipelineFilter} 
-                  onChange={e => setPipelineFilter(e.target.value)}
-                  style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '170px' }}
-                >
-                  <option value="ALL">Todos los activos</option>
-                  <option value="PENDIENTE">⏳ Pendientes</option>
-                  <option value="MENSAJE_ENVIADO">📨 Mensaje Enviado</option>
-                  <option value="ENTREVISTA_PROGRAMADA">📅 Citados</option>
-                  <option value="ENTREVISTA_APROBADA">✅ Aprobados</option>
-                  <option value="ONBOARDING">🚀 En Onboarding</option>
-                  <option value="RECHAZADO">❌ Rechazados</option>
-                </select>
+          {/* --- BANDEJA --- */}
+          {activeTab === 'seleccion' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '16px' }}>
+                <button onClick={() => setShowSettings(true)} style={{ background: 'white', border: '1px solid #ddd', padding: '8px', borderRadius: '6px' }}><Settings size={16} /></button>
+                {/* BOTÓN DESACTIVADO TEMPORALMENTE - para reactivar quitar display:none */}
+                <button onClick={handleScanEmails} disabled={scanning} className="ai-btn" style={{ background: '#3b82f6', display: 'none' }}><RefreshCw size={16} className={scanning ? "animate-spin" : ""} /> {scanning ? 'Escaneando...' : 'Buscar Nuevos Correos'}</button>
               </div>
-              <button 
-                onClick={() => setShowCalendarModal(true)} 
-                className="ranking-btn-primary" 
-                style={{ width: 'auto', padding: '10px 20px', marginLeft: '20px' }}
-              >
-                📅 Ver Mi Agenda
-              </button>
-            </div>
 
-             <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th style={{ width: '80px', textAlign: 'center' }}>Formativas</th>
-                    <th>Candidato</th>
-                    <th>Cargo</th>
-                    <th>Psicométrico</th>
-                    <th>Teléfono / WhatsApp</th>
-                    <th>Estado</th>
-                    <th>Usuario / Reclutador</th>
-                    <th>Entrevista</th>
-                    <th style={{ textAlign: 'right' }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPipelineData.length === 0 ? (
-                    <tr>
-                      <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                        No hay candidatos en el resumen actualmente.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredPipelineData.map(p => (
-                      <tr key={p.id}>
-                        <td style={{ textAlign: 'center' }}>
-                          {(() => {
-                            const psychTest = psychometricTests.find(t => t.resume_id === p.resume_id);
-                            const isCompleted = psychTest && psychTest.status === 'COMPLETADO';
-                            const isSelected = formativeCandidates.some(c => c.resume_id === p.resume_id);
-                            if (isSelected) {
-                              // Ya está en formativas: mostrar badge, sin checkbox
-                              return (
-                                <span style={{ fontSize: '10px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '3px 7px', borderRadius: '6px', fontWeight: 'bold', display: 'inline-block' }}>
-                                  🎯 En Formativas
-                                </span>
-                              );
-                            }
-                            return (
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={false}
-                                  onChange={() => handleToggleFormative(p)}
-                                  title="Seleccionar para Formativas"
-                                  style={{
-                                    width: '18px',
-                                    height: '18px',
-                                    cursor: 'pointer',
-                                    accentColor: '#2563eb'
-                                  }}
-                                />
-                                {isCompleted ? (
-                                  <span style={{ fontSize: '9px', color: '#16a34a', fontWeight: 'bold' }} title="Psicométrico completado">✓ Psico</span>
-                                ) : (
-                                  <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 'bold' }} title="Sin prueba psicométrica">— Psico</span>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <p style={{ fontWeight: 700, margin: 0, color: '#1e293b' }}>{p.candidate?.sender_name || 'Candidato'}</p>
-                            {(() => {
-                              const formativeCand = formativeCandidates.find(c => c.resume_id === p.resume_id);
-                              if (formativeCand) {
-                                const candidateEvals = formativeEvaluations.filter(e => e.candidate_id === formativeCand.id);
-                                if (candidateEvals.length > 0) {
-                                  const totalScore = candidateEvals.reduce((sum, e) => sum + e.score, 0);
-                                  return (
-                                    <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '2px 6px', borderRadius: '6px', fontWeight: 'bold' }} title="Puntaje de Evaluaciones Formativas">
-                                      🎯 {totalScore} pts
-                                    </span>
-                                  );
-                                }
-                              }
-                              return null;
-                            })()}
-                          </div>
-                          <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{p.candidate?.sender_email || '—'}</p>
-                        </td>
-                        <td style={{ fontWeight: 600, color: '#475569' }}>{p.cargo}</td>
-                        {(() => {
-                          const psychTest = psychometricTests.find(t => t.resume_id === p.resume_id);
-                          if (!psychTest) {
-                            return (
+              {/* Metricas de Candidatos por Cargo y Ciudad */}
+              <div style={{
+                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                color: 'white',
+                padding: '20px 24px',
+                borderRadius: '16px',
+                marginBottom: '20px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '24px',
+                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+                border: '1px solid rgba(255,255,255,0.05)'
+              }}>
+                {/* Total Card */}
+                <div style={{
+                  borderRight: '1px solid rgba(255,255,255,0.1)',
+                  paddingRight: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Candidatos</span>
+                  <span style={{ fontSize: '42px', fontWeight: 900, color: '#3b82f6', lineHeight: 1, margin: '6px 0 2px' }}>{inboxMetrics.total}</span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>Postulantes registrados</span>
+                </div>
+
+                {/* Cargos Card */}
+                <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '20px' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>Candidatos por Cargo</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '80px', overflowY: 'auto' }}>
+                    {inboxMetrics.topCargos.map(([cargo, count]) => (
+                      <div key={cargo} style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '12px'
+                      }}>
+                        <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{cargo}</span>
+                        <span style={{ background: '#3b82f6', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>{count}</span>
+                      </div>
+                    ))}
+                    {inboxMetrics.topCargos.length === 0 && <span style={{ fontSize: '12px', color: '#64748b' }}>Sin datos disponibles</span>}
+                  </div>
+                </div>
+
+                {/* Ciudades Card */}
+                <div>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>Candidatos por Ciudad</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '80px', overflowY: 'auto' }}>
+                    {inboxMetrics.topCities.map(([city, count]) => (
+                      <div key={city} style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '12px'
+                      }}>
+                        <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{city}</span>
+                        <span style={{ background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>{count}</span>
+                      </div>
+                    ))}
+                    {inboxMetrics.topCities.length === 0 && <span style={{ fontSize: '12px', color: '#64748b' }}>Sin datos disponibles</span>}
+                  </div>
+                </div>
+              </div>
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                marginBottom: '20px',
+                background: 'white',
+                padding: '16px',
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <label className="form-label">Buscar por nombre</label>
+                  <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
+                    <User size={18} color="#6b7280" />
+                    <input
+                      type="text"
+                      placeholder="Ej: Daniel Molina..."
+                      value={inboxSearch}
+                      onChange={(e) => setInboxSearch(e.target.value)}
+                      style={{ background: 'transparent' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ width: '150px' }}>
+                  <label className="form-label">Cédula</label>
+                  <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
+                    <User size={18} color="#6b7280" />
+                    <input
+                      type="text"
+                      placeholder="Ej: 1712217502..."
+                      value={inboxCedula}
+                      onChange={(e) => setInboxCedula(e.target.value)}
+                      style={{ background: 'transparent' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ width: '180px' }}>
+                  <label className="form-label">Cargo</label>
+                  <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
+                    <Briefcase size={18} color="#6b7280" />
+                    <input
+                      type="text"
+                      placeholder="Ej: Cajero..."
+                      value={inboxCargo}
+                      onChange={(e) => setInboxCargo(e.target.value)}
+                      style={{ background: 'transparent' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ width: '150px' }}>
+                  <label className="form-label">Ciudad</label>
+                  <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
+                    <MapPin size={18} color="#6b7280" />
+                    <input
+                      type="text"
+                      placeholder="Ej: Quito..."
+                      value={inboxCity}
+                      onChange={(e) => setInboxCity(e.target.value)}
+                      style={{ background: 'transparent' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ width: '150px' }}>
+                  <label className="form-label">Sector</label>
+                  <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
+                    <MapPin size={18} color="#6b7280" />
+                    <input
+                      type="text"
+                      placeholder="Ej: Carcelén..."
+                      value={inboxSector}
+                      onChange={(e) => setInboxSector(e.target.value)}
+                      style={{ background: 'transparent' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ width: '100px' }}>
+                  <label className="form-label">Min. Años</label>
+                  <div className="filter-input" style={{ background: '#f8fafc', marginTop: '4px' }}>
+                    <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: 'bold' }}>+</span>
+                    <input
+                      type="number"
+                      placeholder="Exp"
+                      value={inboxExp}
+                      onChange={(e) => setInboxExp(e.target.value)}
+                      style={{ background: 'transparent' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
+                  <button
+                    className="track-btn"
+                    onClick={() => { setInboxSearch(''); setInboxCargo(''); setInboxCity(''); setInboxExp(''); setInboxSector(''); setInboxCedula(''); }}
+                  >
+                    Limpiar
+                  </button>
+                  <button
+                    className="track-btn"
+                    style={{ background: '#f8fafc', color: '#2563eb', borderColor: '#dbeafe' }}
+                    onClick={() => fetchResumes()}
+                    disabled={loadingResumes}
+                  >
+                    {loadingResumes ? 'Cargando...' : 'Actualizar'}
+                  </button>
+                </div>
+              </div>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr><th>Perfil IA</th><th>Archivo CV</th><th>Fecha</th><th>Estado</th></tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const filteredResumes = resumes.filter(r => {
+                        const matchesSearch = !inboxSearch || (r.sender_name || '').toLowerCase().includes(inboxSearch.toLowerCase());
+                        const matchesCargo = !inboxCargo || (r.position || '').toLowerCase().includes(inboxCargo.toLowerCase());
+                        const matchesCity = !inboxCity || (r.city || '').toLowerCase().includes(inboxCity.toLowerCase());
+                        const matchesExp = !inboxExp || (parseInt(r.experience_years || '0') >= parseInt(inboxExp));
+                        const matchesSector = !inboxSector || (r.sector || '').toLowerCase().includes(inboxSector.toLowerCase());
+                        const matchesCedula = !inboxCedula || (r.cedula || '').toLowerCase().includes(inboxCedula.toLowerCase());
+                        return matchesSearch && matchesCargo && matchesCity && matchesExp && matchesSector && matchesCedula;
+                      });
+
+                      const ITEMS_PER_PAGE = 50;
+                      const totalPages = Math.ceil(filteredResumes.length / ITEMS_PER_PAGE);
+                      const paginatedResumes = filteredResumes.slice((inboxPage - 1) * ITEMS_PER_PAGE, inboxPage * ITEMS_PER_PAGE);
+
+                      return (
+                        <>
+                          {paginatedResumes.map(r => (
+                            <tr key={r.id}>
                               <td>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                  <span className="pipeline-badge" style={{ background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1', textAlign: 'center', fontSize: '11px', display: 'block' }}>
-                                    ⏳ PENDIENTE
-                                  </span>
-                                  <div style={{ display: 'flex', gap: '4px' }}>
-                                    <button 
-                                      className="track-btn" 
-                                      style={{ padding: '4px 8px', fontSize: '11px', color: '#2563eb', borderColor: '#dbeafe', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                      onClick={() => handleSendPsychometricEmail(p.candidate, p.cargo)}
-                                      disabled={sendingPsychometricId === p.candidate?.id}
-                                    >
-                                      {sendingPsychometricId === p.candidate?.id ? '...' : '✉️ Enviar'}
-                                    </button>
-                                    <button 
-                                      className="track-btn" 
-                                      style={{ padding: '4px 8px', fontSize: '11px', color: '#8b5cf6', borderColor: '#ddd6fe', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                      onClick={() => {
-                                        const protocol = window.location.protocol;
-                                        const host = window.location.host;
-                                        setQrModalUrl(`${protocol}//${host}/evaluacion/${p.resume_id}`);
-                                      }}
-                                    >
-                                      📱 QR
-                                    </button>
+                                <div className="user-cell" style={{ alignItems: 'flex-start' }}>
+                                  <div
+                                    className="user-avatar"
+                                    onClick={() => r.email_uid?.startsWith('WEB') ? setViewingFormData(r) : undefined}
+                                    title={r.email_uid?.startsWith('WEB') ? 'Ver formulario completo' : ''}
+                                    style={{
+                                      background: r.email_uid?.startsWith('WEB') ? '#eff6ff' : (r.classification_status === 'REVIEWED' ? '#f0fdf4' : '#f3e8ff'),
+                                      color: r.email_uid?.startsWith('WEB') ? '#3b82f6' : (r.classification_status === 'REVIEWED' ? '#16a34a' : '#9333ea'),
+                                      cursor: r.email_uid?.startsWith('WEB') ? 'pointer' : 'default',
+                                      transition: 'transform 0.15s, box-shadow 0.15s',
+                                      boxShadow: r.email_uid?.startsWith('WEB') ? '0 0 0 2px rgba(59,130,246,0.15)' : 'none'
+                                    }}
+                                  >
+                                    {r.email_uid?.startsWith('WEB') ? <UploadCloud size={20} /> : (r.classification_status === 'REVIEWED' ? <Brain size={20} /> : <Mail size={20} />)}
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <p className="user-name" style={{ margin: 0 }}>{r.sender_name || 'Sin Nombre'}</p>
+                                      <span style={{
+                                        fontSize: '10px',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        background: r.email_uid?.startsWith('WEB') ? '#dbeafe' : '#f1f5f9',
+                                        color: r.email_uid?.startsWith('WEB') ? '#1e40af' : '#475569',
+                                        fontWeight: 'bold'
+                                      }}>
+                                        {r.email_uid?.startsWith('WEB') ? 'WEB' : 'EMAIL'}
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                      <p style={{ color: '#9ca3af', fontSize: '12px', margin: 0 }}>{r.sender_email}</p>
+                                      <button
+                                        onClick={() => handleUpdateEmail(r.id, r.sender_email || '')}
+                                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                                        title="Editar Correo"
+                                      >
+                                        <Settings size={12} />
+                                      </button>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                      {r.sender_phone ? (
+                                        <p style={{ color: '#3b82f6', fontSize: '12px', fontWeight: 'bold', margin: 0 }}>📞 {r.sender_phone}</p>
+                                      ) : (
+                                        <p style={{ color: '#94a3b8', fontSize: '11px', margin: 0 }}>Sín teléfono</p>
+                                      )}
+                                      <button
+                                        onClick={() => handleUpdatePhone(r.id, r.sender_phone || '')}
+                                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                                        title="Editar Teléfono"
+                                      >
+                                        <Settings size={12} />
+                                      </button>
+                                    </div>
+
+                                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: (r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#16a34a' : '#64748b', cursor: 'pointer', background: (r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#f0fdf4' : '#f8fafc', border: `1px solid ${(r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '#bbf7d0' : '#e2e8f0'}`, padding: '4px 8px', borderRadius: '6px', marginBottom: '8px' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED'}
+                                        onChange={() => handleToggleReviewed(r.id, r.classification_status || null)}
+                                        style={{ cursor: 'pointer' }}
+                                      />
+                                      {(r.classification_status === 'REVIEWED' || r.classification_status === 'MANUALLY_REVIEWED') ? '✓ Perfil Revisado' : 'Marcar como Revisado'}
+                                    </label>
+
+                                    {/* Mostramos los datos si está REVISADO o si ya tiene cargo extraído */}
+                                    {(r.classification_status === 'REVIEWED' || r.position) ? (
+                                      <div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                                          {r.city && <span className="ai-tag"><MapPin size={12} /> {r.city}</span>}
+                                          {r.position && <span className="ai-tag"><Briefcase size={12} /> {r.position}</span>}
+                                          {r.age && <span className="ai-tag" style={{ background: '#fce7f3', color: '#9d174d' }}><User size={12} /> {r.age} años</span>}
+                                          {r.experience_years && <span className="ai-tag" style={{ background: '#fef9c3', color: '#854d0e' }}>⏱ {r.experience_years} años</span>}
+                                          {r.skills && r.skills.split(',').map((s: string, i: number) => i < 3 && <span key={i} className="ai-tag" style={{ background: '#f0fdf4', color: '#166534' }}>{s.trim()}</span>)}
+                                        </div>
+                                        {r.ai_summary && (
+                                          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', fontSize: '12px', fontStyle: 'italic', color: '#475569', borderLeft: '3px solid #cbd5e1', marginBottom: '8px' }}>
+                                            "{r.ai_summary}"
+                                          </div>
+                                        )}
+
+                                        {/* Datos adicionales de postulación web */}
+                                        {(r.birth_date || r.civil_status || r.home_address || r.education_level || r.likes_sports || r.heard_from) && (
+                                          <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 1fr',
+                                            gap: '10px',
+                                            marginTop: '8px',
+                                            padding: '12px',
+                                            background: '#f8fafc',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e2e8f0',
+                                            fontSize: '12px',
+                                            color: '#334155'
+                                          }}>
+                                            <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '2px', fontWeight: '800', color: '#002f6c', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                              📝 Datos Adicionales Formulario
+                                            </div>
+                                            {r.birth_date && (
+                                              <p style={{ margin: 0 }}><strong>F. Nacimiento:</strong> {new Date(r.birth_date + 'T12:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                            )}
+                                            {r.civil_status && (
+                                              <p style={{ margin: 0 }}><strong>Estado Civil:</strong> {r.civil_status}</p>
+                                            )}
+                                            {r.sector && (
+                                              <p style={{ margin: 0 }}><strong>Sector:</strong> {r.sector}</p>
+                                            )}
+                                            {r.heard_from && (
+                                              <p style={{ margin: 0 }}><strong>Medio de Contacto:</strong> {r.heard_from}</p>
+                                            )}
+                                            {r.home_address && (
+                                              <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>Dirección:</strong> {r.home_address}</p>
+                                            )}
+                                            {r.education_level && (
+                                              <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>Estudios:</strong> {r.education_level} {r.education_institution ? `en ${r.education_institution}` : ''} {r.education_title ? ` - Título: ${r.education_title}` : ''}</p>
+                                            )}
+                                            {r.likes_sports && (
+                                              <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>¿Le gusta el deporte?:</strong> {r.likes_sports === 'Si' ? `Sí, practica: ${r.sports_practiced || '—'}` : 'No'}</p>
+                                            )}
+                                            {r.work_culture_motivation && (
+                                              <p style={{ margin: 0, gridColumn: '1 / -1' }}><strong>Motivación Laboral:</strong> {r.work_culture_motivation}</p>
+                                            )}
+                                          </div>
+                                        )}
+                                        {/* Botón de IA extra por si quieren profundizar aunque ya tengan datos básicos */}
+                                        {r.classification_status !== 'REVIEWED' && (
+                                          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                            <button className="ai-btn" style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }} onClick={() => handleAnalyzeResume(r.id)} disabled={analyzingId === r.id}>
+                                              {analyzingId === r.id ? 'Analizando...' : 'Profundizar con IA'}
+                                            </button>
+                                            {/* Oculto: Aceptar Directo (Sin IA) */}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                        <button className="ai-btn" onClick={() => handleAnalyzeResume(r.id)} disabled={analyzingId === r.id}>
+                                          {analyzingId === r.id ? 'Analizando...' : 'Analizar con IA'}
+                                        </button>
+                                        {/* Oculto: Aceptar Directo (Sin IA) */}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </td>
-                            );
-                          }
-
-                          const isCompleted = psychTest.status === 'COMPLETADO';
-                          const sections = psychTest.sections_status || {};
-                          const totalSecs = Object.keys(sections).length || 7;
-                          const completedSecs = Object.values(sections).filter(s => s === 'COMPLETADO').length;
-                          const compatibility = psychTest.kudert_disc?.ai_recommendation?.compatibility;
-
-                          return (
-                            <td>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <span 
-                                  className="pipeline-badge" 
-                                  style={{ 
-                                    background: isCompleted ? '#dcfce7' : '#fef9c3', 
-                                    color: isCompleted ? '#166534' : '#854d0e', 
-                                    border: '1px solid currentColor',
-                                    textAlign: 'center',
+                              <td>
+                                {r.pdf_url && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <a href={r.pdf_url} target="_blank" className="pdf-link" style={{ fontWeight: 600 }}>
+                                      <FileText size={16} /> Ver CV
+                                    </a>
+                                    <span style={{ fontSize: '10px', color: '#64748b', wordBreak: 'break-all', maxWidth: '150px' }}>
+                                      {r.file_name}
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td style={{ fontSize: '13px' }}>{r.received_date ? new Date(r.received_date).toLocaleDateString() : '—'}</td>
+                              <td>
+                                {/* Solo mostrar REVISADO, ocultar badge PENDIENTE */}
+                                {r.classification_status === 'REVIEWED' && (
+                                  <span className="status-badge status-synced" style={{ marginBottom: '6px', display: 'inline-block' }}>REVISADO</span>
+                                )}
+                                <button
+                                  onClick={() => {
+                                    setSelectedRankingCargo(r.position || '');
+                                    setPassToRankingModal({ id: r.id, name: r.sender_name || 'Sin Nombre', defaultCargo: r.position || '' });
+                                  }}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    background: '#eff6ff',
+                                    color: '#2563eb',
+                                    border: '1px solid #bfdbfe',
+                                    borderRadius: '8px',
+                                    padding: '5px 10px',
                                     fontSize: '11px',
-                                    display: 'block'
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    marginBottom: '6px',
+                                    width: '100%',
+                                    justifyContent: 'center'
                                   }}
                                 >
-                                  {isCompleted ? '✅ COMPLETADO' : `⏳ EN PROCESO (${completedSecs}/${totalSecs})`}
-                                </span>
-                                {isCompleted && compatibility && (
-                                  <span 
-                                    className="pipeline-badge" 
-                                    style={{ 
-                                      background: compatibility === 'Alta' ? '#d1fae5' : compatibility === 'Media' ? '#fef3c7' : '#fee2e2', 
-                                      color: compatibility === 'Alta' ? '#065f46' : compatibility === 'Media' ? '#92400e' : '#991b1b', 
-                                      border: '1px solid currentColor',
-                                      textAlign: 'center',
-                                      fontSize: '10px',
-                                      fontWeight: 800,
-                                      display: 'block'
-                                    }}
+                                  <Trophy size={12} /> Pasar a Resumen
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteResume(r)}
+                                  title="Borrar candidato y PDF adjunto"
+                                  style={{
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    background: '#fff1f2',
+                                    color: '#dc2626',
+                                    border: '1px solid #fca5a5',
+                                    borderRadius: '8px',
+                                    padding: '5px 10px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                >
+                                  <Trash2 size={12} /> Borrar
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {totalPages > 1 && (
+                            <tr>
+                              <td colSpan={4}>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', padding: '16px 0' }}>
+                                  <button
+                                    className="track-btn"
+                                    disabled={inboxPage === 1}
+                                    onClick={() => setInboxPage(p => p - 1)}
+                                    style={{ padding: '6px 12px', fontSize: '12px' }}
                                   >
-                                    🤖 IA: {compatibility}
+                                    Anterior
+                                  </button>
+                                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>
+                                    Página {inboxPage} de {totalPages} ({filteredResumes.length} candidatos)
                                   </span>
-                                )}
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                  {isCompleted ? (
-                                    <button 
-                                      className="track-btn" 
-                                      style={{ padding: '4px 8px', fontSize: '11px', color: '#10b981', borderColor: '#bbf7d0', width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                      onClick={() => setViewingPsychometric({ test: psychTest, candidate: { ...p.candidate, position: p.candidate?.position || p.cargo } })}
-                                    >
-                                      📊 Resultados
-                                    </button>
+                                  <button
+                                    className="track-btn"
+                                    disabled={inboxPage === totalPages || totalPages === 0}
+                                    onClick={() => setInboxPage(p => p + 1)}
+                                    style={{ padding: '6px 12px', fontSize: '12px' }}
+                                  >
+                                    Siguiente
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {/* --- RANKING IA --- */}
+          {activeTab === 'ranking' && (
+            <div className="ranking-layout">
+              <div className="ranking-form-card">
+                <p style={{ fontWeight: 700, margin: '0 0 16px' }}><Trophy size={18} color="#7c3aed" /> Evaluación por Cargo</p>
+                <label className="ranking-label">Seleccionar Cargo</label>
+                <select className="ranking-select" value={editingPositionId || ''} onChange={e => {
+                  const p = jobPositions.find(pos => pos.id === e.target.value);
+                  if (p) handleLoadPosition(p);
+                  else { setEditingPositionId(null); setRankingCargo(''); setRankingFunciones(''); }
+                }}>
+                  <option value="">Seleccionar...</option>
+                  {jobPositions.map(p => <option key={p.id} value={p.id}>{p.cargo} {p.ciudad ? `· ${p.ciudad}` : ''}</option>)}
+                </select>
+                <button onClick={() => setShowJobMaintenance(true)} style={{ width: '100%', padding: '8px', background: '#f3f4f6', border: 'none', borderRadius: '8px', marginBottom: '12px' }}>⚙️ Ajustar Perfil</button>
+
+                {/* Filtros Adicionales */}
+                <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '16px', paddingTop: '16px', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    🔍 Filtros de Optimización IA
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div>
+                      <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Sector de Vivienda</label>
+                      <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterSector} onChange={e => setRankingFilterSector(e.target.value)}>
+                        <option value="ALL">Todos los Sectores</option>
+                        <option value="Norte">Norte</option>
+                        <option value="Centro">Centro</option>
+                        <option value="Sur">Sur</option>
+                        <option value="Cumbayá">Cumbayá</option>
+                        <option value="Valle de los Chillos">Valle de los Chillos</option>
+                        <option value="Via la Costa">Via la Costa</option>
+                        <option value="Samborondon">Samborondon</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Ciudad de Residencia</label>
+                      <select
+                        className="ranking-select"
+                        style={{ marginBottom: 0, padding: '8px 12px' }}
+                        value={rankingFilterCiudad}
+                        onChange={e => setRankingFilterCiudad(e.target.value)}
+                      >
+                        <option value="">Todas las Ciudades</option>
+                        <option value="Quito">Quito</option>
+                        <option value="Guayaquil">Guayaquil</option>
+                        <option value="Cuenca">Cuenca</option>
+                        <option value="Manta">Manta</option>
+                        <option value="Portoviejo">Portoviejo</option>
+                        <option value="Machala">Machala</option>
+                        <option value="Loja">Loja</option>
+                        <option value="Ambato">Ambato</option>
+                        <option value="Santo Domingo">Santo Domingo</option>
+                        <option value="Ibarra">Ibarra</option>
+                        <option value="Otra">Otra / Provincia</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Región</label>
+                      <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterRegion} onChange={e => setRankingFilterRegion(e.target.value)}>
+                        <option value="ALL">Todas las Regiones</option>
+                        <option value="Costa">Costa</option>
+                        <option value="Sierra">Sierra</option>
+                        <option value="Oriente">Oriente</option>
+                        <option value="Insular">Insular</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Edad</label>
+                      <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterEdad} onChange={e => setRankingFilterEdad(e.target.value)}>
+                        <option value="ALL">Todas las Edades</option>
+                        <option value="18-25">18 a 25 años</option>
+                        <option value="26-35">26 a 35 años</option>
+                        <option value="36-45">36 a 45 años</option>
+                        <option value="46+">46 años o más</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="ranking-label" style={{ margin: 0, fontSize: '10px' }}>Género</label>
+                      <select className="ranking-select" style={{ marginBottom: 0, padding: '8px 12px' }} value={rankingFilterGenero} onChange={e => setRankingFilterGenero(e.target.value)}>
+                        <option value="ALL">Todos los Géneros</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <button className="ranking-btn-primary" onClick={handleRankCandidates} disabled={rankingLoading}><Brain size={16} /> {rankingLoading ? 'Evaluando...' : 'Evaluar con IA'}</button>
+
+                {rankingError && (
+                  <div style={{ color: '#ef4444', background: '#fee2e2', border: '1px solid #fca5a5', padding: '12px', borderRadius: '8px', marginTop: '12px', fontSize: '13px', fontWeight: 600 }}>
+                    ⚠️ {rankingError}
+                  </div>
+                )}
+              </div>
+              <div>
+                {displayedRankingCandidates && displayedRankingCandidates.length > 0 ? (
+                  <div className="table-container">
+                    <table>
+                      <thead>
+                        <tr><th>#</th><th>Candidato</th><th>Ciudad</th><th>Puntaje</th><th>CV</th><th style={{ textAlign: 'right' }}>Acción</th></tr>
+                      </thead>
+                      <tbody>
+                        {displayedRankingCandidates.map((r, idx) => {
+                          const status = trackingMap[r.id]?.status || 'PENDIENTE';
+                          const isUpd = trackingUpdating === r.id;
+                          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null;
+                          const scoreColor = r.score >= 85 ? 'linear-gradient(90deg, #10b981, #22c55e)' : r.score >= 60 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #ef4444, #f87171)';
+
+                          return (
+                            <tr key={`${r.id}-${idx}`} className="rank-row">
+                              <td className="rank-number">
+                                {medal ? <span className="medal-badge">{medal}</span> : idx + 1}
+                              </td>
+                              <td>
+                                <div className="user-cell" style={{ alignItems: 'flex-start' }}>
+                                  <div className="user-avatar" style={{ background: '#f3e8ff', color: '#9333ea', width: '36px', height: '36px' }}><User size={18} /></div>
+                                  <div>
+                                    <p style={{ fontWeight: 700, margin: '0 0 2px', fontSize: '15px', color: '#1e293b' }}>{r.name || r.sender_name || 'Sin Nombre'}</p>
+                                    <p className="justification-text" style={{ fontSize: '12px', lineHeight: '1.4', color: '#64748b' }}>{r.justification}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+                                <MapPin size={12} style={{ marginRight: '4px' }} /> {r.city}
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div className="score-bar-wrap">
+                                    <div className="score-bar-fill" style={{ width: `${r.score}%`, background: scoreColor }} />
+                                  </div>
+                                  <span style={{ fontWeight: 800, fontSize: '15px', color: '#1e293b' }}>{r.score}</span>
+                                </div>
+                              </td>
+                              <td>{r.pdf_url && <a href={r.pdf_url} target="_blank" className="pdf-link" style={{ fontWeight: 600 }}><FileText size={16} /> CV</a>}</td>
+                              <td style={{ textAlign: 'right' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+                                  {status === 'PENDIENTE' ? (
+                                    <>
+                                      <button className="ai-btn-accept" onClick={() => updateTracking(r.id, 'MENSAJE_ENVIADO')} disabled={isUpd}>
+                                        {isUpd ? '...' : 'Aceptar Candidato'}
+                                      </button>
+                                      <button
+                                        className="track-btn"
+                                        style={{ color: '#f59e0b', borderColor: '#fde68a', background: 'rgba(245, 158, 11, 0.05)', fontSize: '11px', padding: '4px 10px' }}
+                                        onClick={() => handleSendThankYouEmail(r.id, r.sender_email || r.email || '', r.name || r.sender_name || '', rankingCargo)}
+                                        disabled={sendingThankYouId === r.id}
+                                        title="Enviar correo de agradecimiento por postulación"
+                                      >
+                                        {sendingThankYouId === r.id ? '⏳ Enviando...' : '🙏 Agradecer'}
+                                      </button>
+                                    </>
                                   ) : (
                                     <>
-                                      <button 
-                                        className="track-btn" 
+                                      <span className="pipeline-badge" style={{ background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0', marginBottom: '4px' }}>
+                                        ✅ SELECCIONADO
+                                      </span>
+
+                                      {/* Panel de Seguimiento Completo */}
+                                      {r.sender_phone && status === 'MENSAJE_ENVIADO' && (
+                                        <a
+                                          href={`https://wa.me/${r.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent('Estimado candidato, hemos recibido su CV para el cargo de ' + rankingCargo + ', ¿podemos agendar una reunión para la entrevista?')}`}
+                                          target="_blank"
+                                          className="wa-link"
+                                        >
+                                          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '14px' }} /> Reenviar WA
+                                        </a>
+                                      )}
+
+                                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                        {status === 'MENSAJE_ENVIADO' && (
+                                          <button className="track-btn" onClick={() => setInterviewModal({ id: r.id, name: r.sender_name, resumeId: r.id, cargo: rankingCargo })}>📅 Citar</button>
+                                        )}
+                                        <button className="track-btn" style={{ color: '#94a3b8' }} onClick={() => updateTracking(r.id, 'PENDIENTE')}>↺ Reiniciar</button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : rankingCargo ? (
+                  <div style={{ background: 'white', padding: '48px', borderRadius: '16px', textAlign: 'center', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+                    <Trophy size={48} color="#cbd5e1" style={{ marginBottom: '16px', display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#334155', marginBottom: '8px' }}>No hay candidatos en este ranking</h3>
+                    <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '320px', margin: '0 auto' }}>
+                      Agrega candidatos desde el <strong>Inbox</strong> usando el botón "Pasar a Ranking", o haz clic en <strong>Evaluar con IA</strong> para analizar a todos los postulantes.
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          {/* --- ESTADÍSTICAS --- */}
+          {activeTab === 'estadisticas' && (
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#002f6c', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUp size={24} /> Dashboard de Estadísticas Avanzadas
+              </h2>
+
+              {!stats ? (
+                <div style={{ background: 'white', padding: '48px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8', border: '1px solid #e2e8f0' }}>
+                  No hay suficientes datos cargados para generar estadísticas.
+                </div>
+              ) : (
+                <>
+                  {/* KPI Cards Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+                    <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ background: '#eff6ff', color: '#2563eb', padding: '12px', borderRadius: '12px' }}><Users size={24} /></div>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Postulantes</span>
+                        <h3 style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: '#1e293b' }}>{stats.total}</h3>
+                      </div>
+                    </div>
+
+                    <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ background: '#fdf2f8', color: '#db2777', padding: '12px', borderRadius: '12px' }}><User size={24} /></div>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Edad Promedio</span>
+                        <h3 style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: '#1e293b' }}>{stats.averageAge} años</h3>
+                      </div>
+                    </div>
+
+                    <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px', borderRadius: '12px' }}><Activity size={24} /></div>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Afinidad Deporte</span>
+                        <h3 style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: '#1e293b' }}>{stats.likesSportsPct}% Sí</h3>
+                      </div>
+                    </div>
+
+                    <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ background: '#f7fee7', color: '#4d7c0f', padding: '12px', borderRadius: '12px' }}><Award size={24} /></div>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Cargo Top</span>
+                        <h3 style={{ margin: '4px 0 0', fontSize: '15px', fontWeight: 800, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>
+                          {stats.topPositions[0]?.name || 'N/A'}
+                        </h3>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Embudo de Selección y Conversión */}
+                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                    <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      📊 Embudo de Selección y Conversión de Procesos
+                    </h3>
+                    <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#64748b' }}>
+                      Porcentaje de avance y conversión desde la postulación inicial hasta la contratación (candidatos que completaron Onboarding).
+                    </p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', position: 'relative' }}>
+                      {[
+                        {
+                          title: 'Postulantes',
+                          subtitle: 'Inbox General',
+                          count: stats.total,
+                          pct: 100,
+                          color: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                          desc: 'CVs recibidos'
+                        },
+                        {
+                          title: 'En Resumen',
+                          subtitle: 'Pipeline Activo',
+                          count: stats.pipelineCount,
+                          pct: stats.total > 0 ? Math.round((stats.pipelineCount / stats.total) * 100) : 0,
+                          color: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
+                          desc: 'Pre-seleccionados'
+                        },
+                        {
+                          title: 'Formativas',
+                          subtitle: 'Evaluación Práctica',
+                          count: stats.formativeCount,
+                          pct: stats.total > 0 ? Math.round((stats.formativeCount / stats.total) * 100) : 0,
+                          color: 'linear-gradient(135deg, #db2777 0%, #9d174d 100%)',
+                          desc: 'En capacitación'
+                        },
+                        {
+                          title: 'Onboarding',
+                          subtitle: 'Ingreso Inicial',
+                          count: stats.onboardingCount,
+                          pct: stats.total > 0 ? Math.round((stats.onboardingCount / stats.total) * 100) : 0,
+                          color: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
+                          desc: 'Subiendo documentos'
+                        },
+                        {
+                          title: 'Seleccionados',
+                          subtitle: 'Contratados',
+                          count: stats.selectedCount,
+                          pct: stats.total > 0 ? Math.round((stats.selectedCount / stats.total) * 100) : 0,
+                          color: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+                          desc: 'Completaron proceso'
+                        }
+                      ].map((step, idx) => (
+                        <div key={idx} style={{
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          textAlign: 'center',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          position: 'relative',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                        }}>
+                          <div style={{
+                            width: '100%',
+                            height: '6px',
+                            background: step.color,
+                            borderRadius: '999px',
+                            marginBottom: '12px'
+                          }} />
+
+                          <div>
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{step.title}</span>
+                            <div style={{ fontSize: '28px', fontWeight: 900, color: '#1e293b', margin: '4px 0' }}>{step.count}</div>
+                            <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '8px' }}>{step.subtitle}</span>
+                          </div>
+
+                          <div style={{
+                            background: step.pct > 0 ? '#f0fdf4' : '#f1f5f9',
+                            color: step.pct > 0 ? '#15803d' : '#64748b',
+                            padding: '4px 8px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}>
+                            {step.pct}% conversión
+                          </div>
+                          <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '8px' }}>{step.desc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Charts Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+
+                    {/* 1. Medios de Adquisición */}
+                    <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Medios de Adquisición</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {Object.entries(stats.heardFromMap).map(([key, val]) => {
+                          const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
+                          return (
+                            <div key={key}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
+                                <span>{key}</span>
+                                <strong>{val} ({pct}%)</strong>
+                              </div>
+                              <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6, #6366f1)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 2. Distribución de Sectores */}
+                    <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Distribución por Sectores</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {Object.entries(stats.sectorsMap).map(([key, val]) => {
+                          const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
+                          return (
+                            <div key={key}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
+                                <span>{key}</span>
+                                <strong>{val} ({pct}%)</strong>
+                              </div>
+                              <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #ec4899, #f43f5e)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 3. Niveles de Educación */}
+                    <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Nivel de Educación</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {Object.entries(stats.educationMap).map(([key, val]) => {
+                          const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
+                          return (
+                            <div key={key}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
+                                <span>{key}</span>
+                                <strong>{val} ({pct}%)</strong>
+                              </div>
+                              <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 4. Rangos de Edad */}
+                    <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Distribución por Rangos de Edad</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {Object.entries(stats.ageRanges).map(([key, val]) => {
+                          const pct = stats.total > 0 ? Math.round((val / stats.total) * 100) : 0;
+                          return (
+                            <div key={key}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#475569', marginBottom: '4px' }}>
+                                <span>{key} años</span>
+                                <strong>{val} ({pct}%)</strong>
+                              </div>
+                              <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #8b5cf6, #d946ef)', borderRadius: '999px', transition: 'width 0.6s ease' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Top Positions Section */}
+                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                    <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      🏆 Cargos Más Solicitados
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                      {stats.topPositions.map((pos, idx) => (
+                        <div key={pos.name} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <span style={{ fontSize: '11px', fontWeight: 900, color: idx === 0 ? '#b45309' : idx === 1 ? '#475569' : '#7c2d12', background: idx === 0 ? '#fef3c7' : idx === 1 ? '#f1f5f9' : '#ffedd5', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
+                              Top {idx + 1}
+                            </span>
+                            <h4 style={{ margin: '8px 0 0', fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>{pos.name}</h4>
+                          </div>
+                          <span style={{ fontSize: '20px', fontWeight: 900, color: '#475569' }}>{pos.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* --- PIPELINE / RESUMEN --- */}
+          {activeTab === 'pipeline' && (
+            <div style={{ display: 'grid', gap: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <div className="filter-bar" style={{ margin: 0, flex: 1, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div className="filter-input" style={{ flex: '1.4', minWidth: '220px' }}>
+                    <Search size={18} color="#94a3b8" />
+                    <input
+                      placeholder="Buscar por candidato, cédula o usuario reclutador..."
+                      value={pipelineNameFilter}
+                      onChange={e => setPipelineNameFilter(e.target.value)}
+                    />
+                    {pipelineNameFilter && (
+                      <button
+                        onClick={() => setPipelineNameFilter('')}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
+                        title="Limpiar búsqueda"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="filter-input" style={{ flex: '1', minWidth: '180px' }}>
+                    <Briefcase size={18} color="#94a3b8" />
+                    <input
+                      placeholder="Filtrar por cargo..."
+                      value={pipelineCargoFilter}
+                      onChange={e => setPipelineCargoFilter(e.target.value)}
+                    />
+                    {pipelineCargoFilter && (
+                      <button
+                        onClick={() => setPipelineCargoFilter('')}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
+                        title="Limpiar filtro de cargo"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  <select
+                    value={pipelineFilter}
+                    onChange={e => setPipelineFilter(e.target.value)}
+                    style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '170px' }}
+                  >
+                    <option value="ALL">Todos los activos</option>
+                    <option value="PENDIENTE">⏳ Pendientes</option>
+                    <option value="MENSAJE_ENVIADO">📨 Mensaje Enviado</option>
+                    <option value="ENTREVISTA_PROGRAMADA">📅 Citados</option>
+                    <option value="ENTREVISTA_APROBADA">✅ Aprobados</option>
+                    <option value="ONBOARDING">🚀 En Onboarding</option>
+                    <option value="RECHAZADO">❌ Rechazados</option>
+                  </select>
+                </div>
+                <button
+                  onClick={() => setShowCalendarModal(true)}
+                  className="ranking-btn-primary"
+                  style={{ width: 'auto', padding: '10px 20px', marginLeft: '20px' }}
+                >
+                  📅 Ver Mi Agenda
+                </button>
+              </div>
+
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '80px', textAlign: 'center' }}>Formativas</th>
+                      <th>Candidato</th>
+                      <th>Cargo</th>
+                      <th>Psicométrico</th>
+                      <th>Teléfono / WhatsApp</th>
+                      <th>Estado</th>
+                      <th>Usuario / Reclutador</th>
+                      <th>Entrevista</th>
+                      <th style={{ textAlign: 'right' }}>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPipelineData.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                          No hay candidatos en el resumen actualmente.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPipelineData.map(p => (
+                        <tr key={p.id}>
+                          <td style={{ textAlign: 'center' }}>
+                            {(() => {
+                              const psychTest = psychometricTests.find(t => t.resume_id === p.resume_id);
+                              const isCompleted = psychTest && psychTest.status === 'COMPLETADO';
+                              const isSelected = formativeCandidates.some(c => c.resume_id === p.resume_id);
+                              if (isSelected) {
+                                // Ya está en formativas: mostrar badge, sin checkbox
+                                return (
+                                  <span style={{ fontSize: '10px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '3px 7px', borderRadius: '6px', fontWeight: 'bold', display: 'inline-block' }}>
+                                    🎯 En Formativas
+                                  </span>
+                                );
+                              }
+                              return (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={false}
+                                    onChange={() => handleToggleFormative(p)}
+                                    title="Seleccionar para Formativas"
+                                    style={{
+                                      width: '18px',
+                                      height: '18px',
+                                      cursor: 'pointer',
+                                      accentColor: '#2563eb'
+                                    }}
+                                  />
+                                  {isCompleted ? (
+                                    <span style={{ fontSize: '9px', color: '#16a34a', fontWeight: 'bold' }} title="Psicométrico completado">✓ Psico</span>
+                                  ) : (
+                                    <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 'bold' }} title="Sin prueba psicométrica">— Psico</span>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <p style={{ fontWeight: 700, margin: 0, color: '#1e293b' }}>{p.candidate?.sender_name || 'Candidato'}</p>
+                              {(() => {
+                                const formativeCand = formativeCandidates.find(c => c.resume_id === p.resume_id);
+                                if (formativeCand) {
+                                  const candidateEvals = formativeEvaluations.filter(e => e.candidate_id === formativeCand.id);
+                                  if (candidateEvals.length > 0) {
+                                    const totalScore = candidateEvals.reduce((sum, e) => sum + e.score, 0);
+                                    return (
+                                      <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '2px 6px', borderRadius: '6px', fontWeight: 'bold' }} title="Puntaje de Evaluaciones Formativas">
+                                        🎯 {totalScore} pts
+                                      </span>
+                                    );
+                                  }
+                                }
+                                return null;
+                              })()}
+                            </div>
+                            <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{p.candidate?.sender_email || '—'}</p>
+                          </td>
+                          <td style={{ fontWeight: 600, color: '#475569' }}>{p.cargo}</td>
+                          {(() => {
+                            const psychTest = psychometricTests.find(t => t.resume_id === p.resume_id);
+                            if (!psychTest) {
+                              return (
+                                <td>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <span className="pipeline-badge" style={{ background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1', textAlign: 'center', fontSize: '11px', display: 'block' }}>
+                                      ⏳ PENDIENTE
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '4px' }}>
+                                      <button
+                                        className="track-btn"
                                         style={{ padding: '4px 8px', fontSize: '11px', color: '#2563eb', borderColor: '#dbeafe', display: 'flex', alignItems: 'center', gap: '4px' }}
                                         onClick={() => handleSendPsychometricEmail(p.candidate, p.cargo)}
                                         disabled={sendingPsychometricId === p.candidate?.id}
                                       >
-                                        {sendingPsychometricId === p.candidate?.id ? '...' : '✉️ Reenviar'}
+                                        {sendingPsychometricId === p.candidate?.id ? '...' : '✉️ Enviar'}
                                       </button>
-                                      <button 
-                                        className="track-btn" 
+                                      <button
+                                        className="track-btn"
                                         style={{ padding: '4px 8px', fontSize: '11px', color: '#8b5cf6', borderColor: '#ddd6fe', display: 'flex', alignItems: 'center', gap: '4px' }}
                                         onClick={() => {
                                           const protocol = window.location.protocol;
@@ -4692,844 +4651,1233 @@ export default function CandidatesAdmin() {
                                       >
                                         📱 QR
                                       </button>
-                                    </>
+                                    </div>
+                                  </div>
+                                </td>
+                              );
+                            }
+
+                            const isCompleted = psychTest.status === 'COMPLETADO';
+                            const sections = psychTest.sections_status || {};
+                            const totalSecs = Object.keys(sections).length || 7;
+                            const completedSecs = Object.values(sections).filter(s => s === 'COMPLETADO').length;
+                            const compatibility = psychTest.kudert_disc?.ai_recommendation?.compatibility;
+
+                            return (
+                              <td>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                  <span
+                                    className="pipeline-badge"
+                                    style={{
+                                      background: isCompleted ? '#dcfce7' : '#fef9c3',
+                                      color: isCompleted ? '#166534' : '#854d0e',
+                                      border: '1px solid currentColor',
+                                      textAlign: 'center',
+                                      fontSize: '11px',
+                                      display: 'block'
+                                    }}
+                                  >
+                                    {isCompleted ? '✅ COMPLETADO' : `⏳ EN PROCESO (${completedSecs}/${totalSecs})`}
+                                  </span>
+                                  {isCompleted && compatibility && (
+                                    <span
+                                      className="pipeline-badge"
+                                      style={{
+                                        background: compatibility === 'Alta' ? '#d1fae5' : compatibility === 'Media' ? '#fef3c7' : '#fee2e2',
+                                        color: compatibility === 'Alta' ? '#065f46' : compatibility === 'Media' ? '#92400e' : '#991b1b',
+                                        border: '1px solid currentColor',
+                                        textAlign: 'center',
+                                        fontSize: '10px',
+                                        fontWeight: 800,
+                                        display: 'block'
+                                      }}
+                                    >
+                                      🤖 IA: {compatibility}
+                                    </span>
                                   )}
+                                  <div style={{ display: 'flex', gap: '4px' }}>
+                                    {isCompleted ? (
+                                      <button
+                                        className="track-btn"
+                                        style={{ padding: '4px 8px', fontSize: '11px', color: '#10b981', borderColor: '#bbf7d0', width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                        onClick={() => setViewingPsychometric({ test: psychTest, candidate: { ...p.candidate, position: p.candidate?.position || p.cargo } })}
+                                      >
+                                        📊 Resultados
+                                      </button>
+                                    ) : (
+                                      <>
+                                        <button
+                                          className="track-btn"
+                                          style={{ padding: '4px 8px', fontSize: '11px', color: '#2563eb', borderColor: '#dbeafe', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                          onClick={() => handleSendPsychometricEmail(p.candidate, p.cargo)}
+                                          disabled={sendingPsychometricId === p.candidate?.id}
+                                        >
+                                          {sendingPsychometricId === p.candidate?.id ? '...' : '✉️ Reenviar'}
+                                        </button>
+                                        <button
+                                          className="track-btn"
+                                          style={{ padding: '4px 8px', fontSize: '11px', color: '#8b5cf6', borderColor: '#ddd6fe', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                          onClick={() => {
+                                            const protocol = window.location.protocol;
+                                            const host = window.location.host;
+                                            setQrModalUrl(`${protocol}//${host}/evaluacion/${p.resume_id}`);
+                                          }}
+                                        >
+                                          📱 QR
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                          );
-                        })()}
-                        <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {p.candidate?.sender_phone && (
-                              <a 
-                                href={p.status === 'PENDIENTE' ? '#' : `https://wa.me/${p.candidate.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent(
-                                  p.status === 'ENTREVISTA_PROGRAMADA' 
-                                  ? `Hola ${p.candidate?.sender_name || 'candidat@'}, nos complace informarte que has pasado la primera etapa de nuestro proceso de selección para Superdeporte S.A. Para la siguiente fase, deberás asistir a una entrevista presencial y/o virtual.\n\nTe enviamos los detalles para que puedas asistir:\n📅Fecha: ${p.interview_date ? new Date(p.interview_date.split(' ')[0] + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' }) : '—'}\n⏰Hora: ${p.interview_date?.split(' ')[1] || '09:00'}\n📍Lugar: Galo Plaza Lasso 13205 y de los Cerezos.`
-                                  : `Hola ${p.candidate?.sender_name || 'candidat@'}, te saludamos de RRHH de Superdeporte S.A. Estamos revisando tu perfil para el cargo de ${p.cargo} y nos gustaría agendar una entrevista.`
-                                )}`} 
-                                onClick={(e) => (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') && e.preventDefault()}
-                                target={(p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? undefined : "_blank"} 
-                                className="wa-link"
-                                style={{ 
-                                  opacity: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 0.5 : 1, 
+                              </td>
+                            );
+                          })()}
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {p.candidate?.sender_phone && (
+                                <a
+                                  href={p.status === 'PENDIENTE' ? '#' : `https://wa.me/${p.candidate.sender_phone.replace(/\D/g, '').replace(/^0/, '593')}?text=${encodeURIComponent(
+                                    p.status === 'ENTREVISTA_PROGRAMADA'
+                                      ? `Hola ${p.candidate?.sender_name || 'candidat@'}, nos complace informarte que has pasado la primera etapa de nuestro proceso de selección para Superdeporte S.A. Para la siguiente fase, deberás asistir a una entrevista presencial y/o virtual.\n\nTe enviamos los detalles para que puedas asistir:\n📅Fecha: ${p.interview_date ? new Date(p.interview_date.split(' ')[0] + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' }) : '—'}\n⏰Hora: ${p.interview_date?.split(' ')[1] || '09:00'}\n📍Lugar: Galo Plaza Lasso 13205 y de los Cerezos.`
+                                      : `Hola ${p.candidate?.sender_name || 'candidat@'}, te saludamos de RRHH de Superdeporte S.A. Estamos revisando tu perfil para el cargo de ${p.cargo} y nos gustaría agendar una entrevista.`
+                                  )}`}
+                                  onClick={(e) => (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') && e.preventDefault()}
+                                  target={(p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? undefined : "_blank"}
+                                  className="wa-link"
+                                  style={{
+                                    opacity: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 0.5 : 1,
+                                    cursor: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 'not-allowed' : 'pointer',
+                                    filter: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 'grayscale(1)' : 'none',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '16px' }} /> {p.candidate.sender_phone}
+                                </a>
+                              )}
+                              <button
+                                disabled={p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO'}
+                                onClick={() => handleSendContactEmail(p.candidate?.sender_email, p.candidate?.sender_name, p.cargo, p.interview_date, p.notes)}
+                                className="track-btn"
+                                style={{
+                                  fontSize: '11px',
+                                  padding: '6px 8px',
+                                  color: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? '#94a3b8' : '#2563eb',
+                                  borderColor: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? '#e2e8f0' : '#dbeafe',
                                   cursor: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 'not-allowed' : 'pointer',
-                                  filter: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 'grayscale(1)' : 'none',
                                   justifyContent: 'center'
                                 }}
                               >
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '16px' }} /> {p.candidate.sender_phone}
-                              </a>
-                            )}
-                            <button 
-                              disabled={p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO'}
-                              onClick={() => handleSendContactEmail(p.candidate?.sender_email, p.candidate?.sender_name, p.cargo, p.interview_date, p.notes)}
-                              className="track-btn"
-                              style={{ 
-                                fontSize: '11px', 
-                                padding: '6px 8px', 
-                                color: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? '#94a3b8' : '#2563eb', 
-                                borderColor: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? '#e2e8f0' : '#dbeafe',
-                                cursor: (p.status === 'PENDIENTE' || p.status === 'ENTREVISTA_APROBADA' || p.status === 'RECHAZADO') ? 'not-allowed' : 'pointer',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              <Mail size={12} /> {p.status === 'ENTREVISTA_PROGRAMADA' ? 'Enviar Citación' : 'Enviar Email'}
-                            </button>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="pipeline-badge" style={{ background: '#dbeafe', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
-                            {p.status || 'PENDIENTE'}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <div style={{ 
-                              width: '24px', 
-                              height: '24px', 
-                              borderRadius: '50%', 
-                              background: '#eff6ff', 
-                              color: '#2563eb', 
-                              border: '1px solid #bfdbfe',
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
-                              fontSize: '11px', 
-                              fontWeight: 800,
-                              flexShrink: 0
-                            }}>
-                              <User size={13} />
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
-                                {p.recruiter_name || (p.created_by_cedula === user?.cedula ? user?.name : p.created_by_cedula) || user?.name || 'Reclutador'}
-                              </span>
-                              {p.created_by_cedula && (
-                                <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-                                  {p.created_by_cedula}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ fontSize: '13px', fontWeight: 500, color: '#475569' }}>
-                          {p.interview_date ? <span>📅 {new Date(p.interview_date.split(' ')[0] + 'T12:00:00').toLocaleDateString()}</span> : '—'}
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                            {/* Botón Citar (si ya fue aceptado o mensaje enviado) */}
-                            {(p.status === 'PENDIENTE' || p.status === 'MENSAJE_ENVIADO') && (
-                              <button className="track-btn" onClick={() => setInterviewModal({ id: p.id, name: p.candidate?.sender_name, resumeId: p.resume_id, cargo: p.cargo })}>
-                                📅 Citar
+                                <Mail size={12} /> {p.status === 'ENTREVISTA_PROGRAMADA' ? 'Enviar Citación' : 'Enviar Email'}
                               </button>
-                            )}
-  
-                            {/* Botón Aprobar / Rechazar (si ya tiene entrevista) */}
-                            {p.status === 'ENTREVISTA_PROGRAMADA' && (
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button className="track-btn" style={{ color: '#10b981', borderColor: '#bbf7d0' }} onClick={() => updatePipelineStatus(p.id, p.resume_id, p.cargo, 'ENTREVISTA_APROBADA')}>
-                                  🌟 Aprobar
-                                </button>
-                                <button className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }} onClick={() => updatePipelineStatus(p.id, p.resume_id, p.cargo, 'RECHAZADO')}>
-                                  ❌ Rechazar
-                                </button>
-                              </div>
-                            )}
-  
-                            {/* Estados Finales */}
-                            {p.status === 'ENTREVISTA_APROBADA' && (
-                              <span className="pipeline-badge" style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' }}>✅ APROBADO</span>
-                            )}
-                            {p.status === 'RECHAZADO' && (
-                              <span className="pipeline-badge" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>❌ RECHAZADO</span>
-                            )}
-  
-                            {/* Botón Reiniciar siempre disponible */}
-                            {p.status !== 'ENTREVISTA_APROBADA' && p.status !== 'RECHAZADO' && (
-                              <button 
-                                className="track-btn" 
-                                style={{ color: '#94a3b8', padding: '6px' }} 
-                                onClick={() => updatePipelineStatus(p.id, p.resume_id, p.cargo, 'PENDIENTE')}
-                                title="Reiniciar a Pendiente"
-                              >
-                                ↺
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {showCalendarModal && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '1200px', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>Mi Agenda de Entrevistas</h2>
-                  <p style={{ margin: '4px 0 0', color: '#64748b' }}>Planifica tus actividades de selección</p>
-                </div>
-                <button onClick={() => setShowCalendarModal(false)} className="track-btn" style={{ padding: '10px' }}><X /></button>
-              </div>
-              
-              <div className="calendar-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
-                {/* Cabecera de días */}
-                {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-                  <div key={d} style={{ textAlign: 'center', fontWeight: 800, color: '#475569', fontSize: '12px', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0' }}>{d}</div>
-                ))}
-                
-                {(() => {
-                  const today = new Date();
-                  const year = today.getFullYear();
-                  const month = today.getMonth(); // 0-indexed
-                  
-                  // Primer día del mes
-                  const firstDay = new Date(year, month, 1);
-                  // Ajustar a Lunes como primer día (JS: 0=Dom, 1=Lun...)
-                  // Si es Dom(0), queremos 6 espacios. Si es Lun(1), 0 espacios.
-                  let startPadding = firstDay.getDay() - 1;
-                  if (startPadding === -1) startPadding = 6; 
-                  
-                  const daysInMonth = new Date(year, month + 1, 0).getDate();
-                  
-                  const elements = [];
-                  
-                  // Espacios vacíos antes del día 1
-                  for (let i = 0; i < startPadding; i++) {
-                    elements.push(<div key={`pad-${i}`} style={{ background: '#f1f5f9', opacity: 0.3, borderRadius: '8px', minHeight: '100px' }}></div>);
-                  }
-                  
-                  // Días del mes
-                  for (let d = 1; d <= daysInMonth; d++) {
-                    const currentDate = new Date(year, month, d);
-                    const dateStr = currentDate.toISOString().split('T')[0];
-                    const isToday = new Date().toISOString().split('T')[0] === dateStr;
-                    
-                    const dayEvents = pipelineData.filter(p => p.status === 'ENTREVISTA_PROGRAMADA' && p.interview_date && p.interview_date.startsWith(dateStr));
-                    
-                    elements.push(
-                      <div key={d} className={`calendar-day ${isToday ? 'today' : ''}`} style={{ minHeight: '120px', padding: '8px' }}>
-                        <div className="calendar-date" style={{ marginBottom: '4px', fontSize: '12px' }}>
-                          <span style={{ 
-                            background: isToday ? '#2563eb' : 'transparent', 
-                            color: isToday ? 'white' : '#64748b', 
-                            width: '22px', 
-                            height: '22px', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            borderRadius: '50%',
-                            fontWeight: 800
-                          }}>
-                            {d}
-                          </span>
-                        </div>
-                        <div style={{ maxHeight: '80px', overflowY: 'auto' }}>
-                          {dayEvents.map(ev => (
-                            <div key={ev.id} className="event-card" style={{ padding: '4px', marginBottom: '3px', fontSize: '10px' }} title={ev.candidate?.sender_name}>
-                              <div className="event-time" style={{ fontSize: '9px' }}>{ev.interview_date?.split(' ')[1] || '09:00'}</div>
-                              <div className="event-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.candidate?.sender_name?.split(' ')[0] || 'Candidato'}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
-                  
-                  return elements;
-                })()}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* --- ONBOARDING --- */}
-        {activeTab === 'onboarding' && (
-          <div style={{ display: 'grid', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <div className="filter-bar" style={{ margin: 0, flex: 1, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div className="filter-input" style={{ flex: '1.4', minWidth: '220px' }}>
-                  <Search size={18} color="#94a3b8" />
-                  <input 
-                    placeholder="Buscar por nombre, cédula o cargo..." 
-                    value={onboardingSearchFilter} 
-                    onChange={e => setOnboardingSearchFilter(e.target.value)} 
-                  />
-                  {onboardingSearchFilter && (
-                    <button 
-                      onClick={() => setOnboardingSearchFilter('')} 
-                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
-                      title="Limpiar búsqueda"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-                <select 
-                  value={onboardingFormativaFilter} 
-                  onChange={e => setOnboardingFormativaFilter(e.target.value)}
-                  style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '180px' }}
-                >
-                  <option value="ALL">🎯 Todas las Formativas</option>
-                  {Array.from(new Set(
-                    candidates
-                      .map(c => {
-                        const f = getCandidateFormativaInfo(c);
-                        return f?.session || f?.date || null;
-                      })
-                      .filter(Boolean)
-                  )).sort().map(f => (
-                    <option key={f as string} value={f as string}>
-                      🎯 {f}
-                    </option>
-                  ))}
-                </select>
-                <select 
-                  value={onboardingStatusFilter} 
-                  onChange={e => setOnboardingStatusFilter(e.target.value)}
-                  style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '160px' }}
-                >
-                  <option value="ALL">Todos los estados ({candidates.length})</option>
-                  <option value="PENDING">⏳ Pendientes</option>
-                  <option value="LLENADO">📝 Llenados</option>
-                  <option value="APPROVED">✅ Aprobados</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <button 
-                  onClick={() => setShowOnboardingWhatsAppModal(true)} 
-                  className="ranking-btn-primary" 
-                  style={{ 
-                    width: 'auto', 
-                    background: 'linear-gradient(135deg, #25d366, #128c7e)', 
-                    color: 'white', 
-                    padding: '10px 18px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px', 
-                    fontWeight: 700,
-                    boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)',
-                    border: 'none',
-                    borderRadius: '10px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '18px' }} alt="WA" />
-                  💬 Grupo de WhatsApp ({candidates.length})
-                </button>
-                <button 
-                  onClick={exportToExcel} 
-                  className="track-btn" 
-                  style={{ padding: '10px 14px', background: 'white', borderColor: '#e2e8f0', color: '#475569', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <FileSpreadsheet size={16} color="#10b981" /> Exportar
-                </button>
-              </div>
-            </div>
-
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Candidato</th>
-                    <th>Cargo</th>
-                    <th>Fecha Formativa</th>
-                    <th>Cédula</th>
-                    <th>Estado Onboarding</th>
-                    <th style={{ textAlign: 'right' }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const filtered = candidates.filter(c => {
-                      const fInfo = getCandidateFormativaInfo(c);
-                      
-                      // Filtro por Formativa
-                      if (onboardingFormativaFilter !== 'ALL') {
-                        const matchF = fInfo && (
-                          fInfo.session === onboardingFormativaFilter ||
-                          fInfo.date === onboardingFormativaFilter ||
-                          (fInfo.session && fInfo.session.includes(onboardingFormativaFilter))
-                        );
-                        if (!matchF) return false;
-                      }
-
-                      // Filtro por estado
-                      const matchStatus = onboardingStatusFilter === 'ALL' || c.status === onboardingStatusFilter;
-
-                      // Filtro por texto
-                      const q = onboardingSearchFilter.toLowerCase().trim();
-                      const matchSearch = !q || (
-                        (c.nombres && c.nombres.toLowerCase().includes(q)) ||
-                        (c.apellidos && c.apellidos.toLowerCase().includes(q)) ||
-                        (c.email && c.email.toLowerCase().includes(q)) ||
-                        (c.cedula && c.cedula.includes(q)) ||
-                        (c.telefono && String(c.telefono).includes(q)) ||
-                        (c.cargo && c.cargo.toLowerCase().includes(q)) ||
-                        (fInfo?.session && fInfo.session.toLowerCase().includes(q)) ||
-                        (fInfo?.date && fInfo.date.toLowerCase().includes(q))
-                      );
-                      return matchStatus && matchSearch;
-                    });
-
-                    if (filtered.length === 0) {
-                      return (
-                        <tr>
-                          <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                            No se encontraron candidatos en Onboarding con los filtros aplicados.
-                          </td>
-                        </tr>
-                      );
-                    }
-
-                    return filtered.map(c => {
-                      const fInfo = getCandidateFormativaInfo(c);
-                      return (
-                        <tr key={c.id}>
-                          <td>
-                            <div className="user-cell">
-                              <div className="user-avatar"><User size={20} /></div>
-                              <div>
-                                <p className="user-name">{c.nombres} {c.apellidos}</p>
-                                <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>{c.email}</p>
-                              </div>
                             </div>
                           </td>
-                          <td style={{ color: '#475569', fontWeight: 600 }}>{c.cargo}</td>
                           <td>
-                            {fInfo?.date ? (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                  📅 {fInfo.date}
+                            <span className="pipeline-badge" style={{ background: '#dbeafe', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                              {p.status || 'PENDIENTE'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <div style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                background: '#eff6ff',
+                                color: '#2563eb',
+                                border: '1px solid #bfdbfe',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                flexShrink: 0
+                              }}>
+                                <User size={13} />
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
+                                  {p.recruiter_name || (p.created_by_cedula === user?.cedula ? user?.name : p.created_by_cedula) || user?.name || 'Reclutador'}
                                 </span>
-                                {fInfo.session && (
-                                  <span style={{ 
-                                    fontSize: '10px', 
-                                    fontWeight: 700, 
-                                    color: '#0369a1', 
-                                    background: '#f0f9ff', 
-                                    border: '1px solid #bae6fd', 
-                                    padding: '1px 6px', 
-                                    borderRadius: '4px', 
-                                    width: 'fit-content' 
-                                  }}>
-                                    🎯 {fInfo.session}
+                                {p.created_by_cedula && (
+                                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                    {p.created_by_cedula}
                                   </span>
                                 )}
                               </div>
-                            ) : (
-                              <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>—</span>
-                            )}
+                            </div>
                           </td>
-                          <td>{c.cedula?.startsWith('PENDIENTE') ? <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Por completar</span> : <strong>{c.cedula}</strong>}</td>
-                          <td>
-                            <span className="pipeline-badge" style={{ 
-                               background: c.status === 'SYNCED' ? '#e0f2fe' : c.status === 'APPROVED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff', 
-                               color: c.status === 'SYNCED' ? '#0369a1' : c.status === 'APPROVED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
-                               border: '1px solid currentColor',
-                               opacity: 0.8
-                             }}>
-                               {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'APPROVED' ? '✅ APROBADO' : c.status === 'SYNCED' ? '☁️ EN SAP' : '⏳ PENDIENTE'}
-                             </span>
-                             {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
+                          <td style={{ fontSize: '13px', fontWeight: 500, color: '#475569' }}>
+                            {p.interview_date ? <span>📅 {new Date(p.interview_date.split(' ')[0] + 'T12:00:00').toLocaleDateString()}</span> : '—'}
                           </td>
                           <td style={{ textAlign: 'right' }}>
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                              {(c.status === 'LLENADO' || c.status === 'APPROVED') && (
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              {/* Botón Citar (si ya fue aceptado o mensaje enviado) */}
+                              {(p.status === 'PENDIENTE' || p.status === 'MENSAJE_ENVIADO') && (
+                                <button className="track-btn" onClick={() => setInterviewModal({ id: p.id, name: p.candidate?.sender_name, resumeId: p.resume_id, cargo: p.cargo })}>
+                                  📅 Citar
+                                </button>
+                              )}
+
+                              {/* Botón Aprobar / Rechazar (si ya tiene entrevista) */}
+                              {p.status === 'ENTREVISTA_PROGRAMADA' && (
                                 <div style={{ display: 'flex', gap: '4px' }}>
-                                  <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
-                                  <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
-                                  <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
-                                  {c.status !== 'APPROVED' && (
-                                    <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
-                                  )}
-                                  <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🚀 Sincronizar</button>
+                                  <button className="track-btn" style={{ color: '#10b981', borderColor: '#bbf7d0' }} onClick={() => updatePipelineStatus(p.id, p.resume_id, p.cargo, 'ENTREVISTA_APROBADA')}>
+                                    🌟 Aprobar
+                                  </button>
+                                  <button className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }} onClick={() => updatePipelineStatus(p.id, p.resume_id, p.cargo, 'RECHAZADO')}>
+                                    ❌ Rechazar
+                                  </button>
                                 </div>
                               )}
-                              {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
-                              <button onClick={() => handleDelete(c.id)} className="track-btn" style={{ color: '#64748b', padding: '6px' }} title="Eliminar registro"><Trash2 size={14} /></button>
+
+                              {/* Estados Finales */}
+                              {p.status === 'ENTREVISTA_APROBADA' && (
+                                <span className="pipeline-badge" style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' }}>✅ APROBADO</span>
+                              )}
+                              {p.status === 'RECHAZADO' && (
+                                <span className="pipeline-badge" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>❌ RECHAZADO</span>
+                              )}
+
+                              {/* Botón Reiniciar siempre disponible */}
+                              {p.status !== 'ENTREVISTA_APROBADA' && p.status !== 'RECHAZADO' && (
+                                <button
+                                  className="track-btn"
+                                  style={{ color: '#94a3b8', padding: '6px' }}
+                                  onClick={() => updatePipelineStatus(p.id, p.resume_id, p.cargo, 'PENDIENTE')}
+                                  title="Reiniciar a Pendiente"
+                                >
+                                  ↺
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
-                      );
-                    });
-                  })()}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL VER EXPEDIENTE */}
-        {viewingOnboarding && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '90%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <h2 style={{ margin: 0 }}>Expediente de {viewingOnboarding.nombres} {viewingOnboarding.apellidos}</h2>
-                <button onClick={() => setViewingOnboarding(null)} className="track-btn"><X /></button>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
+            </div>
+          )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                <div>
-                  <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Datos Personales</h3>
-                  <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
-                    <p><strong>Cédula:</strong> {viewingOnboarding.cedula}</p>
-                    <p><strong>Email:</strong> {viewingOnboarding.email}</p>
-                    <p><strong>Cargo:</strong> {viewingOnboarding.cargo || '—'}</p>
-                    <p><strong>Fecha Formativa:</strong> {(() => {
-                      const fInfo = getCandidateFormativaInfo(viewingOnboarding);
-                      return fInfo?.date ? `${fInfo.date}${fInfo.session ? ` (${fInfo.session})` : ''}` : 'No registrada';
-                    })()}</p>
-                    <p><strong>Nacionalidad:</strong> {viewingOnboarding.datos_personales?.nacionalidad}</p>
-                    <p><strong>Estado Civil:</strong> {viewingOnboarding.datos_personales?.estado_civil}</p>
-                    <p><strong>Ciudad Nac.:</strong> {viewingOnboarding.datos_personales?.ciudad_nacimiento}</p>
-                    <p><strong>Fecha Nac.:</strong> {viewingOnboarding.datos_personales?.fecha_nacimiento}</p>
-                    <p><strong>Ciudad Res.:</strong> {viewingOnboarding.datos_personales?.ciudad_residencia}</p>
-                    <p><strong>Teléfono:</strong> {viewingOnboarding.telefono}</p>
-                    <p style={{ gridColumn: '1 / -1' }}><strong>Dirección:</strong> {viewingOnboarding.datos_personales?.direccion}</p>
+          {showCalendarModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '1200px', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>Mi Agenda de Entrevistas</h2>
+                    <p style={{ margin: '4px 0 0', color: '#64748b' }}>Planifica tus actividades de selección</p>
                   </div>
+                  <button onClick={() => setShowCalendarModal(false)} className="track-btn" style={{ padding: '10px' }}><X /></button>
+                </div>
 
-                  <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px', marginTop: '24px' }}>Datos Bancarios</h3>
-                  <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
-                    <p><strong>Banco:</strong> {viewingOnboarding.datos_bancarios?.banco}</p>
-                    <p><strong>Tipo Cuenta:</strong> {viewingOnboarding.datos_bancarios?.tipo_cuenta}</p>
-                    <p style={{ gridColumn: '1 / -1' }}><strong>Número:</strong> {viewingOnboarding.datos_bancarios?.numero_cuenta}</p>
-                  </div>
+                <div className="calendar-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+                  {/* Cabecera de días */}
+                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
+                    <div key={d} style={{ textAlign: 'center', fontWeight: 800, color: '#475569', fontSize: '12px', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0' }}>{d}</div>
+                  ))}
 
-                  <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px', marginTop: '24px' }}>Cargas Familiares</h3>
-                  <div style={{ fontSize: '13px', display: 'grid', gap: '8px', marginTop: '12px' }}>
-                    {viewingOnboarding.cargas_familiares?.conyuge ? (
-                      <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px' }}>
-                        <p style={{ fontWeight: 700, margin: '0 0 4px', color: '#475569' }}>Cónyuge / Pareja</p>
-                        <p style={{ margin: 0 }}>{viewingOnboarding.cargas_familiares.conyuge.nombres} {viewingOnboarding.cargas_familiares.conyuge.apellidos}</p>
-                        <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#64748b' }}>Cédula: {viewingOnboarding.cargas_familiares.conyuge.cedula} | Nac: {viewingOnboarding.cargas_familiares.conyuge.fecha_nacimiento}</p>
-                      </div>
-                    ) : <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin cónyuge declarado</p>}
-                    
-                    {viewingOnboarding.cargas_familiares?.hijos?.length > 0 ? (
-                      <div style={{ marginTop: '8px' }}>
-                        <p style={{ fontWeight: 700, margin: '0 0 6px', color: '#475569' }}>Hijos ({viewingOnboarding.cargas_familiares.hijos.length})</p>
-                        {viewingOnboarding.cargas_familiares.hijos.map((h: any, idx: number) => (
-                          <div key={idx} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
-                            <p style={{ margin: 0 }}>• {h.nombres} {h.apellidos}</p>
-                            <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>Cédula: {h.cedula} | Nac: {h.fecha_nacimiento}</p>
+                  {(() => {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = today.getMonth(); // 0-indexed
+
+                    // Primer día del mes
+                    const firstDay = new Date(year, month, 1);
+                    // Ajustar a Lunes como primer día (JS: 0=Dom, 1=Lun...)
+                    // Si es Dom(0), queremos 6 espacios. Si es Lun(1), 0 espacios.
+                    let startPadding = firstDay.getDay() - 1;
+                    if (startPadding === -1) startPadding = 6;
+
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                    const elements = [];
+
+                    // Espacios vacíos antes del día 1
+                    for (let i = 0; i < startPadding; i++) {
+                      elements.push(<div key={`pad-${i}`} style={{ background: '#f1f5f9', opacity: 0.3, borderRadius: '8px', minHeight: '100px' }}></div>);
+                    }
+
+                    // Días del mes
+                    for (let d = 1; d <= daysInMonth; d++) {
+                      const currentDate = new Date(year, month, d);
+                      const dateStr = currentDate.toISOString().split('T')[0];
+                      const isToday = new Date().toISOString().split('T')[0] === dateStr;
+
+                      const dayEvents = pipelineData.filter(p => p.status === 'ENTREVISTA_PROGRAMADA' && p.interview_date && p.interview_date.startsWith(dateStr));
+
+                      elements.push(
+                        <div key={d} className={`calendar-day ${isToday ? 'today' : ''}`} style={{ minHeight: '120px', padding: '8px' }}>
+                          <div className="calendar-date" style={{ marginBottom: '4px', fontSize: '12px' }}>
+                            <span style={{
+                              background: isToday ? '#2563eb' : 'transparent',
+                              color: isToday ? 'white' : '#64748b',
+                              width: '22px',
+                              height: '22px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '50%',
+                              fontWeight: 800
+                            }}>
+                              {d}
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    ) : <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin hijos declarados</p>}
-                  </div>
+                          <div style={{ maxHeight: '80px', overflowY: 'auto' }}>
+                            {dayEvents.map(ev => (
+                              <div key={ev.id} className="event-card" style={{ padding: '4px', marginBottom: '3px', fontSize: '10px' }} title={ev.candidate?.sender_name}>
+                                <div className="event-time" style={{ fontSize: '9px' }}>{ev.interview_date?.split(' ')[1] || '09:00'}</div>
+                                <div className="event-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.candidate?.sender_name?.split(' ')[0] || 'Candidato'}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
 
-                  <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px', marginTop: '24px' }}>Estudios Académicos</h3>
-                  <div style={{ fontSize: '13px', display: 'grid', gap: '12px', marginTop: '12px' }}>
-                    {viewingOnboarding.estudios?.map((e: any, idx: number) => (
-                      <div key={idx} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                        <p style={{ fontWeight: 800, margin: '0 0 4px', color: '#1e293b' }}>{e.nivel}</p>
-                        <p style={{ fontWeight: 600, margin: 0 }}>{e.titulo}</p>
-                        <p style={{ margin: '2px 0', color: '#475569' }}>{e.institucion}</p>
-                        <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{e.fecha_inicio} - {e.fecha_fin || 'Presente'}</p>
-                      </div>
-                    ))}
-                  </div>
+                    return elements;
+                  })()}
                 </div>
-
-                <div>
-                  <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Documentos Adjuntos</h3>
-                  <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
-                    {viewingOnboarding.documentos && Object.entries(viewingOnboarding.documentos).map(([name, url]: [string, any]) => (
-                      <a key={name} href={url} target="_blank" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f8fafc', borderRadius: '6px', fontSize: '12px', color: '#3b82f6', textDecoration: 'none', border: '1px solid #e2e8f0' }}>
-                        <FileText size={14} /> {name}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button onClick={() => { setRejectionModal({ id: viewingOnboarding.id, email: viewingOnboarding.email, name: `${viewingOnboarding.nombres} ${viewingOnboarding.apellidos}` }); setViewingOnboarding(null); }} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }}>Rechazar con Observación</button>
-                <button onClick={() => handleApproveOnboarding(viewingOnboarding.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* MODAL RECHAZO */}
-        {rejectionModal && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-            <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '400px' }}>
-              <h3 style={{ margin: '0 0 16px' }}>Rechazar Expediente</h3>
-              <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px' }}>Indica el motivo del rechazo para {rejectionModal.name}. Se enviará un correo solicitando corregir la información.</p>
-              <textarea 
-                value={rejectionObs} 
-                onChange={e => setRejectionObs(e.target.value)}
-                placeholder="Ej: La cédula está borrosa, faltan los antecedentes penales..."
-                style={{ width: '100%', height: '100px', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', marginBottom: '20px', resize: 'none' }}
-              />
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setRejectionModal(null)} className="track-btn">Cancelar</button>
-                <button onClick={handleRejectOnboarding} className="track-btn" style={{ background: '#ef4444', color: 'white', border: 'none' }}>Enviar Observación</button>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* --- NÓMINA --- */}
-        {activeTab === 'nomina' && (
-          <div className="table-container" style={{ padding: '40px', textAlign: 'center' }}>
-            <Briefcase size={48} color="#2563eb" style={{ marginBottom: '16px' }} />
-            <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Módulo de Nómina</h2>
-            <p style={{ color: '#64748b', marginBottom: '24px' }}>Bienvenido al panel de gestión de nómina para {user?.company_name}. Descarga el consolidado de datos o visita Zero Paper.</p>
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-              <button 
-                onClick={handleExportNomina} 
-                className="ranking-btn-primary" 
-                style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                📥 Descargar Reporte Completo de Nómina (Excel)
-              </button>
-              <button 
-                onClick={() => window.open('/zero-paper/admin/employees', '_blank')} 
-                className="ranking-btn-primary" 
-                style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                📁 Ir a Expedientes Digitales (Zero Paper)
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* --- FORMATIVAS --- */}
-        {activeTab === 'formativas' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
-            {/* Cabecera del Módulo */}
-            <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Star style={{ color: '#f59e0b', fill: '#f59e0b' }} size={24} /> Módulo de Evaluaciones Formativas
-                  </h2>
-                  <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
-                    Administra las entrevistas grupales formativas, asigna supervisores y ejecuta evaluaciones dinámicas en tiempo real.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <button 
-                    onClick={() => setShowMassCitationModal(true)} 
-                    className="ranking-btn-primary" 
-                    style={{ width: 'auto', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
-                  >
-                    📅 Citar Grupo ({formativeSessionFilter === 'ALL' ? formativeCandidates.length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
-                  </button>
-                  <button 
-                    onClick={() => setShowWhatsAppModal(true)} 
-                    className="ranking-btn-primary" 
-                    style={{ width: 'auto', background: 'linear-gradient(135deg, #10b981, #059669)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
-                  >
-                    💬 WhatsApp Grupal ({formativeSessionFilter === 'ALL' ? formativeCandidates.length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
-                  </button>
-                  {/* Botones de evaluación grupal */}
-                  <button
-                    onClick={() => handleBulkEvaluating(true)}
-                    className="ranking-btn-primary"
-                    style={{ width: 'auto', background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    🎯 Iniciar Evaluación Grupal
-                    {(() => { const n = (formativeSessionFilter === 'ALL' ? formativeCandidates : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)).length; return n > 0 ? <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '999px', padding: '1px 7px', fontWeight: 900 }}>{n}</span> : null })()}
-                  </button>
-                  <button
-                    onClick={() => handleBulkEvaluating(false)}
-                    className="track-btn"
-                    style={{ fontSize: '13px', padding: '10px 20px', borderRadius: '10px', color: '#dc2626', borderColor: '#fecaca' }}
-                  >
-                    ⏹ Detener Evaluación
-                  </button>
-                  <button 
-                    onClick={handleCleanupNonAttendees} 
-                    className="ranking-btn-primary" 
-                    style={{ width: 'auto', background: 'linear-gradient(135deg, #ef4444, #dc2626)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
-                  >
-                    🧹 Depurar
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setSelectedSourceSessions(formativeSessions);
-                      setTargetSessionName(formativeSessions[0] || formativeSessionTitle || '');
-                      setShowMergeModal(true);
-                    }} 
-                    className="ranking-btn-primary" 
-                    style={{ width: 'auto', background: 'linear-gradient(135deg, #0284c7, #0369a1)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
-                    title="Unir dos o más sesiones formativas en una sola"
-                  >
-                    🔗 Unir Formativas
-                  </button>
-                  <button 
-                    onClick={handleCloseFormative} 
-                    className="ranking-btn-primary" 
-                    style={{ width: 'auto', background: 'linear-gradient(135deg, #475569, #334155)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
-                  >
-                    🔒 Cierre de Formativa
-                  </button>
-                  <button 
-                    onClick={() => setShowOptionsModal(true)} 
-                    className="track-btn" 
-                    style={{ fontSize: '13px', padding: '10px 20px', borderRadius: '10px' }}
-                  >
-                    ⚙️ Criterios
-                  </button>
-                </div>
-              </div>
-
-              {/* Sección de Sesión */}
-              <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                {/* Input de Título de Sesión Activa */}
-                <div style={{ flex: '1', minWidth: '240px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-                    📋 Título de Sesión Activa
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+          {/* --- ONBOARDING --- */}
+          {activeTab === 'onboarding' && (
+            <div style={{ display: 'grid', gap: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <div className="filter-bar" style={{ margin: 0, flex: 1, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div className="filter-input" style={{ flex: '1.4', minWidth: '220px' }}>
+                    <Search size={18} color="#94a3b8" />
                     <input
-                      type="text"
-                      value={formativeSessionTitle}
-                      onChange={e => setFormativeSessionTitle(e.target.value)}
-                      placeholder="Ej: Formativas 20260604"
-                      style={{ flex: 1, border: '1.5px solid #7c3aed', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', fontWeight: 600, background: '#faf5ff', color: '#5b21b6', outline: 'none' }}
+                      placeholder="Buscar por nombre, cédula o cargo..."
+                      value={onboardingSearchFilter}
+                      onChange={e => setOnboardingSearchFilter(e.target.value)}
                     />
+                    {onboardingSearchFilter && (
+                      <button
+                        onClick={() => setOnboardingSearchFilter('')}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
+                        title="Limpiar búsqueda"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
-                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#94a3b8' }}>Los candidatos que agregues irán a esta sesión</p>
-                </div>
-
-                {/* Selector de sesión para filtrar/ver */}
-                <div style={{ minWidth: '260px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-                    🔍 Ver Sesión
-                  </label>
                   <select
-                    value={formativeSessionFilter}
-                    onChange={e => setFormativeSessionFilter(e.target.value)}
-                    style={{ width: '100%', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', background: '#f8fafc', color: '#1e293b', cursor: 'pointer' }}
+                    value={onboardingFormativaFilter}
+                    onChange={e => setOnboardingFormativaFilter(e.target.value)}
+                    style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '180px' }}
                   >
-                    <option value="ALL">Todas las sesiones ({formativeCandidates.length})</option>
-                    {formativeSessions.map(s => (
-                      <option key={s} value={s}>
-                        {s} ({formativeCandidates.filter(c => c.session_title === s).length} candidatos)
+                    <option value="ALL">🎯 Todas las Formativas</option>
+                    {Array.from(new Set(
+                      candidates
+                        .map(c => {
+                          const f = getCandidateFormativaInfo(c);
+                          return f?.session || f?.date || null;
+                        })
+                        .filter(Boolean)
+                    )).sort().map(f => (
+                      <option key={f as string} value={f as string}>
+                        🎯 {f}
                       </option>
                     ))}
                   </select>
+                  <select
+                    value={onboardingStatusFilter}
+                    onChange={e => setOnboardingStatusFilter(e.target.value)}
+                    style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '160px' }}
+                  >
+                    <option value="ALL">Todos los estados ({candidates.length})</option>
+                    <option value="PENDING">⏳ Pendientes</option>
+                    <option value="LLENADO">📝 Llenados</option>
+                    <option value="APPROVED">✅ Aprobados</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setShowOnboardingWhatsAppModal(true)}
+                    className="ranking-btn-primary"
+                    style={{
+                      width: 'auto',
+                      background: 'linear-gradient(135deg, #25d366, #128c7e)',
+                      color: 'white',
+                      padding: '10px 18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontWeight: 700,
+                      boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)',
+                      border: 'none',
+                      borderRadius: '10px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style={{ width: '18px' }} alt="WA" />
+                    💬 Grupo de WhatsApp ({candidates.length})
+                  </button>
+                  <button
+                    onClick={exportToExcel}
+                    className="track-btn"
+                    style={{ padding: '10px 14px', background: 'white', borderColor: '#e2e8f0', color: '#475569', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <FileSpreadsheet size={16} color="#10b981" /> Exportar
+                  </button>
+                </div>
+              </div>
+
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Candidato</th>
+                      <th>Cargo</th>
+                      <th>Fecha Formativa</th>
+                      <th>Cédula</th>
+                      <th>Estado Onboarding</th>
+                      <th style={{ textAlign: 'right' }}>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const filtered = candidates.filter(c => {
+                        const fInfo = getCandidateFormativaInfo(c);
+
+                        // Filtro por Formativa
+                        if (onboardingFormativaFilter !== 'ALL') {
+                          const matchF = fInfo && (
+                            fInfo.session === onboardingFormativaFilter ||
+                            fInfo.date === onboardingFormativaFilter ||
+                            (fInfo.session && fInfo.session.includes(onboardingFormativaFilter))
+                          );
+                          if (!matchF) return false;
+                        }
+
+                        // Filtro por estado
+                        const matchStatus = onboardingStatusFilter === 'ALL' || c.status === onboardingStatusFilter;
+
+                        // Filtro por texto
+                        const q = onboardingSearchFilter.toLowerCase().trim();
+                        const matchSearch = !q || (
+                          (c.nombres && c.nombres.toLowerCase().includes(q)) ||
+                          (c.apellidos && c.apellidos.toLowerCase().includes(q)) ||
+                          (c.email && c.email.toLowerCase().includes(q)) ||
+                          (c.cedula && c.cedula.includes(q)) ||
+                          (c.telefono && String(c.telefono).includes(q)) ||
+                          (c.cargo && c.cargo.toLowerCase().includes(q)) ||
+                          (fInfo?.session && fInfo.session.toLowerCase().includes(q)) ||
+                          (fInfo?.date && fInfo.date.toLowerCase().includes(q))
+                        );
+                        return matchStatus && matchSearch;
+                      });
+
+                      if (filtered.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                              No se encontraron candidatos en Onboarding con los filtros aplicados.
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return filtered.map(c => {
+                        const fInfo = getCandidateFormativaInfo(c);
+                        return (
+                          <tr key={c.id}>
+                            <td>
+                              <div className="user-cell">
+                                <div className="user-avatar"><User size={20} /></div>
+                                <div>
+                                  <p className="user-name">{c.nombres} {c.apellidos}</p>
+                                  <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>{c.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td style={{ color: '#475569', fontWeight: 600 }}>{c.cargo}</td>
+                            <td>
+                              {fInfo?.date ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    📅 {fInfo.date}
+                                  </span>
+                                  {fInfo.session && (
+                                    <span style={{
+                                      fontSize: '10px',
+                                      fontWeight: 700,
+                                      color: '#0369a1',
+                                      background: '#f0f9ff',
+                                      border: '1px solid #bae6fd',
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      width: 'fit-content'
+                                    }}>
+                                      🎯 {fInfo.session}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>—</span>
+                              )}
+                            </td>
+                            <td>{c.cedula?.startsWith('PENDIENTE') ? <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Por completar</span> : <strong>{c.cedula}</strong>}</td>
+                            <td>
+                              <span className="pipeline-badge" style={{
+                                background: c.status === 'SYNCED' ? '#e0f2fe' : c.status === 'APPROVED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff',
+                                color: c.status === 'SYNCED' ? '#0369a1' : c.status === 'APPROVED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
+                                border: '1px solid currentColor',
+                                opacity: 0.8
+                              }}>
+                                {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'APPROVED' ? '✅ APROBADO' : c.status === 'SYNCED' ? '☁️ EN SAP' : '⏳ PENDIENTE'}
+                              </span>
+                              {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                {(c.status === 'LLENADO' || c.status === 'APPROVED') && (
+                                  <div style={{ display: 'flex', gap: '4px' }}>
+                                    <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
+                                    <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
+                                    <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
+                                    {c.status !== 'APPROVED' && (
+                                      <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
+                                    )}
+                                    <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🚀 Sincronizar</button>
+                                  </div>
+                                )}
+                                {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
+                                <button onClick={() => handleDelete(c.id)} className="track-btn" style={{ color: '#64748b', padding: '6px' }} title="Eliminar registro"><Trash2 size={14} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL VER EXPEDIENTE */}
+          {viewingOnboarding && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '90%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+                  <h2 style={{ margin: 0 }}>Expediente de {viewingOnboarding.nombres} {viewingOnboarding.apellidos}</h2>
+                  <button onClick={() => setViewingOnboarding(null)} className="track-btn"><X /></button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Datos Personales</h3>
+                    <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
+                      <p><strong>Cédula:</strong> {viewingOnboarding.cedula}</p>
+                      <p><strong>Email:</strong> {viewingOnboarding.email}</p>
+                      <p><strong>Cargo:</strong> {viewingOnboarding.cargo || '—'}</p>
+                      <p><strong>Fecha Formativa:</strong> {(() => {
+                        const fInfo = getCandidateFormativaInfo(viewingOnboarding);
+                        return fInfo?.date ? `${fInfo.date}${fInfo.session ? ` (${fInfo.session})` : ''}` : 'No registrada';
+                      })()}</p>
+                      <p><strong>Nacionalidad:</strong> {viewingOnboarding.datos_personales?.nacionalidad}</p>
+                      <p><strong>Estado Civil:</strong> {viewingOnboarding.datos_personales?.estado_civil}</p>
+                      <p><strong>Ciudad Nac.:</strong> {viewingOnboarding.datos_personales?.ciudad_nacimiento}</p>
+                      <p><strong>Fecha Nac.:</strong> {viewingOnboarding.datos_personales?.fecha_nacimiento}</p>
+                      <p><strong>Ciudad Res.:</strong> {viewingOnboarding.datos_personales?.ciudad_residencia}</p>
+                      <p><strong>Teléfono:</strong> {viewingOnboarding.telefono}</p>
+                      <p style={{ gridColumn: '1 / -1' }}><strong>Dirección:</strong> {viewingOnboarding.datos_personales?.direccion}</p>
+                    </div>
+
+                    <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px', marginTop: '24px' }}>Datos Bancarios</h3>
+                    <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
+                      <p><strong>Banco:</strong> {viewingOnboarding.datos_bancarios?.banco}</p>
+                      <p><strong>Tipo Cuenta:</strong> {viewingOnboarding.datos_bancarios?.tipo_cuenta}</p>
+                      <p style={{ gridColumn: '1 / -1' }}><strong>Número:</strong> {viewingOnboarding.datos_bancarios?.numero_cuenta}</p>
+                    </div>
+
+                    <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px', marginTop: '24px' }}>Cargas Familiares</h3>
+                    <div style={{ fontSize: '13px', display: 'grid', gap: '8px', marginTop: '12px' }}>
+                      {viewingOnboarding.cargas_familiares?.conyuge ? (
+                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px' }}>
+                          <p style={{ fontWeight: 700, margin: '0 0 4px', color: '#475569' }}>Cónyuge / Pareja</p>
+                          <p style={{ margin: 0 }}>{viewingOnboarding.cargas_familiares.conyuge.nombres} {viewingOnboarding.cargas_familiares.conyuge.apellidos}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#64748b' }}>Cédula: {viewingOnboarding.cargas_familiares.conyuge.cedula} | Nac: {viewingOnboarding.cargas_familiares.conyuge.fecha_nacimiento}</p>
+                        </div>
+                      ) : <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin cónyuge declarado</p>}
+
+                      {viewingOnboarding.cargas_familiares?.hijos?.length > 0 ? (
+                        <div style={{ marginTop: '8px' }}>
+                          <p style={{ fontWeight: 700, margin: '0 0 6px', color: '#475569' }}>Hijos ({viewingOnboarding.cargas_familiares.hijos.length})</p>
+                          {viewingOnboarding.cargas_familiares.hijos.map((h: any, idx: number) => (
+                            <div key={idx} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
+                              <p style={{ margin: 0 }}>• {h.nombres} {h.apellidos}</p>
+                              <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>Cédula: {h.cedula} | Nac: {h.fecha_nacimiento}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin hijos declarados</p>}
+                    </div>
+
+                    <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px', marginTop: '24px' }}>Estudios Académicos</h3>
+                    <div style={{ fontSize: '13px', display: 'grid', gap: '12px', marginTop: '12px' }}>
+                      {viewingOnboarding.estudios?.map((e: any, idx: number) => (
+                        <div key={idx} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                          <p style={{ fontWeight: 800, margin: '0 0 4px', color: '#1e293b' }}>{e.nivel}</p>
+                          <p style={{ fontWeight: 600, margin: 0 }}>{e.titulo}</p>
+                          <p style={{ margin: '2px 0', color: '#475569' }}>{e.institucion}</p>
+                          <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{e.fecha_inicio} - {e.fecha_fin || 'Presente'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 style={{ fontSize: '16px', color: '#002f6c', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Documentos Adjuntos</h3>
+                    <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
+                      {viewingOnboarding.documentos && Object.entries(viewingOnboarding.documentos).map(([name, url]: [string, any]) => (
+                        <a key={name} href={url} target="_blank" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f8fafc', borderRadius: '6px', fontSize: '12px', color: '#3b82f6', textDecoration: 'none', border: '1px solid #e2e8f0' }}>
+                          <FileText size={14} /> {name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                  <button onClick={() => { setRejectionModal({ id: viewingOnboarding.id, email: viewingOnboarding.email, name: `${viewingOnboarding.nombres} ${viewingOnboarding.apellidos}` }); setViewingOnboarding(null); }} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca' }}>Rechazar con Observación</button>
+                  <button onClick={() => handleApproveOnboarding(viewingOnboarding.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c' }}>🌟 Aprobar</button>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* ── Sub-pestañas de Formativas ─────────────────────────────────── */}
-            <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', borderRadius: '12px', padding: '4px', width: 'fit-content' }}>
-              {([
-                { key: 'candidatos', label: '👥 Candidatos' },
-                { key: 'resultados', label: '📊 Resultados' },
-                { key: 'medica',     label: '⚕️ Valoración Médica' },
-                { key: 'fase2',      label: '🏆 Fase 2' },
-              ] as const).map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setFormativasSubTab(tab.key)}
-                  style={{
-                    padding: '8px 18px',
-                    borderRadius: '9px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    fontWeight: formativasSubTab === tab.key ? 800 : 500,
-                    background: formativasSubTab === tab.key ? 'white' : 'transparent',
-                    color: formativasSubTab === tab.key ? '#7c3aed' : '#64748b',
-                    boxShadow: formativasSubTab === tab.key ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
+          {/* MODAL RECHAZO */}
+          {rejectionModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+              <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '400px' }}>
+                <h3 style={{ margin: '0 0 16px' }}>Rechazar Expediente</h3>
+                <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px' }}>Indica el motivo del rechazo para {rejectionModal.name}. Se enviará un correo solicitando corregir la información.</p>
+                <textarea
+                  value={rejectionObs}
+                  onChange={e => setRejectionObs(e.target.value)}
+                  placeholder="Ej: La cédula está borrosa, faltan los antecedentes penales..."
+                  style={{ width: '100%', height: '100px', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', marginBottom: '20px', resize: 'none' }}
+                />
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button onClick={() => setRejectionModal(null)} className="track-btn">Cancelar</button>
+                  <button onClick={handleRejectOnboarding} className="track-btn" style={{ background: '#ef4444', color: 'white', border: 'none' }}>Enviar Observación</button>
+                </div>
+              </div>
             </div>
+          )}
+          {/* --- NÓMINA --- */}
+          {activeTab === 'nomina' && (
+            <div className="table-container" style={{ padding: '40px', textAlign: 'center' }}>
+              <Briefcase size={48} color="#2563eb" style={{ marginBottom: '16px' }} />
+              <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Módulo de Nómina</h2>
+              <p style={{ color: '#64748b', marginBottom: '24px' }}>Bienvenido al panel de gestión de nómina para {user?.company_name}. Descarga el consolidado de datos o visita Zero Paper.</p>
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                <button
+                  onClick={handleExportNomina}
+                  className="ranking-btn-primary"
+                  style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  📥 Descargar Reporte Completo de Nómina (Excel)
+                </button>
+                <button
+                  onClick={() => window.open('/zero-paper/admin/employees', '_blank')}
+                  className="ranking-btn-primary"
+                  style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', padding: '12px 24px', borderRadius: '10px', fontSize: '14px', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  📁 Ir a Expedientes Digitales (Zero Paper)
+                </button>
+              </div>
+            </div>
+          )}
 
-            {/* ── PESTAÑA: CANDIDATOS ────────────────────────────────────── */}
-            {formativasSubTab === 'candidatos' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', alignItems: 'flex-start' }}>
-              
-              {/* Sección Izquierda: Candidatos Formativos */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
-                <div className="table-container">
-                  <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>Postulantes en Formativas</h3>
-                      {formativeSessionFilter !== 'ALL' && (
-                        <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#7c3aed', fontWeight: 600 }}>
-                          📋 Sesión: {formativeSessionFilter}
-                        </p>
-                      )}
+          {/* --- FORMATIVAS --- */}
+          {activeTab === 'formativas' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+              {/* Cabecera del Módulo */}
+              <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Star style={{ color: '#f59e0b', fill: '#f59e0b' }} size={24} /> Módulo de Evaluaciones Formativas
+                    </h2>
+                    <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
+                      Administra las entrevistas grupales formativas, asigna supervisores y ejecuta evaluaciones dinámicas en tiempo real.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => setShowMassCitationModal(true)}
+                      className="ranking-btn-primary"
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                    >
+                      📅 Citar Grupo ({formativeSessionFilter === 'ALL' ? formativeCandidates.length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
+                    </button>
+                    <button
+                      onClick={() => setShowWhatsAppModal(true)}
+                      className="ranking-btn-primary"
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #10b981, #059669)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                    >
+                      💬 WhatsApp Grupal ({formativeSessionFilter === 'ALL' ? formativeCandidates.length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
+                    </button>
+                    {/* Botones de evaluación grupal */}
+                    <button
+                      onClick={() => handleBulkEvaluating(true)}
+                      className="ranking-btn-primary"
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      🎯 Iniciar Evaluación Grupal
+                      {(() => { const n = (formativeSessionFilter === 'ALL' ? formativeCandidates : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)).length; return n > 0 ? <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '999px', padding: '1px 7px', fontWeight: 900 }}>{n}</span> : null })()}
+                    </button>
+                    <button
+                      onClick={() => handleBulkEvaluating(false)}
+                      className="track-btn"
+                      style={{ fontSize: '13px', padding: '10px 20px', borderRadius: '10px', color: '#dc2626', borderColor: '#fecaca' }}
+                    >
+                      ⏹ Detener Evaluación
+                    </button>
+                    <button
+                      onClick={handleCleanupNonAttendees}
+                      className="ranking-btn-primary"
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #ef4444, #dc2626)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                    >
+                      🧹 Depurar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedSourceSessions(formativeSessions);
+                        setTargetSessionName(formativeSessions[0] || formativeSessionTitle || '');
+                        setShowMergeModal(true);
+                      }}
+                      className="ranking-btn-primary"
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #0284c7, #0369a1)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                      title="Unir dos o más sesiones formativas en una sola"
+                    >
+                      🔗 Unir Formativas
+                    </button>
+                    <button
+                      onClick={handleCloseFormative}
+                      className="ranking-btn-primary"
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #475569, #334155)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+                    >
+                      🔒 Cierre de Formativa
+                    </button>
+                    <button
+                      onClick={() => setShowOptionsModal(true)}
+                      className="track-btn"
+                      style={{ fontSize: '13px', padding: '10px 20px', borderRadius: '10px' }}
+                    >
+                      ⚙️ Criterios
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sección de Sesión */}
+                <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  {/* Input de Título de Sesión Activa */}
+                  <div style={{ flex: '1', minWidth: '240px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+                      📋 Título de Sesión Activa
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input
+                        type="text"
+                        value={formativeSessionTitle}
+                        onChange={e => setFormativeSessionTitle(e.target.value)}
+                        placeholder="Ej: Formativas 20260604"
+                        style={{ flex: 1, border: '1.5px solid #7c3aed', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', fontWeight: 600, background: '#faf5ff', color: '#5b21b6', outline: 'none' }}
+                      />
                     </div>
-                    {/* Buscador por nombre */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '200px', maxWidth: '320px' }}>
-                      <div style={{ position: 'relative', width: '100%' }}>
-                        <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', color: '#94a3b8', pointerEvents: 'none' }}>🔎</span>
-                        <input
-                          type="text"
-                          value={formativeNameFilter}
-                          onChange={e => setFormativeNameFilter(e.target.value)}
-                          placeholder="Buscar por nombre..."
-                          style={{ width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px 8px 32px', fontSize: '13px', color: '#1e293b', background: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
-                        />
-                        {formativeNameFilter && (
-                          <button
-                            onClick={() => setFormativeNameFilter('')}
-                            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '16px', lineHeight: 1, padding: 0 }}
-                            title="Limpiar búsqueda"
-                          >×</button>
-                        )}
+                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#94a3b8' }}>Los candidatos que agregues irán a esta sesión</p>
+                  </div>
+
+                  {/* Selector de sesión para filtrar/ver */}
+                  <div style={{ minWidth: '260px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+                      🔍 Ver Sesión
+                    </label>
+                    <select
+                      value={formativeSessionFilter}
+                      onChange={e => setFormativeSessionFilter(e.target.value)}
+                      style={{ width: '100%', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', background: '#f8fafc', color: '#1e293b', cursor: 'pointer' }}
+                    >
+                      <option value="ALL">Todas las sesiones ({formativeCandidates.length})</option>
+                      {formativeSessions.map(s => (
+                        <option key={s} value={s}>
+                          {s} ({formativeCandidates.filter(c => c.session_title === s).length} candidatos)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Sub-pestañas de Formativas ─────────────────────────────────── */}
+              <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', borderRadius: '12px', padding: '4px', width: 'fit-content' }}>
+                {([
+                  { key: 'candidatos', label: '👥 Candidatos' },
+                  { key: 'resultados', label: '📊 Resultados' },
+                  { key: 'medica', label: '⚕️ Valoración Médica' },
+                  { key: 'fase2', label: '🏆 Fase 2' },
+                ] as const).map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setFormativasSubTab(tab.key)}
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '9px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: formativasSubTab === tab.key ? 800 : 500,
+                      background: formativasSubTab === tab.key ? 'white' : 'transparent',
+                      color: formativasSubTab === tab.key ? '#7c3aed' : '#64748b',
+                      boxShadow: formativasSubTab === tab.key ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── PESTAÑA: CANDIDATOS ────────────────────────────────────── */}
+              {formativasSubTab === 'candidatos' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', alignItems: 'flex-start' }}>
+
+                  {/* Sección Izquierda: Candidatos Formativos */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                    <div className="table-container">
+                      <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>Postulantes en Formativas</h3>
+                          {formativeSessionFilter !== 'ALL' && (
+                            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#7c3aed', fontWeight: 600 }}>
+                              📋 Sesión: {formativeSessionFilter}
+                            </p>
+                          )}
+                        </div>
+                        {/* Buscador por nombre */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '200px', maxWidth: '320px' }}>
+                          <div style={{ position: 'relative', width: '100%' }}>
+                            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', color: '#94a3b8', pointerEvents: 'none' }}>🔎</span>
+                            <input
+                              type="text"
+                              value={formativeNameFilter}
+                              onChange={e => setFormativeNameFilter(e.target.value)}
+                              placeholder="Buscar por nombre..."
+                              style={{ width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px 8px 32px', fontSize: '13px', color: '#1e293b', background: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
+                            />
+                            {formativeNameFilter && (
+                              <button
+                                onClick={() => setFormativeNameFilter('')}
+                                style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '16px', lineHeight: 1, padding: 0 }}
+                                title="Limpiar búsqueda"
+                              >×</button>
+                            )}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '12px', background: '#eff6ff', color: '#1e40af', padding: '4px 8px', borderRadius: '6px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                          {formativeSessionFilter === 'ALL'
+                            ? `${formativeCandidates.length} candidatos`
+                            : `${formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length} de ${formativeCandidates.length}`
+                          }
+                        </span>
+                      </div>
+
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Candidato</th>
+                            <th>Cargo</th>
+                            <th>Cita Programada</th>
+                            <th style={{ textAlign: 'center', width: '110px' }}>Confirmación</th>
+                            <th style={{ textAlign: 'center', width: '110px' }}>Asistencia</th>
+                            <th>Calificaciones Recibidas</th>
+                            <th style={{ textAlign: 'center', width: '90px' }}>Promedio</th>
+                            <th style={{ textAlign: 'right' }}>Evaluación en Vivo</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {formativeCandidates.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>
+                                No hay candidatos en formativas. Selecciona candidatos desde la pestaña <strong>Resumen</strong> marcando su checkbox.
+                              </td>
+                            </tr>
+                          ) : (
+                            <>
+                              {(() => {
+                                const sessionFiltered = formativeSessionFilter === 'ALL' ? formativeCandidates : formativeCandidates.filter(c => c.session_title === formativeSessionFilter);
+                                const nameFiltered = formativeNameFilter.trim()
+                                  ? sessionFiltered.filter(c => (c.email_resumes?.sender_name || '').toLowerCase().includes(formativeNameFilter.trim().toLowerCase()))
+                                  : sessionFiltered;
+                                if (nameFiltered.length === 0) return (
+                                  <tr>
+                                    <td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>
+                                      {formativeNameFilter.trim() ? (<>No se encontraron candidatos con el nombre <strong>&quot;{formativeNameFilter}&quot;</strong>.</>) : (<>No hay candidatos en la sesión <strong>{formativeSessionFilter}</strong>.</>)}
+                                    </td>
+                                  </tr>
+                                );
+
+                                const sortedFiltered = [...nameFiltered].sort((a, b) => {
+                                  const evalsA = formativeEvaluations.filter(e => e.candidate_id === a.id);
+                                  const avgA = evalsA.length > 0 ? evalsA.reduce((sum, e) => sum + e.score, 0) / evalsA.length : -999;
+                                  const evalsB = formativeEvaluations.filter(e => e.candidate_id === b.id);
+                                  const avgB = evalsB.length > 0 ? evalsB.reduce((sum, e) => sum + e.score, 0) / evalsB.length : -999;
+                                  return avgB - avgA;
+                                });
+
+                                return sortedFiltered.map(c => {
+                                  const isCurrentlyActive = activeEvaluatingCandidateId === c.id;
+                                  const candidateEvals = formativeEvaluations.filter(e => e.candidate_id === c.id);
+                                  return (
+                                    <tr key={c.id} style={{ background: isCurrentlyActive ? 'rgba(59, 130, 246, 0.03)' : 'inherit' }}>
+                                      <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                          <div>
+                                            <p style={{ fontWeight: 700, margin: 0, color: '#1e293b' }}>{c.email_resumes?.sender_name || 'Candidato'}</p>
+                                            <p style={{ fontSize: '12px', color: '#64748b', margin: '1px 0 0' }}>{c.email_resumes?.sender_email || '—'}</p>
+                                            {c.session_title && (
+                                              <span style={{ fontSize: '9px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-block', marginTop: '2px' }}>
+                                                {c.session_title}
+                                              </span>
+                                            )}
+                                          </div>
+                                          {c.email_resumes?.pdf_url && (
+                                            <a
+                                              href={c.email_resumes.pdf_url}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '3px',
+                                                background: '#eff6ff',
+                                                color: '#2563eb',
+                                                border: '1px solid #bfdbfe',
+                                                padding: '3px 8px',
+                                                borderRadius: '6px',
+                                                fontSize: '11px',
+                                                fontWeight: 700,
+                                                textDecoration: 'none',
+                                                whiteSpace: 'nowrap'
+                                              }}
+                                              title="Ver VC / CV (Hoja de Vida)"
+                                            >
+                                              📄 Ver VC
+                                            </a>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td style={{ fontWeight: 600, color: '#475569' }}>{c.email_resumes?.position || '—'}</td>
+                                      <td>
+                                        {c.interview_date ? (
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#0f172a' }}>
+                                              {new Date(c.interview_date + 'T00:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'short' })}
+                                            </span>
+                                            <span style={{ fontSize: '11px', color: '#64748b' }}>{c.interview_time || '—'}</span>
+                                          </div>
+                                        ) : (
+                                          <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>Sin programar</span>
+                                        )}
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                          <input
+                                            type="checkbox"
+                                            checked={!!c.confirmed}
+                                            onChange={async (e) => {
+                                              const checked = e.target.checked;
+                                              try {
+                                                const { error } = await supabase
+                                                  .from('formative_candidates')
+                                                  .update({ confirmed: checked })
+                                                  .eq('id', c.id);
+                                                if (error) throw error;
+                                                setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, confirmed: checked } : item));
+                                              } catch (err: any) {
+                                                alert('Error al actualizar confirmación: ' + err.message);
+                                              }
+                                            }}
+                                            style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#10b981' }}
+                                          />
+                                        </div>
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                          <input
+                                            type="checkbox"
+                                            checked={!!c.attended}
+                                            onChange={async (e) => {
+                                              const checked = e.target.checked;
+                                              try {
+                                                const { error } = await supabase
+                                                  .from('formative_candidates')
+                                                  .update({ attended: checked })
+                                                  .eq('id', c.id);
+                                                if (error) throw error;
+                                                setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, attended: checked } : item));
+                                              } catch (err: any) {
+                                                alert('Error al actualizar asistencia: ' + err.message);
+                                              }
+                                            }}
+                                            style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2563eb' }}
+                                          />
+                                        </div>
+                                      </td>
+                                      <td>
+                                        {candidateEvals.length === 0 ? (
+                                          <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>Pendiente</span>
+                                        ) : (
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            {candidateEvals.map(e => {
+                                              const sup = formativeSupervisors.find(s => s.id === e.supervisor_id);
+                                              return (
+                                                <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '11.5px', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
+                                                  <span style={{ color: '#475569', fontWeight: 600 }}>{sup?.name || 'Supervisor'}</span>
+                                                  <span style={{ color: e.score >= 0 ? '#166534' : '#991b1b', fontWeight: 800 }}>
+                                                    {e.score >= 0 ? `+${e.score}` : e.score} pts
+                                                  </span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        {candidateEvals.length > 0 ? (
+                                          (() => {
+                                            const total = candidateEvals.reduce((acc, e) => acc + e.score, 0);
+                                            const avg = total / candidateEvals.length;
+                                            return (
+                                              <div style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                background: avg >= 70 ? '#ecfdf5' : avg >= 40 ? '#fffbeb' : '#fef2f2',
+                                                color: avg >= 70 ? '#059669' : avg >= 40 ? '#d97706' : '#dc2626',
+                                                border: `1px solid ${avg >= 70 ? '#a7f3d0' : avg >= 40 ? '#fde68a' : '#fecaca'}`,
+                                                fontWeight: 800,
+                                                fontSize: '14px',
+                                                padding: '4px 10px',
+                                                borderRadius: '8px'
+                                              }}>
+                                                {avg.toFixed(1)}
+                                              </div>
+                                            );
+                                          })()
+                                        ) : (
+                                          <span style={{ fontSize: '11px', color: '#cbd5e1' }}>—</span>
+                                        )}
+                                      </td>
+                                      <td style={{ textAlign: 'right' }}>
+                                        <button
+                                          onClick={() => handleToggleEvaluating(c)}
+                                          style={{
+                                            width: 'auto',
+                                            background: c.is_evaluating
+                                              ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                                              : 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            padding: '6px 12px',
+                                            fontSize: '12px',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                          }}
+                                        >
+                                          {c.is_evaluating ? '⏹ Quitar' : '🎯 Evaluar'}
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteFormativeCandidate(c.id)}
+                                          title="Eliminar candidato de Formativas"
+                                          style={{
+                                            background: '#fef2f2',
+                                            color: '#ef4444',
+                                            border: '1px solid #fecaca',
+                                            borderRadius: '8px',
+                                            padding: '6px 10px',
+                                            fontSize: '12px',
+                                            cursor: 'pointer',
+                                            marginLeft: '6px'
+                                          }}
+                                        >
+                                          🗑️
+                                        </button>
+                                        {c.is_evaluating && (
+                                          <span style={{ fontSize: '10px', color: '#7c3aed', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '4px', justifyContent: 'flex-end' }}>
+                                            <span className="animate-pulse" style={{ width: '5px', height: '5px', background: '#7c3aed', borderRadius: '50%', display: 'inline-block' }}></span>
+                                            En evaluación
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              })()
+                              }
+                            </>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+
+                  {/* Sección Derecha: Supervisores */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                    {/* Registrar Supervisor */}
+                    <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                      <h3 style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        + Registrar Supervisor
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div>
+                          <label className="ranking-label">Nombre del Supervisor</label>
+                          <input
+                            type="text"
+                            value={supervisorName}
+                            onChange={e => setSupervisorName(e.target.value)}
+                            placeholder="Ej: Juan Pérez"
+                            className="ranking-input"
+                            style={{ marginBottom: 0 }}
+                          />
+                        </div>
+                        <div>
+                          <label className="ranking-label">Correo Electrónico</label>
+                          <input
+                            type="email"
+                            value={supervisorEmail}
+                            onChange={e => setSupervisorEmail(e.target.value)}
+                            placeholder="Ej: supervisor@empresa.com"
+                            className="ranking-input"
+                            style={{ marginBottom: 0 }}
+                          />
+                        </div>
+                        <button
+                          onClick={handleCreateSupervisor}
+                          disabled={savingSupervisor || !supervisorName.trim() || !supervisorEmail.trim()}
+                          className="ranking-btn-primary"
+                          style={{ padding: '10px', fontSize: '13px', borderRadius: '8px' }}
+                        >
+                          {savingSupervisor ? 'Registrando...' : 'Registrar'}
+                        </button>
                       </div>
                     </div>
-                    <span style={{ fontSize: '12px', background: '#eff6ff', color: '#1e40af', padding: '4px 8px', borderRadius: '6px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                      {formativeSessionFilter === 'ALL' 
-                        ? `${formativeCandidates.length} candidatos`
-                        : `${formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length} de ${formativeCandidates.length}`
-                      }
-                    </span>
-                  </div>
-                  
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Candidato</th>
-                        <th>Cargo</th>
-                        <th>Cita Programada</th>
-                        <th style={{ textAlign: 'center', width: '110px' }}>Confirmación</th>
-                        <th style={{ textAlign: 'center', width: '110px' }}>Asistencia</th>
-                        <th>Calificaciones Recibidas</th>
-                        <th style={{ textAlign: 'center', width: '90px' }}>Promedio</th>
-                        <th style={{ textAlign: 'right' }}>Evaluación en Vivo</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {formativeCandidates.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>
-                            No hay candidatos en formativas. Selecciona candidatos desde la pestaña <strong>Resumen</strong> marcando su checkbox.
-                          </td>
-                        </tr>
-                      ) : (
-                        <>
-                          {(() => {
-                            const sessionFiltered = formativeSessionFilter === 'ALL' ? formativeCandidates : formativeCandidates.filter(c => c.session_title === formativeSessionFilter);
-                            const nameFiltered = formativeNameFilter.trim()
-                              ? sessionFiltered.filter(c => (c.email_resumes?.sender_name || '').toLowerCase().includes(formativeNameFilter.trim().toLowerCase()))
-                              : sessionFiltered;
-                            if (nameFiltered.length === 0) return (
-                              <tr>
-                                <td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>
-                                  {formativeNameFilter.trim() ? (<>No se encontraron candidatos con el nombre <strong>&quot;{formativeNameFilter}&quot;</strong>.</>) : (<>No hay candidatos en la sesión <strong>{formativeSessionFilter}</strong>.</>)}
-                                </td>
-                              </tr>
-                            );
-                            
-                            const sortedFiltered = [...nameFiltered].sort((a, b) => {
-                              const evalsA = formativeEvaluations.filter(e => e.candidate_id === a.id);
-                              const avgA = evalsA.length > 0 ? evalsA.reduce((sum, e) => sum + e.score, 0) / evalsA.length : -999;
-                              const evalsB = formativeEvaluations.filter(e => e.candidate_id === b.id);
-                              const avgB = evalsB.length > 0 ? evalsB.reduce((sum, e) => sum + e.score, 0) / evalsB.length : -999;
-                              return avgB - avgA;
-                            });
 
-                            return sortedFiltered.map(c => {
-                            const isCurrentlyActive = activeEvaluatingCandidateId === c.id;
-                            const candidateEvals = formativeEvaluations.filter(e => e.candidate_id === c.id);
-                            return (
-                              <tr key={c.id} style={{ background: isCurrentlyActive ? 'rgba(59, 130, 246, 0.03)' : 'inherit' }}>
-                                <td>
+                    {/* Listado de Supervisores */}
+                    <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                      <h3 style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Supervisores Activos
+                      </h3>
+                      {formativeSupervisors.length === 0 ? (
+                        <p style={{ margin: 0, fontSize: '12.5px', color: '#94a3b8', fontStyle: 'italic' }}>No hay supervisores registrados.</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {formativeSupervisors.map(s => (
+                            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                              <div>
+                                <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#1e293b' }}>{s.name}</p>
+                                <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{s.email}</p>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteSupervisor(s.id)}
+                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                                title="Eliminar Supervisor"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                </div>
+              )}{/* fin candidatos */}
+
+              {/* ── PESTAÑA: RESULTADOS ─────────────────────────────────────── */}
+              {formativasSubTab === 'resultados' && (() => {
+                // Calcular resultados por candidato
+                const resultsData = (() => {
+                  const sessionCands = formativeSessionFilter === 'ALL'
+                    ? formativeCandidates
+                    : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
+                  return sessionCands.map(c => {
+                    const evals = formativeEvaluations.filter((e: any) => e.candidate_id === c.id)
+                    const totalScore = evals.reduce((sum: number, e: any) => sum + (e.score || 0), 0)
+                    const avgScore = evals.length > 0 ? Math.round(totalScore / evals.length) : 0
+                    return { ...c, evals, totalScore, avgScore }
+                  }).sort((a, b) => b.totalScore - a.totalScore)
+                })()
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className="table-container">
+                      <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>Resultados de Evaluación</h3>
+                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Todos los supervisores · ordenado por puntaje total</p>
+                        </div>
+                        <span style={{ fontSize: '12px', background: '#eff6ff', color: '#1e40af', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
+                          {resultsData.length} candidatos
+                        </span>
+                      </div>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ background: '#f8fafc' }}>
+                              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '180px' }}>Candidato</th>
+                              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Sesión</th>
+                              {formativeSupervisors.map((s: any) => (
+                                <th key={s.id} style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '110px' }}>
+                                  {s.name.split(' ')[0]}
+                                </th>
+                              ))}
+                              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '90px' }}>Total</th>
+                              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '80px' }}>Fase</th>
+                              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '130px' }}>Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {resultsData.length === 0 ? (
+                              <tr><td colSpan={formativeSupervisors.length + 5} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No hay candidatos en esta sesión.</td></tr>
+                            ) : resultsData.map((c: any, idx: number) => (
+                              <tr key={c.id} style={{ background: idx % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '12px 16px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                                     <div>
-                                      <p style={{ fontWeight: 700, margin: 0, color: '#1e293b' }}>{c.email_resumes?.sender_name || 'Candidato'}</p>
-                                      <p style={{ fontSize: '12px', color: '#64748b', margin: '1px 0 0' }}>{c.email_resumes?.sender_email || '—'}</p>
-                                      {c.session_title && (
-                                        <span style={{ fontSize: '9px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-block', marginTop: '2px' }}>
-                                          {c.session_title}
-                                        </span>
-                                      )}
+                                      <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>{c.email_resumes?.sender_name || '—'}</p>
+                                      <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{c.email_resumes?.position || '—'}</p>
                                     </div>
                                     {c.email_resumes?.pdf_url && (
-                                      <a 
-                                        href={c.email_resumes.pdf_url} 
-                                        target="_blank" 
+                                      <a
+                                        href={c.email_resumes.pdf_url}
+                                        target="_blank"
                                         rel="noreferrer"
                                         style={{
                                           display: 'inline-flex',
                                           alignItems: 'center',
                                           gap: '3px',
-                                          background: '#eff6ff',
-                                          color: '#2563eb',
-                                          border: '1px solid #bfdbfe',
+                                          background: '#f3e8ff',
+                                          color: '#7c3aed',
+                                          border: '1px solid #ddd6fe',
                                           padding: '3px 8px',
                                           borderRadius: '6px',
                                           fontSize: '11px',
@@ -5544,371 +5892,111 @@ export default function CandidatesAdmin() {
                                     )}
                                   </div>
                                 </td>
-                                <td style={{ fontWeight: 600, color: '#475569' }}>{c.email_resumes?.position || '—'}</td>
-                                <td>
-                                  {c.interview_date ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#0f172a' }}>
-                                        {new Date(c.interview_date + 'T00:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'short' })}
-                                      </span>
-                                      <span style={{ fontSize: '11px', color: '#64748b' }}>{c.interview_time || '—'}</span>
-                                    </div>
-                                  ) : (
-                                    <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>Sin programar</span>
-                                  )}
+                                <td style={{ padding: '12px 16px' }}>
+                                  {c.session_title ? (
+                                    <span style={{ fontSize: '10px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>{c.session_title}</span>
+                                  ) : <span style={{ color: '#94a3b8', fontSize: '11px' }}>—</span>}
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <input 
-                                      type="checkbox" 
-                                      checked={!!c.confirmed} 
-                                      onChange={async (e) => {
-                                        const checked = e.target.checked;
-                                        try {
-                                          const { error } = await supabase
-                                            .from('formative_candidates')
-                                            .update({ confirmed: checked })
-                                            .eq('id', c.id);
-                                          if (error) throw error;
-                                          setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, confirmed: checked } : item));
-                                        } catch (err: any) {
-                                          alert('Error al actualizar confirmación: ' + err.message);
-                                        }
-                                      }}
-                                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#10b981' }}
-                                    />
-                                  </div>
+                                {formativeSupervisors.map((s: any) => {
+                                  const ev = c.evals.find((e: any) => e.supervisor_id === s.id)
+                                  return (
+                                    <td key={s.id} style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                      {ev ? (
+                                        <span style={{ fontWeight: 800, fontSize: '14px', color: ev.score > 0 ? '#7c3aed' : '#ef4444' }}>{ev.score} pts</span>
+                                      ) : (
+                                        <span style={{ color: '#d1d5db', fontSize: '12px' }}>—</span>
+                                      )}
+                                    </td>
+                                  )
+                                })}
+                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                  <span style={{ fontWeight: 900, fontSize: '16px', color: c.totalScore > 0 ? '#1e293b' : '#94a3b8' }}>{c.totalScore > 0 ? `${c.totalScore}` : '—'}</span>
+                                  {c.evals.length > 1 && <span style={{ display: 'block', fontSize: '10px', color: '#64748b' }}>prom. {c.avgScore}</span>}
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <input 
-                                      type="checkbox" 
-                                      checked={!!c.attended} 
-                                      onChange={async (e) => {
-                                        const checked = e.target.checked;
-                                        try {
-                                          const { error } = await supabase
-                                            .from('formative_candidates')
-                                            .update({ attended: checked })
-                                            .eq('id', c.id);
-                                          if (error) throw error;
-                                          setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, attended: checked } : item));
-                                        } catch (err: any) {
-                                          alert('Error al actualizar asistencia: ' + err.message);
-                                        }
-                                      }}
-                                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2563eb' }}
-                                    />
-                                  </div>
+                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                  <span style={{
+                                    fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px',
+                                    background: c.fase === 2 ? '#d1fae5' : '#f1f5f9',
+                                    color: c.fase === 2 ? '#065f46' : '#64748b',
+                                    border: `1px solid ${c.fase === 2 ? '#a7f3d0' : '#e2e8f0'}`
+                                  }}>
+                                    {c.fase === 2 ? '🏆 Fase 2' : 'Fase 1'}
+                                  </span>
                                 </td>
-                                <td>
-                                  {candidateEvals.length === 0 ? (
-                                    <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>Pendiente</span>
-                                  ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                      {candidateEvals.map(e => {
-                                        const sup = formativeSupervisors.find(s => s.id === e.supervisor_id);
-                                        return (
-                                          <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '11.5px', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
-                                            <span style={{ color: '#475569', fontWeight: 600 }}>{sup?.name || 'Supervisor'}</span>
-                                            <span style={{ color: e.score >= 0 ? '#166534' : '#991b1b', fontWeight: 800 }}>
-                                              {e.score >= 0 ? `+${e.score}` : e.score} pts
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                </td>
-                                <td style={{ textAlign: 'center' }}>
-                                  {candidateEvals.length > 0 ? (
-                                    (() => {
-                                      const total = candidateEvals.reduce((acc, e) => acc + e.score, 0);
-                                      const avg = total / candidateEvals.length;
-                                      return (
-                                        <div style={{
-                                          display: 'inline-flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          background: avg >= 70 ? '#ecfdf5' : avg >= 40 ? '#fffbeb' : '#fef2f2',
-                                          color: avg >= 70 ? '#059669' : avg >= 40 ? '#d97706' : '#dc2626',
-                                          border: `1px solid ${avg >= 70 ? '#a7f3d0' : avg >= 40 ? '#fde68a' : '#fecaca'}`,
-                                          fontWeight: 800,
-                                          fontSize: '14px',
-                                          padding: '4px 10px',
-                                          borderRadius: '8px'
-                                        }}>
-                                          {avg.toFixed(1)}
-                                        </div>
-                                      );
-                                    })()
-                                  ) : (
-                                    <span style={{ fontSize: '11px', color: '#cbd5e1' }}>—</span>
-                                  )}
-                                </td>
-                                <td style={{ textAlign: 'right' }}>
-                                  <button
-                                    onClick={() => handleToggleEvaluating(c)}
-                                    style={{
-                                      width: 'auto',
-                                      background: c.is_evaluating
-                                        ? 'linear-gradient(135deg, #ef4444, #dc2626)'
-                                        : 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '8px',
-                                      padding: '6px 12px',
-                                      fontSize: '12px',
-                                      fontWeight: 700,
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px'
-                                    }}
-                                  >
-                                    {c.is_evaluating ? '⏹ Quitar' : '🎯 Evaluar'}
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteFormativeCandidate(c.id)}
-                                    title="Eliminar candidato de Formativas"
-                                    style={{
-                                      background: '#fef2f2',
-                                      color: '#ef4444',
-                                      border: '1px solid #fecaca',
-                                      borderRadius: '8px',
-                                      padding: '6px 10px',
-                                      fontSize: '12px',
-                                      cursor: 'pointer',
-                                      marginLeft: '6px'
-                                    }}
-                                  >
-                                    🗑️
-                                  </button>
-                                  {c.is_evaluating && (
-                                    <span style={{ fontSize: '10px', color: '#7c3aed', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '4px', justifyContent: 'flex-end' }}>
-                                      <span className="animate-pulse" style={{ width: '5px', height: '5px', background: '#7c3aed', borderRadius: '50%', display: 'inline-block' }}></span>
-                                      En evaluación
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })})()
-                          }
-                        </>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-              </div>
-
-              {/* Sección Derecha: Supervisores */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                
-                {/* Registrar Supervisor */}
-                <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    + Registrar Supervisor
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div>
-                      <label className="ranking-label">Nombre del Supervisor</label>
-                      <input 
-                        type="text" 
-                        value={supervisorName}
-                        onChange={e => setSupervisorName(e.target.value)}
-                        placeholder="Ej: Juan Pérez"
-                        className="ranking-input"
-                        style={{ marginBottom: 0 }}
-                      />
-                    </div>
-                    <div>
-                      <label className="ranking-label">Correo Electrónico</label>
-                      <input 
-                        type="email" 
-                        value={supervisorEmail}
-                        onChange={e => setSupervisorEmail(e.target.value)}
-                        placeholder="Ej: supervisor@empresa.com"
-                        className="ranking-input"
-                        style={{ marginBottom: 0 }}
-                      />
-                    </div>
-                    <button 
-                      onClick={handleCreateSupervisor}
-                      disabled={savingSupervisor || !supervisorName.trim() || !supervisorEmail.trim()}
-                      className="ranking-btn-primary"
-                      style={{ padding: '10px', fontSize: '13px', borderRadius: '8px' }}
-                    >
-                      {savingSupervisor ? 'Registrando...' : 'Registrar'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Listado de Supervisores */}
-                <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Supervisores Activos
-                  </h3>
-                  {formativeSupervisors.length === 0 ? (
-                    <p style={{ margin: 0, fontSize: '12.5px', color: '#94a3b8', fontStyle: 'italic' }}>No hay supervisores registrados.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {formativeSupervisors.map(s => (
-                        <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                          <div>
-                            <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#1e293b' }}>{s.name}</p>
-                            <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{s.email}</p>
-                          </div>
-                          <button 
-                            onClick={() => handleDeleteSupervisor(s.id)}
-                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
-                            title="Eliminar Supervisor"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-            </div>
-            )}{/* fin candidatos */}
-
-            {/* ── PESTAÑA: RESULTADOS ─────────────────────────────────────── */}
-            {formativasSubTab === 'resultados' && (() => {
-              // Calcular resultados por candidato
-              const resultsData = (() => {
-                const sessionCands = formativeSessionFilter === 'ALL'
-                  ? formativeCandidates
-                  : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
-                return sessionCands.map(c => {
-                  const evals = formativeEvaluations.filter((e: any) => e.candidate_id === c.id)
-                  const totalScore = evals.reduce((sum: number, e: any) => sum + (e.score || 0), 0)
-                  const avgScore = evals.length > 0 ? Math.round(totalScore / evals.length) : 0
-                  return { ...c, evals, totalScore, avgScore }
-                }).sort((a, b) => b.totalScore - a.totalScore)
-              })()
-
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="table-container">
-                    <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>Resultados de Evaluación</h3>
-                        <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Todos los supervisores · ordenado por puntaje total</p>
-                      </div>
-                      <span style={{ fontSize: '12px', background: '#eff6ff', color: '#1e40af', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
-                        {resultsData.length} candidatos
-                      </span>
-                    </div>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                          <tr style={{ background: '#f8fafc' }}>
-                            <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '180px' }}>Candidato</th>
-                            <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Sesión</th>
-                            {formativeSupervisors.map((s: any) => (
-                              <th key={s.id} style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '110px' }}>
-                                {s.name.split(' ')[0]}
-                              </th>
-                            ))}
-                            <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '90px' }}>Total</th>
-                            <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '80px' }}>Fase</th>
-                            <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0', minWidth: '130px' }}>Acciones</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {resultsData.length === 0 ? (
-                            <tr><td colSpan={formativeSupervisors.length + 5} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No hay candidatos en esta sesión.</td></tr>
-                          ) : resultsData.map((c: any, idx: number) => (
-                            <tr key={c.id} style={{ background: idx % 2 === 0 ? 'white' : '#fafafa', borderBottom: '1px solid #f1f5f9' }}>
-                              <td style={{ padding: '12px 16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                                  <div>
-                                    <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>{c.email_resumes?.sender_name || '—'}</p>
-                                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{c.email_resumes?.position || '—'}</p>
-                                  </div>
-                                  {c.email_resumes?.pdf_url && (
-                                    <a 
-                                      href={c.email_resumes.pdf_url} 
-                                      target="_blank" 
-                                      rel="noreferrer"
-                                      style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '3px',
-                                        background: '#f3e8ff',
-                                        color: '#7c3aed',
-                                        border: '1px solid #ddd6fe',
-                                        padding: '3px 8px',
-                                        borderRadius: '6px',
-                                        fontSize: '11px',
-                                        fontWeight: 700,
-                                        textDecoration: 'none',
-                                        whiteSpace: 'nowrap'
-                                      }}
-                                      title="Ver VC / CV (Hoja de Vida)"
-                                    >
-                                      📄 Ver VC
-                                    </a>
-                                  )}
-                                </div>
-                              </td>
-                              <td style={{ padding: '12px 16px' }}>
-                                {c.session_title ? (
-                                  <span style={{ fontSize: '10px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>{c.session_title}</span>
-                                ) : <span style={{ color: '#94a3b8', fontSize: '11px' }}>—</span>}
-                              </td>
-                              {formativeSupervisors.map((s: any) => {
-                                const ev = c.evals.find((e: any) => e.supervisor_id === s.id)
-                                return (
-                                  <td key={s.id} style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                    {ev ? (
-                                      <span style={{ fontWeight: 800, fontSize: '14px', color: ev.score > 0 ? '#7c3aed' : '#ef4444' }}>{ev.score} pts</span>
+                                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                    {c.fase === 2 ? (
+                                      <button
+                                        onClick={async () => {
+                                          try {
+                                            const { error } = await supabase
+                                              .from('formative_candidates')
+                                              .update({ fase: 1 })
+                                              .eq('id', c.id);
+                                            if (error) throw error;
+                                            setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 1 } : item));
+                                          } catch (err: any) {
+                                            alert('Error: ' + err.message);
+                                          }
+                                        }}
+                                        style={{
+                                          background: '#fef2f2',
+                                          color: '#ef4444',
+                                          border: '1px solid #fee2e2',
+                                          borderRadius: '8px',
+                                          padding: '5px 10px',
+                                          fontSize: '11.5px',
+                                          fontWeight: 700,
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s'
+                                        }}
+                                      >
+                                        Quitar Fase 2
+                                      </button>
                                     ) : (
-                                      <span style={{ color: '#d1d5db', fontSize: '12px' }}>—</span>
+                                      <button
+                                        onClick={async () => {
+                                          try {
+                                            const { error } = await supabase
+                                              .from('formative_candidates')
+                                              .update({ fase: 2 })
+                                              .eq('id', c.id);
+                                            if (error) throw error;
+                                            setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 2 } : item));
+                                          } catch (err: any) {
+                                            alert('Error: ' + err.message);
+                                          }
+                                        }}
+                                        style={{
+                                          background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '8px',
+                                          padding: '5px 12px',
+                                          fontSize: '11.5px',
+                                          fontWeight: 700,
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s'
+                                        }}
+                                      >
+                                        Promover a Fase 2
+                                      </button>
                                     )}
-                                  </td>
-                                )
-                              })}
-                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                <span style={{ fontWeight: 900, fontSize: '16px', color: c.totalScore > 0 ? '#1e293b' : '#94a3b8' }}>{c.totalScore > 0 ? `${c.totalScore}` : '—'}</span>
-                                {c.evals.length > 1 && <span style={{ display: 'block', fontSize: '10px', color: '#64748b' }}>prom. {c.avgScore}</span>}
-                              </td>
-                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                <span style={{
-                                  fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px',
-                                  background: c.fase === 2 ? '#d1fae5' : '#f1f5f9',
-                                  color: c.fase === 2 ? '#065f46' : '#64748b',
-                                  border: `1px solid ${c.fase === 2 ? '#a7f3d0' : '#e2e8f0'}`
-                                }}>
-                                  {c.fase === 2 ? '🏆 Fase 2' : 'Fase 1'}
-                                </span>
-                              </td>
-                              <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                                  {c.fase === 2 ? (
                                     <button
                                       onClick={async () => {
+                                        if (!window.confirm(`¿Estás seguro de que deseas borrar a ${c.email_resumes?.sender_name} de Formativas?`)) return;
                                         try {
-                                          const { error } = await supabase
-                                            .from('formative_candidates')
-                                            .update({ fase: 1 })
-                                            .eq('id', c.id);
+                                          const { error } = await supabase.from('formative_candidates').delete().eq('id', c.id);
                                           if (error) throw error;
-                                          setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 1 } : item));
+                                          setFormativeCandidates(prev => prev.filter(item => item.id !== c.id));
                                         } catch (err: any) {
-                                          alert('Error: ' + err.message);
+                                          alert('Error al borrar: ' + err.message);
                                         }
                                       }}
                                       style={{
-                                        background: '#fef2f2',
-                                        color: '#ef4444',
-                                        border: '1px solid #fee2e2',
+                                        background: 'white',
+                                        color: '#64748b',
+                                        border: '1px solid #e2e8f0',
                                         borderRadius: '8px',
                                         padding: '5px 10px',
                                         fontSize: '11.5px',
@@ -5916,271 +6004,217 @@ export default function CandidatesAdmin() {
                                         cursor: 'pointer',
                                         transition: 'all 0.15s'
                                       }}
+                                      title="Borrar candidato (Depurar)"
                                     >
-                                      Quitar Fase 2
+                                      Borrar
                                     </button>
-                                  ) : (
-                                    <button
-                                      onClick={async () => {
-                                        try {
-                                          const { error } = await supabase
-                                            .from('formative_candidates')
-                                            .update({ fase: 2 })
-                                            .eq('id', c.id);
-                                          if (error) throw error;
-                                          setFormativeCandidates(prev => prev.map(item => item.id === c.id ? { ...item, fase: 2 } : item));
-                                        } catch (err: any) {
-                                          alert('Error: ' + err.message);
-                                        }
-                                      }}
-                                      style={{
-                                        background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        padding: '5px 12px',
-                                        fontSize: '11.5px',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s'
-                                      }}
-                                    >
-                                      Promover a Fase 2
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={async () => {
-                                      if (!window.confirm(`¿Estás seguro de que deseas borrar a ${c.email_resumes?.sender_name} de Formativas?`)) return;
-                                      try {
-                                        const { error } = await supabase.from('formative_candidates').delete().eq('id', c.id);
-                                        if (error) throw error;
-                                        setFormativeCandidates(prev => prev.filter(item => item.id !== c.id));
-                                      } catch (err: any) {
-                                        alert('Error al borrar: ' + err.message);
-                                      }
-                                    }}
-                                    style={{
-                                      background: 'white',
-                                      color: '#64748b',
-                                      border: '1px solid #e2e8f0',
-                                      borderRadius: '8px',
-                                      padding: '5px 10px',
-                                      fontSize: '11.5px',
-                                      fontWeight: 700,
-                                      cursor: 'pointer',
-                                      transition: 'all 0.15s'
-                                    }}
-                                    title="Borrar candidato (Depurar)"
-                                  >
-                                    Borrar
-                                  </button>
-                                </div>
-                              </td>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* ── PESTAÑA: VALORACIÓN MÉDICA ─────────────────────────────── */}
+              {formativasSubTab === 'medica' && (() => {
+                const sessionCands = formativeSessionFilter === 'ALL'
+                  ? formativeCandidates
+                  : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
+
+                const passedCands = sessionCands.filter(c => c.fase === 2);
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)', border: '1px solid #f5d0fe', borderRadius: '16px', padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: '#86198f', fontSize: '14px', fontWeight: 800 }}>⚕️ Valoración Médica</h4>
+                        <p style={{ margin: '4px 0 0', color: '#701a75', fontSize: '12.5px' }}>Estos candidatos pasaron la entrevista y evaluación. Descarga el reporte para enviar a valoración médica.</p>
+                      </div>
+                      <button onClick={handleExportMedica} className="ranking-btn-primary" style={{ background: 'linear-gradient(135deg, #d946ef, #c026d3)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}>
+                        📥 Descargar Excel
+                      </button>
+                    </div>
+
+                    <div className="table-container">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Nombres y Apellidos</th>
+                            <th>Responsable</th>
+                            <th>Celular</th>
+                            <th>Cédula</th>
+                            <th>Correo</th>
+                            <th>Domicilio</th>
+                            <th>Sector</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {passedCands.map(c => (
+                            <tr key={c.id}>
+                              <td style={{ fontWeight: 600 }}>{c.email_resumes?.sender_name || 'Desconocido'}</td>
+                              <td>{c.created_by_user || 'Sin asignar'}</td>
+                              <td>{c.email_resumes?.sender_phone}</td>
+                              <td>{c.email_resumes?.cedula}</td>
+                              <td>{c.email_resumes?.sender_email}</td>
+                              <td>{c.email_resumes?.address || c.email_resumes?.city}</td>
+                              <td>{c.email_resumes?.sector}</td>
                             </tr>
                           ))}
+                          {passedCands.length === 0 && (
+                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>No hay candidatos en esta fase.</td></tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
                   </div>
-                </div>
-              )
-            })()}
+                );
+              })()}
 
-            {/* ── PESTAÑA: VALORACIÓN MÉDICA ─────────────────────────────── */}
-            {formativasSubTab === 'medica' && (() => {
-              const sessionCands = formativeSessionFilter === 'ALL'
-                ? formativeCandidates
-                : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
+              {/* ── PESTAÑA: FASE 2 ─────────────────────────────────────────── */}
+              {formativasSubTab === 'fase2' && (() => {
+                const sessionCands = formativeSessionFilter === 'ALL'
+                  ? formativeCandidates
+                  : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
 
-              const passedCands = sessionCands.filter(c => c.fase === 2);
+                const ranked = sessionCands.map(c => {
+                  const evals = formativeEvaluations.filter((e: any) => e.candidate_id === c.id)
+                  const totalScore = evals.reduce((sum: number, e: any) => sum + (e.score || 0), 0)
+                  return { ...c, totalScore, evalCount: evals.length }
+                }).filter(c => c.fase === 2).sort((a, b) => b.totalScore - a.totalScore)
 
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div style={{ background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)', border: '1px solid #f5d0fe', borderRadius: '16px', padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                      <h4 style={{ margin: 0, color: '#86198f', fontSize: '14px', fontWeight: 800 }}>⚕️ Valoración Médica</h4>
-                      <p style={{ margin: '4px 0 0', color: '#701a75', fontSize: '12.5px' }}>Estos candidatos pasaron la entrevista y evaluación. Descarga el reporte para enviar a valoración médica.</p>
-                    </div>
-                    <button onClick={handleExportMedica} className="ranking-btn-primary" style={{ background: 'linear-gradient(135deg, #d946ef, #c026d3)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}>
-                      📥 Descargar Excel
-                    </button>
-                  </div>
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-                  <div className="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Nombres y Apellidos</th>
-                          <th>Responsable</th>
-                          <th>Celular</th>
-                          <th>Cédula</th>
-                          <th>Correo</th>
-                          <th>Domicilio</th>
-                          <th>Sector</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {passedCands.map(c => (
-                          <tr key={c.id}>
-                            <td style={{ fontWeight: 600 }}>{c.email_resumes?.sender_name || 'Desconocido'}</td>
-                            <td>{c.created_by_user || 'Sin asignar'}</td>
-                            <td>{c.email_resumes?.sender_phone}</td>
-                            <td>{c.email_resumes?.cedula}</td>
-                            <td>{c.email_resumes?.sender_email}</td>
-                            <td>{c.email_resumes?.address || c.email_resumes?.city}</td>
-                            <td>{c.email_resumes?.sector}</td>
-                          </tr>
-                        ))}
-                        {passedCands.length === 0 && (
-                          <tr><td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>No hay candidatos en esta fase.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* ── PESTAÑA: FASE 2 ─────────────────────────────────────────── */}
-            {formativasSubTab === 'fase2' && (() => {
-              const sessionCands = formativeSessionFilter === 'ALL'
-                ? formativeCandidates
-                : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
-
-              const ranked = sessionCands.map(c => {
-                const evals = formativeEvaluations.filter((e: any) => e.candidate_id === c.id)
-                const totalScore = evals.reduce((sum: number, e: any) => sum + (e.score || 0), 0)
-                return { ...c, totalScore, evalCount: evals.length }
-              }).filter(c => c.fase === 2).sort((a, b) => b.totalScore - a.totalScore)
-
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-                  {/* Encabezado informativo */}
-                  <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                      <h4 style={{ margin: 0, color: '#1e40af', fontSize: '14px', fontWeight: 800 }}>🏆 Candidatos Seleccionados para Fase 2</h4>
-                      <p style={{ margin: '4px 0 0', color: '#1e3a8a', fontSize: '12.5px' }}>Estos candidatos han sido promovidos desde la pestaña de Resultados. Presiona el botón para enviar los accesos de Onboarding a todos.</p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ fontSize: '13px', color: '#1e40af', background: '#dbeafe', padding: '10px 16px', borderRadius: '10px', fontWeight: 800 }}>
-                        📋 Total: {ranked.length}
+                    {/* Encabezado informativo */}
+                    <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: '#1e40af', fontSize: '14px', fontWeight: 800 }}>🏆 Candidatos Seleccionados para Fase 2</h4>
+                        <p style={{ margin: '4px 0 0', color: '#1e3a8a', fontSize: '12.5px' }}>Estos candidatos han sido promovidos desde la pestaña de Resultados. Presiona el botón para enviar los accesos de Onboarding a todos.</p>
                       </div>
-                      <button
-                        onClick={() => handleSendBulkOnboarding(ranked)}
-                        disabled={sendingBulkOnboarding || ranked.length === 0}
-                        style={{
-                          background: 'linear-gradient(135deg, #10b981, #059669)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '10px 20px',
-                          fontSize: '13px',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          opacity: (sendingBulkOnboarding || ranked.length === 0) ? 0.5 : 1,
-                          transition: 'all 0.15s',
-                          boxShadow: '0 4px 6px -1px rgba(16,185,129,0.2)'
-                        }}
-                      >
-                        {sendingBulkOnboarding ? '⏳ Enviando...' : `🚀 Enviar Onboarding a Todos (${ranked.length})`}
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ fontSize: '13px', color: '#1e40af', background: '#dbeafe', padding: '10px 16px', borderRadius: '10px', fontWeight: 800 }}>
+                          📋 Total: {ranked.length}
+                        </div>
+                        <button
+                          onClick={() => handleSendBulkOnboarding(ranked)}
+                          disabled={sendingBulkOnboarding || ranked.length === 0}
+                          style={{
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '10px 20px',
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            opacity: (sendingBulkOnboarding || ranked.length === 0) ? 0.5 : 1,
+                            transition: 'all 0.15s',
+                            boxShadow: '0 4px 6px -1px rgba(16,185,129,0.2)'
+                          }}
+                        >
+                          {sendingBulkOnboarding ? '⏳ Enviando...' : `🚀 Enviar Onboarding a Todos (${ranked.length})`}
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Ranking */}
-                  <div className="table-container">
-                    <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0' }}>
-                      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>Ranking de Candidatos</h3>
-                      <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Ordenados por puntaje total (suma de todos los supervisores)</p>
-                    </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: '#f8fafc' }}>
-                          <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', width: '48px' }}>#</th>
-                          <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Candidato</th>
-                          <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Evaluadores</th>
-                          <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Puntaje Total</th>
-                          <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', minWidth: '160px' }}>Onboarding</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ranked.length === 0 ? (
-                          <tr><td colSpan={5} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No hay candidatos promovidos a la Fase 2 en esta sesión.</td></tr>
-                        ) : ranked.map((c: any, idx: number) => {
-                          return (
-                            <tr key={c.id} style={{ background: 'white', borderBottom: '1px solid #f1f5f9' }}>
-                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                <span style={{ fontWeight: 900, fontSize: '14px', color: idx === 0 ? '#f59e0b' : idx === 1 ? '#94a3b8' : idx === 2 ? '#b45309' : '#94a3b8' }}>
-                                  {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
-                                </span>
-                              </td>
-                              <td style={{ padding: '12px 16px' }}>
-                                <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>{c.email_resumes?.sender_name || '—'}</p>
-                                <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{c.email_resumes?.position || '—'}</p>
-                                {c.session_title && <span style={{ fontSize: '9px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>{c.session_title}</span>}
-                              </td>
-                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 700, color: c.evalCount > 0 ? '#475569' : '#cbd5e1' }}>{c.evalCount > 0 ? `${c.evalCount} sup.` : '—'}</span>
-                              </td>
-                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                <span style={{ fontWeight: 900, fontSize: '18px', color: c.totalScore > 0 ? '#1e293b' : '#94a3b8' }}>{c.totalScore > 0 ? c.totalScore : '—'}</span>
-                                <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8' }}>pts</span>
-                              </td>
-                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                {(() => {
-                                  const onboardingCand = candidates.find(
-                                    ond => ond.email === c.email_resumes?.sender_email || ond.email === c.email_resumes?.email
-                                  )
-                                  if (onboardingCand) {
-                                    return (
-                                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                        <span style={{
-                                          fontSize: '11.5px', fontWeight: 800, color: '#065f46', background: '#d1fae5',
-                                          border: '1px solid #a7f3d0', padding: '4px 12px', borderRadius: '8px'
-                                        }}>
-                                          ✅ Enviado ({onboardingCand.status === 'PENDING' ? 'Pendiente' : onboardingCand.status})
-                                        </span>
-                                        <button
-                                          onClick={() => handleSendApprovalEmail(c.resume_id)}
-                                          style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '10.5px', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700 }}
-                                        >
-                                          Reenviar Correo
-                                        </button>
-                                      </div>
+                    {/* Ranking */}
+                    <div className="table-container">
+                      <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0' }}>
+                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>Ranking de Candidatos</h3>
+                        <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Ordenados por puntaje total (suma de todos los supervisores)</p>
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc' }}>
+                            <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', width: '48px' }}>#</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Candidato</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Evaluadores</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Puntaje Total</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', minWidth: '160px' }}>Onboarding</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ranked.length === 0 ? (
+                            <tr><td colSpan={5} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No hay candidatos promovidos a la Fase 2 en esta sesión.</td></tr>
+                          ) : ranked.map((c: any, idx: number) => {
+                            return (
+                              <tr key={c.id} style={{ background: 'white', borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                  <span style={{ fontWeight: 900, fontSize: '14px', color: idx === 0 ? '#f59e0b' : idx === 1 ? '#94a3b8' : idx === 2 ? '#b45309' : '#94a3b8' }}>
+                                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px 16px' }}>
+                                  <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>{c.email_resumes?.sender_name || '—'}</p>
+                                  <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{c.email_resumes?.position || '—'}</p>
+                                  {c.session_title && <span style={{ fontSize: '9px', background: '#f3e8ff', color: '#7c3aed', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>{c.session_title}</span>}
+                                </td>
+                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 700, color: c.evalCount > 0 ? '#475569' : '#cbd5e1' }}>{c.evalCount > 0 ? `${c.evalCount} sup.` : '—'}</span>
+                                </td>
+                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                  <span style={{ fontWeight: 900, fontSize: '18px', color: c.totalScore > 0 ? '#1e293b' : '#94a3b8' }}>{c.totalScore > 0 ? c.totalScore : '—'}</span>
+                                  <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8' }}>pts</span>
+                                </td>
+                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                  {(() => {
+                                    const onboardingCand = candidates.find(
+                                      ond => ond.email === c.email_resumes?.sender_email || ond.email === c.email_resumes?.email
                                     )
-                                  }
-                                  return (
-                                    <button
-                                      onClick={() => handleSendApprovalEmail(c.resume_id)}
-                                      style={{
-                                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        padding: '6px 14px',
-                                        fontSize: '12px',
-                                        fontWeight: 800,
-                                        cursor: 'pointer'
-                                      }}
-                                    >
-                                      🚀 Enviar Onboarding
-                                    </button>
-                                  )
-                                })()}
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
+                                    if (onboardingCand) {
+                                      return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                          <span style={{
+                                            fontSize: '11.5px', fontWeight: 800, color: '#065f46', background: '#d1fae5',
+                                            border: '1px solid #a7f3d0', padding: '4px 12px', borderRadius: '8px'
+                                          }}>
+                                            ✅ Enviado ({onboardingCand.status === 'PENDING' ? 'Pendiente' : onboardingCand.status})
+                                          </span>
+                                          <button
+                                            onClick={() => handleSendApprovalEmail(c.resume_id)}
+                                            style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '10.5px', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700 }}
+                                          >
+                                            Reenviar Correo
+                                          </button>
+                                        </div>
+                                      )
+                                    }
+                                    return (
+                                      <button
+                                        onClick={() => handleSendApprovalEmail(c.resume_id)}
+                                        style={{
+                                          background: 'linear-gradient(135deg, #10b981, #059669)',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '8px',
+                                          padding: '6px 14px',
+                                          fontSize: '12px',
+                                          fontWeight: 800,
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        🚀 Enviar Onboarding
+                                      </button>
+                                    )
+                                  })()}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )
-            })()}
+                )
+              })()}
 
-          </div>
-        )}
+            </div>
+          )}
 
           {/* Modales de Evaluación Psicométrica */}
           {qrModalUrl && (
@@ -6192,9 +6226,9 @@ export default function CandidatesAdmin() {
                 </div>
                 <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>Indique al candidato que escanee este código con su teléfono celular para iniciar la evaluación psicométrica.</p>
                 <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'inline-block' }}>
-                  <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrModalUrl)}`} 
-                    alt="QR Code" 
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrModalUrl)}`}
+                    alt="QR Code"
                     style={{ width: '250px', height: '250px', display: 'block' }}
                   />
                 </div>
@@ -6231,23 +6265,23 @@ export default function CandidatesAdmin() {
                       {/* Promedio Aptitudes */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px', marginBottom: '8px' }}>
                         {/* Tarjeta de Promedio Aptitudes */}
-                        <div style={{ 
-                          background: '#f8fafc', 
-                          border: '1.5px solid #e2e8f0', 
-                          borderRadius: '20px', 
-                          padding: '20px', 
-                          display: 'flex', 
-                          alignItems: 'center', 
+                        <div style={{
+                          background: '#f8fafc',
+                          border: '1.5px solid #e2e8f0',
+                          borderRadius: '20px',
+                          padding: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
                           gap: '16px',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                         }}>
-                          <div style={{ 
-                            width: '56px', 
-                            height: '56px', 
-                            borderRadius: '50%', 
-                            background: 'linear-gradient(135deg, #3b82f6, #6366f1)', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                          <div style={{
+                            width: '56px',
+                            height: '56px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'center',
                             boxShadow: '0 8px 16px rgba(59, 130, 246, 0.25)',
                             color: 'white',
@@ -6267,10 +6301,10 @@ export default function CandidatesAdmin() {
                       </div>
 
                       {/* Navigation tabs inside Modal */}
-                      <div style={{ 
-                        display: 'flex', 
-                        borderBottom: '2px solid #e2e8f0', 
-                        marginBottom: '16px', 
+                      <div style={{
+                        display: 'flex',
+                        borderBottom: '2px solid #e2e8f0',
+                        marginBottom: '16px',
                         gap: '6px',
                         overflowX: 'auto',
                         paddingBottom: '2px'
@@ -6309,11 +6343,11 @@ export default function CandidatesAdmin() {
                       {/* TAB CONTENT: DISC */}
                       {activeResultsTab === 'disc' && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', alignItems: 'center' }}>
-                          <DiscLineChart 
-                            D={viewingPsychometric.test.kudert_disc?.D || 0} 
-                            I={viewingPsychometric.test.kudert_disc?.I || 0} 
-                            S={viewingPsychometric.test.kudert_disc?.S || 0} 
-                            C={viewingPsychometric.test.kudert_disc?.C || 0} 
+                          <DiscLineChart
+                            D={viewingPsychometric.test.kudert_disc?.D || 0}
+                            I={viewingPsychometric.test.kudert_disc?.I || 0}
+                            S={viewingPsychometric.test.kudert_disc?.S || 0}
+                            C={viewingPsychometric.test.kudert_disc?.C || 0}
                           />
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resumen de Dimensiones DISC</span>
@@ -6349,7 +6383,7 @@ export default function CandidatesAdmin() {
                           <CognitiveFlowRow letter="L" name="Razonamiento Lógico" desc="Descubrir patrones de secuencias y reglas lógicas" score={viewingPsychometric.test.logico_score || 0} />
                           <CognitiveFlowRow letter="N" name="Razonamiento Numérico" desc="Agilidad en operaciones matemáticas y resolución de problemas" score={viewingPsychometric.test.numerico_score || 0} />
                           <CognitiveFlowRow letter="A" name="Razonamiento Abstracto" desc="Deducir y continuar secuencias de figuras complejas" score={viewingPsychometric.test.abstracto_score || 0} />
-                          
+
                           <div style={{ marginTop: '16px', display: 'flex', gap: '8px', alignItems: 'center', background: '#eff6ff', padding: '12px', borderRadius: '12px', border: '1px solid #dbeafe' }}>
                             <span style={{ fontSize: '14px' }}>🛡️</span>
                             <div style={{ flex: 1 }}>
@@ -6376,12 +6410,12 @@ export default function CandidatesAdmin() {
                             const questions = aiRecommendation?.interview_questions || aiRecommendation?.interviewQuestions || aiRecommendation?.preguntas_entrevista || aiRecommendation?.preguntas || [];
                             if (questions.length > 0) {
                               return questions.map((q: string, i: number) => (
-                                <div key={i} style={{ 
-                                  display: 'flex', 
-                                  gap: '12px', 
-                                  background: '#eff6ff', 
-                                  border: '1px solid #dbeafe', 
-                                  padding: '16px', 
+                                <div key={i} style={{
+                                  display: 'flex',
+                                  gap: '12px',
+                                  background: '#eff6ff',
+                                  border: '1px solid #dbeafe',
+                                  padding: '16px',
                                   borderRadius: '16px',
                                   borderLeft: '4px solid #3b82f6',
                                   boxShadow: '0 2px 4px rgba(59,130,246,0.02)'
@@ -6421,29 +6455,29 @@ export default function CandidatesAdmin() {
       {/* Floating AI Copilot Widget */}
       {user && (
         <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontFamily: 'inherit' }}>
-          
+
           {/* Chat Window */}
           {showCopilot && (
-            <div style={{ 
-              width: '380px', 
-              height: '500px', 
-              background: 'white', 
-              borderRadius: '20px', 
-              boxShadow: '0 12px 24px -4px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.1)', 
-              border: '1px solid #e2e8f0', 
-              display: 'flex', 
-              flexDirection: 'column', 
+            <div style={{
+              width: '380px',
+              height: '500px',
+              background: 'white',
+              borderRadius: '20px',
+              boxShadow: '0 12px 24px -4px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
               overflow: 'hidden',
               marginBottom: '16px'
             }}>
-              
+
               {/* Header */}
-              <div style={{ 
-                background: 'linear-gradient(135deg, #002f6c, #004b93)', 
-                color: 'white', 
-                padding: '16px 20px', 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+              <div style={{
+                background: 'linear-gradient(135deg, #002f6c, #004b93)',
+                color: 'white',
+                padding: '16px 20px',
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
               }}>
@@ -6456,8 +6490,8 @@ export default function CandidatesAdmin() {
                     <span style={{ fontSize: '10.5px', color: '#93c5fd', fontWeight: 600 }}>Asistente de Selección</span>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setShowCopilot(false)} 
+                <button
+                  onClick={() => setShowCopilot(false)}
                   style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
                 >
                   <X size={18} />
@@ -6469,9 +6503,9 @@ export default function CandidatesAdmin() {
                 {copilotMessages.map((msg, idx) => {
                   const isUser = msg.role === 'user';
                   return (
-                    <div 
-                      key={idx} 
-                      style={{ 
+                    <div
+                      key={idx}
+                      style={{
                         alignSelf: isUser ? 'flex-end' : 'flex-start',
                         maxWidth: '85%',
                         background: isUser ? '#002f6c' : 'white',
@@ -6501,38 +6535,38 @@ export default function CandidatesAdmin() {
               </div>
 
               {/* Input Form */}
-              <form 
+              <form
                 onSubmit={handleSendCopilotMessage}
                 style={{ padding: '12px 16px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px', background: 'white', alignItems: 'center' }}
               >
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={copilotInput}
                   onChange={e => setCopilotInput(e.target.value)}
                   placeholder="Pregúntame sobre tus candidatos..."
                   disabled={copilotLoading}
-                  style={{ 
-                    flex: 1, 
-                    border: '1px solid #cbd5e1', 
-                    borderRadius: '999px', 
-                    padding: '8px 16px', 
-                    fontSize: '13px', 
+                  style={{
+                    flex: 1,
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '999px',
+                    padding: '8px 16px',
+                    fontSize: '13px',
                     outline: 'none'
                   }}
                 />
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={!copilotInput.trim() || copilotLoading}
-                  style={{ 
-                    background: '#002f6c', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '50%', 
-                    width: '36px', 
-                    height: '36px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+                  style={{
+                    background: '#002f6c',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     cursor: 'pointer',
                     opacity: (!copilotInput.trim() || copilotLoading) ? 0.5 : 1
                   }}
@@ -6544,19 +6578,19 @@ export default function CandidatesAdmin() {
           )}
 
           {/* Floating Trigger Button */}
-          <button 
+          <button
             onClick={() => setShowCopilot(!showCopilot)}
-            style={{ 
-              width: '56px', 
-              height: '56px', 
-              borderRadius: '50%', 
-              background: 'linear-gradient(135deg, #002f6c, #004b93)', 
-              color: 'white', 
-              border: 'none', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              cursor: 'pointer', 
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #002f6c, #004b93)',
+              color: 'white',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
               boxShadow: '0 8px 16px rgba(0, 47, 108, 0.3)',
               transition: 'transform 0.2s ease-in-out',
               transform: showCopilot ? 'rotate(90deg)' : 'none'
