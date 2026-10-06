@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2, Mail, RefreshCw, Brain, Settings, MapPin, Briefcase, Trophy, Save, X, UploadCloud, Clock, LogOut, TrendingUp, Users, Activity, Award, MessageSquare, Send, Star } from 'lucide-react'
+import { CheckCircle2, FileText, User, Download, FileSpreadsheet, Trash2, Mail, RefreshCw, Brain, Settings, MapPin, Briefcase, Trophy, Save, X, UploadCloud, Clock, LogOut, TrendingUp, Users, Activity, Award, MessageSquare, Send, Star, Search } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
@@ -317,6 +317,7 @@ export default function CandidatesAdmin() {
   const [pipelineLoading, setPipelineLoading] = useState(false)
   const [pipelineFilter, setPipelineFilter] = useState('ALL')
   const [pipelineCargoFilter, setPipelineCargoFilter] = useState('')
+  const [pipelineNameFilter, setPipelineNameFilter] = useState('')
   const [pipelineUpdating, setPipelineUpdating] = useState<string | null>(null)
 
   // === EVALUACIÓN PSICOMÉTRICA ===
@@ -1278,10 +1279,21 @@ export default function CandidatesAdmin() {
           // En "Todos los activos", ocultar los que ya están en Onboarding o cerrados/contratados/aprobados
           return !isInOnboarding && !isArchived;
         }
-        return statusUpper === pipelineFilter && !isInOnboarding;
+
+        return statusUpper === pipelineFilter;
       })
-      .filter(p => !pipelineCargoFilter || (p.cargo && p.cargo.toLowerCase().includes(pipelineCargoFilter.toLowerCase())));
-  }, [pipelineData, candidates, allOnboardingCandidates, pipelineFilter, pipelineCargoFilter]);
+      .filter(p => {
+        const matchCargo = !pipelineCargoFilter || (p.cargo && p.cargo.toLowerCase().includes(pipelineCargoFilter.toLowerCase()));
+        const nameQuery = pipelineNameFilter.toLowerCase().trim();
+        const matchName = !nameQuery || (
+          (p.candidate_name && p.candidate_name.toLowerCase().includes(nameQuery)) ||
+          (p.cedula && p.cedula.includes(nameQuery)) ||
+          (p.email && p.email.toLowerCase().includes(nameQuery)) ||
+          (p.telefono && p.telefono.includes(nameQuery))
+        );
+        return matchCargo && matchName;
+      });
+  }, [pipelineData, candidates, allOnboardingCandidates, pipelineFilter, pipelineCargoFilter, pipelineNameFilter]);
 
   useEffect(() => {
     setIsMounted(true)
@@ -4079,16 +4091,46 @@ export default function CandidatesAdmin() {
         {/* --- PIPELINE / RESUMEN --- */}
         {activeTab === 'pipeline' && (
           <div style={{ display: 'grid', gap: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="filter-bar" style={{ margin: 0, flex: 1 }}>
-                <div className="filter-input">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <div className="filter-bar" style={{ margin: 0, flex: 1, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="filter-input" style={{ flex: '1.4', minWidth: '220px' }}>
+                  <Search size={18} color="#94a3b8" />
+                  <input 
+                    placeholder="Buscar por nombre, cédula..." 
+                    value={pipelineNameFilter} 
+                    onChange={e => setPipelineNameFilter(e.target.value)} 
+                  />
+                  {pipelineNameFilter && (
+                    <button 
+                      onClick={() => setPipelineNameFilter('')} 
+                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
+                      title="Limpiar búsqueda"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <div className="filter-input" style={{ flex: '1', minWidth: '180px' }}>
                   <Briefcase size={18} color="#94a3b8" />
-                  <input placeholder="Filtrar por cargo..." value={pipelineCargoFilter} onChange={e => setPipelineCargoFilter(e.target.value)} />
+                  <input 
+                    placeholder="Filtrar por cargo..." 
+                    value={pipelineCargoFilter} 
+                    onChange={e => setPipelineCargoFilter(e.target.value)} 
+                  />
+                  {pipelineCargoFilter && (
+                    <button 
+                      onClick={() => setPipelineCargoFilter('')} 
+                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', alignItems: 'center' }}
+                      title="Limpiar filtro de cargo"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
                 <select 
                   value={pipelineFilter} 
                   onChange={e => setPipelineFilter(e.target.value)}
-                  style={{ border: 'none', background: 'none', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none' }}
+                  style={{ border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 700, color: '#475569', cursor: 'pointer', outline: 'none', padding: '10px 14px', borderRadius: '10px', minWidth: '170px' }}
                 >
                   <option value="ALL">Todos los activos</option>
                   <option value="PENDIENTE">⏳ Pendientes</option>
