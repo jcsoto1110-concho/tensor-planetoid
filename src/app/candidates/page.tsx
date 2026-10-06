@@ -254,6 +254,7 @@ export default function CandidatesAdmin() {
   const router = useRouter()
 
   const [candidates, setCandidates] = useState<any[]>([])
+  const [allOnboardingCandidates, setAllOnboardingCandidates] = useState<any[]>([])
   const [onboardingDocCount, setOnboardingDocCount] = useState(0)
   const [syncedCount, setSyncedCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -1204,10 +1205,18 @@ export default function CandidatesAdmin() {
     // Filtros solicitados por el usuario
     return unifiedList.filter(item => {
       const email = (item.sender_email || '').toLowerCase().trim();
-      if (!email) return true;
+      const phone = (item.sender_phone || '').replace(/\D/g, '').slice(-9);
 
-      // 1. Ya se les envió mail de onboarding
-      const inOnboarding = candidates.some((c: any) => (c.email || '').toLowerCase().trim() === email);
+      // 1. Ya se les envió mail de onboarding o están registrados en onboarding
+      const inOnboarding = (allOnboardingCandidates.length > 0 ? allOnboardingCandidates : candidates).some((c: any) => {
+        const cEmail = (c.email || '').toLowerCase().trim();
+        if (email && cEmail && email === cEmail) return true;
+        if (phone && c.telefono) {
+          const cPhone = String(c.telefono).replace(/\D/g, '').slice(-9);
+          if (phone.length >= 7 && cPhone && phone === cPhone) return true;
+        }
+        return false;
+      });
       if (inOnboarding) return false;
 
       // 2. Se rechazó (tracking status === 'RECHAZADO')
@@ -1225,33 +1234,54 @@ export default function CandidatesAdmin() {
 
       return true;
     });
-  }, [rankingCargo, rankingResults, trackingMap, resumes, candidates, pipelineData, formativeCandidates]);
+  }, [rankingCargo, rankingResults, trackingMap, resumes, candidates, allOnboardingCandidates, pipelineData, formativeCandidates]);
 
   // Filtro inteligente para la pestaña Resumen (Pipeline)
   const filteredPipelineData = useMemo(() => {
     return pipelineData
       .filter(p => {
+        const candidateEmail = (p.candidate?.sender_email || '').toLowerCase().trim();
+        const candidatePhone = (p.candidate?.sender_phone || '').replace(/\D/g, '').slice(-9);
+        const candidateName = (p.candidate?.sender_name || '').toLowerCase().trim();
+
         // Verificar si el candidato ya está registrado en Onboarding
-        const isInOnboarding = candidates.some(c => 
-          c.email && p.candidate?.sender_email && 
-          c.email.toLowerCase().trim() === p.candidate.sender_email.toLowerCase().trim()
-        );
-        const isArchived = ['FORMATIVA_CERRADA', 'ONBOARDING', 'EN_ONBOARDING', 'CONTRATADO', 'APROBADO_ONBOARDING'].includes(p.status);
+        const onboardList = allOnboardingCandidates.length > 0 ? allOnboardingCandidates : candidates;
+        const isInOnboarding = onboardList.some((c: any) => {
+          const cEmail = (c.email || '').toLowerCase().trim();
+          if (candidateEmail && cEmail && candidateEmail === cEmail) return true;
+
+          if (candidatePhone && c.telefono) {
+            const cPhone = String(c.telefono).replace(/\D/g, '').slice(-9);
+            if (candidatePhone.length >= 7 && cPhone && candidatePhone === cPhone) return true;
+          }
+
+          if (candidateName && c.nombres) {
+            const cFullName = `${c.nombres} ${c.apellidos || ''}`.toLowerCase().trim();
+            if (cFullName.length > 5 && (cFullName === candidateName || candidateName.includes(cFullName) || cFullName.includes(candidateName))) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+
+        const statusUpper = (p.status || '').toUpperCase().trim();
+        const isArchived = ['FORMATIVA_CERRADA', 'ONBOARDING', 'EN_ONBOARDING', 'CONTRATADO', 'APROBADO_ONBOARDING', 'ENTREVISTA_APROBADA'].includes(statusUpper);
 
         if (pipelineFilter === 'ONBOARDING') {
-          return isInOnboarding || p.status === 'ONBOARDING' || p.status === 'EN_ONBOARDING';
+          return isInOnboarding || statusUpper === 'ONBOARDING' || statusUpper === 'EN_ONBOARDING';
         }
         if (pipelineFilter === 'FORMATIVA_CERRADA') {
-          return p.status === 'FORMATIVA_CERRADA';
+          return statusUpper === 'FORMATIVA_CERRADA';
         }
         if (pipelineFilter === 'ALL') {
-          // En "Todos los activos", ocultar los que ya están en Onboarding o cerrados/contratados
+          // En "Todos los activos", ocultar los que ya están en Onboarding o cerrados/contratados/aprobados
           return !isInOnboarding && !isArchived;
         }
-        return p.status === pipelineFilter && !isInOnboarding;
+        return statusUpper === pipelineFilter && !isInOnboarding;
       })
       .filter(p => !pipelineCargoFilter || (p.cargo && p.cargo.toLowerCase().includes(pipelineCargoFilter.toLowerCase())));
-  }, [pipelineData, candidates, pipelineFilter, pipelineCargoFilter]);
+  }, [pipelineData, candidates, allOnboardingCandidates, pipelineFilter, pipelineCargoFilter]);
 
   useEffect(() => {
     setIsMounted(true)
@@ -1724,7 +1754,7 @@ export default function CandidatesAdmin() {
   const fetchCandidates = async () => {
     if (!user?.company_slug) return
     setLoading(true)
-    // Candidatos activos (sin SYNCED) para la vista de onboarding
+    // Candidatos activos (sin SYNCED) para la vista de la pestaña Onboarding
     const { data } = await supabase
       .from('onboarding_candidates')
       .select('*')
@@ -1733,13 +1763,14 @@ export default function CandidatesAdmin() {
       .neq('status', 'SYNCED')
       .order('created_at', { ascending: false })
     if (data) setCandidates(data)
-    // Todos los candidatos (incluyendo SYNCED) para las estadísticas
+
+    // Todos los candidatos de Onboarding (incluyendo SYNCED, APPROVED, LLENADO, etc.) para filtros globales y estadísticas
     const { data: allData } = await supabase
       .from('onboarding_candidates')
-      .select('id, status')
-      .eq('company_slug', user.company_slug)
+      .select('*')
       .neq('status', 'DELETED')
     if (allData) {
+      setAllOnboardingCandidates(allData)
       const docCount = allData.filter((c: any) => c.status === 'LLENADO' || c.status === 'APPROVED' || c.status === 'SYNCED').length
       const sync = allData.filter((c: any) => c.status === 'SYNCED').length
       setOnboardingDocCount(docCount)
