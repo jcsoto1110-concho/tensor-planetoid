@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
             userData.name = profile.name;
             userData.company_slug = profile.company_slug || 'superdeporte';
             userData.company_name = (profile.company_name || 'SUPERDEPORTE S.A.').replace('SUPERDEPORT S.A.', 'SUPERDEPORTE S.A.');
-            userData.perfil = profile.perfil || 'ADMIN';
+            userData.perfil = (profile.perfil || 'ADMIN').trim().toUpperCase();
         }
 
         return NextResponse.json({

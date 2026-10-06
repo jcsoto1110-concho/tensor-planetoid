@@ -1797,7 +1797,7 @@ export default function CandidatesAdmin() {
       if (data && data.length > 0) {
         allData = [...allData, ...data];
         if (data.length < pageSize) break; // Se obtuvieron todos
-        if (allData.length >= 10000) break; // Límite duro de 10000 para no explotar la memoria
+        if (allData.length >= 100000) break; // Límite amplio de 100k
       } else {
         break;
       }
@@ -3140,7 +3140,7 @@ export default function CandidatesAdmin() {
           </div>
 
         <div className="tabs-nav">
-          {(user?.perfil === 'RECLUTADOR' || user?.perfil === 'ADMIN') && (
+          {(!user?.perfil || user.perfil.trim().toUpperCase() === 'RECLUTADOR' || user.perfil.trim().toUpperCase() === 'ADMIN') && (
             <>
               <button className={`tab-btn ${activeTab === 'seleccion' ? 'active' : ''}`} onClick={() => setActiveTab('seleccion')}>Inbox</button>
               <button className={`tab-btn ${activeTab === 'ranking' ? 'active' : ''}`} onClick={() => setActiveTab('ranking')}>🏆 Ranking IA</button>
@@ -3150,7 +3150,7 @@ export default function CandidatesAdmin() {
               <button className={`tab-btn ${activeTab === 'estadisticas' ? 'active' : ''}`} onClick={() => setActiveTab('estadisticas')}>📈 Estadísticas</button>
             </>
           )}
-          {(user?.perfil === 'NOMINA' || user?.perfil === 'ADMIN') && (
+          {(!user?.perfil || user.perfil.trim().toUpperCase() === 'NOMINA' || user.perfil.trim().toUpperCase() === 'ADMIN') && (
             <button className={`tab-btn ${activeTab === 'nomina' ? 'active' : ''}`} onClick={() => setActiveTab('nomina')}>💼 Nómina</button>
           )}
         </div>

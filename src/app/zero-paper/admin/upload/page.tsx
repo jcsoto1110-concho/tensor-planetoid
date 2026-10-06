@@ -35,9 +35,14 @@ export default function MassUploadPage() {
             const res = await syncEmployees(syncMode);
             setSyncResult(res);
             if (res.success) {
-                alert(`¡Sincronización con SAP exitosa! Se actualizaron ${res.count} empleados en Supabase.`);
+                alert(`✅ ¡Sincronización con SAP exitosa! Se actualizaron ${res.count} empleados en Supabase.`);
             } else {
-                alert(`Error en sincronización con SAP: ${res.error}`);
+                const isTimeout = res.error?.includes('timed out') || res.error?.includes('89006') || res.error?.includes('connect');
+                if (isTimeout) {
+                    alert(`⚠️ No se pudo conectar con SAP HANA (172.1.2.10).\n\nEl servidor web en la nube no tiene acceso directo a la red privada de la oficina.\n\n👉 Para sincronizar hacia Supabase, ejecuta en la terminal de tu máquina en la oficina:\n\n   npm run sync:sap`);
+                } else {
+                    alert(`Error en sincronización con SAP: ${res.error}`);
+                }
             }
         } catch (err: any) {
             setSyncResult({ success: false, error: err.message });
