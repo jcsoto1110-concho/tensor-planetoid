@@ -7,7 +7,7 @@ import { CheckCircle2, XCircle, FileText, User, Calendar, MessageSquare, Eye, X,
 import { decryptToDataUrl } from '@/lib/encryption';
 
 export default function ApprovalsPage() {
-    const { getPendingDocuments, approvePendingDocument, rejectPendingDocument } = useDoc();
+    const { getPendingDocuments, approvePendingDocument, approveAllPendingDocuments, rejectPendingDocument } = useDoc();
     const { currentUser } = useZPAuth();
     const pendingDocs = getPendingDocuments();
 
@@ -15,6 +15,7 @@ export default function ApprovalsPage() {
     const [comments, setComments] = useState('');
     const [showPreview, setShowPreview] = useState(false);
     const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null);
+    const [isApprovingAll, setIsApprovingAll] = useState(false);
 
     // Group documents by employee
     const groupedByEmployee = pendingDocs.reduce((acc, item) => {
@@ -30,6 +31,31 @@ export default function ApprovalsPage() {
     }, {} as Record<string, { employee: any; documents: any[] }>);
 
     const groupedEmployees = Object.values(groupedByEmployee);
+
+    const handleApproveGlobalAll = async () => {
+        if (pendingDocs.length === 0) return;
+
+        const confirmMsg = `¿Aprobar TODOS los ${pendingDocs.length} documentos pendientes de todos los colaboradores?\n\nEsta acción aprobará todo el lote completo inmediatamente.`;
+        if (!confirm(confirmMsg)) return;
+
+        setIsApprovingAll(true);
+        try {
+            const res = await approveAllPendingDocuments(
+                currentUser?.name || 'Administrador',
+                'Aprobación masiva global'
+            );
+
+            if (res.success) {
+                alert(`✅ ¡Éxito! Se aprobaron todos los ${res.count} documentos pendientes.`);
+            } else {
+                alert(`Error al aprobar: ${res.error}`);
+            }
+        } catch (err: any) {
+            alert(`Error: ${err.message}`);
+        } finally {
+            setIsApprovingAll(false);
+        }
+    };
 
     const handleApprove = () => {
         if (!selectedDoc) return;
@@ -106,11 +132,11 @@ export default function ApprovalsPage() {
         <div>
             {/* Modern Header */}
             <div style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
                 padding: '2.5rem 2rem',
                 borderRadius: '16px',
                 marginBottom: '2rem',
-                boxShadow: '0 10px 40px rgba(102, 126, 234, 0.3)',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
                 color: 'white'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -119,28 +145,55 @@ export default function ApprovalsPage() {
                             Aprobación de Documentos
                         </h1>
                         <p style={{ fontSize: '1rem', opacity: 0.9 }}>
-                            Validación y control de calidad de documentos
+                            Validación y control de calidad de expedientes digitales
                         </p>
                     </div>
 
-                    {pendingDocs.length > 0 && (
-                        <div style={{
-                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                            backdropFilter: 'blur(10px)',
-                            padding: '0.75rem 1.5rem',
-                            borderRadius: '10px',
-                            border: '2px solid rgba(239, 68, 68, 0.4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
-                            <span style={{ fontSize: '1.5rem' }}>🔔</span>
-                            <div>
-                                <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Pendientes</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{pendingDocs.length}</div>
-                            </div>
-                        </div>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        {pendingDocs.length > 0 && (
+                            <>
+                                <button
+                                    onClick={handleApproveGlobalAll}
+                                    disabled={isApprovingAll}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.6rem',
+                                        padding: '0.9rem 1.8rem',
+                                        borderRadius: '12px',
+                                        background: isApprovingAll ? '#94a3b8' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                        color: 'white',
+                                        border: 'none',
+                                        cursor: isApprovingAll ? 'not-allowed' : 'pointer',
+                                        fontWeight: '700',
+                                        fontSize: '1rem',
+                                        boxShadow: isApprovingAll ? 'none' : '0 4px 16px rgba(16, 185, 129, 0.4)',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <CheckCheck size={20} />
+                                    {isApprovingAll ? 'Aprobando todo...' : `Aprobar Todo (${pendingDocs.length})`}
+                                </button>
+
+                                <div style={{
+                                    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+                                    backdropFilter: 'blur(10px)',
+                                    padding: '0.75rem 1.25rem',
+                                    borderRadius: '10px',
+                                    border: '2px solid rgba(239, 68, 68, 0.5)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                }}>
+                                    <span style={{ fontSize: '1.3rem' }}>🔔</span>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Pendientes</div>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>{pendingDocs.length}</div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 

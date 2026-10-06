@@ -315,6 +315,17 @@ async function processAndUpload(rows) {
     const employees = Array.from(empMap.values());
     console.log(`📦 Total de registros únicos listos para Supabase: ${employees.length}`);
 
+    // Si estamos sincronizando la nómina activa, desactivar preventivamente en Supabase para dar de baja a los que ya no están en SAP
+    console.log('⏳ Aplicando baja lógica preventiva en Supabase (estado = 0)...');
+    const { error: deactivateErr } = await supabase
+        .from('digi_employees')
+        .update({ estado: '0' })
+        .eq('estado', '1');
+
+    if (deactivateErr) {
+        console.warn('Aviso en baja preventiva:', deactivateErr.message);
+    }
+
     const CHUNK_SIZE = 500;
     let saved = 0;
 

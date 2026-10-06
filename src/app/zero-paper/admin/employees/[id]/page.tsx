@@ -43,6 +43,54 @@ export default function EmployeeDetailPage() {
         );
     }
 
+    if (employee.estado === '0') {
+        return (
+            <div style={{
+                maxWidth: '600px',
+                margin: '4rem auto',
+                padding: '3rem 2rem',
+                backgroundColor: 'white',
+                borderRadius: '20px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                textAlign: 'center',
+                border: '1px solid #fee2e2'
+            }}>
+                <div style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    backgroundColor: '#fee2e2',
+                    color: '#dc2626',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.5rem',
+                    fontSize: '2rem'
+                }}>
+                    ✕
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#991b1b', marginBottom: '0.75rem' }}>
+                    Acceso Restringido - Empleado Inactivo
+                </h2>
+                <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+                    El colaborador <strong>{employee.name} {employee.apellido}</strong> (CI: {employee.id}) se encuentra marcado como <strong>INACTIVO / DADO DE BAJA</strong>. Sus registros y documentos digitales han sido deshabilitados para consulta.
+                </p>
+                <Link href="/zero-paper/admin/employees" style={{
+                    display: 'inline-block',
+                    padding: '0.75rem 1.75rem',
+                    backgroundColor: '#1e293b',
+                    color: 'white',
+                    borderRadius: '10px',
+                    textDecoration: 'none',
+                    fontWeight: '600',
+                    fontSize: '0.9rem'
+                }}>
+                    Volver al Directorio
+                </Link>
+            </div>
+        );
+    }
+
     // Format entry date properly
     const formatDate = (dateStr: string) => {
         try {

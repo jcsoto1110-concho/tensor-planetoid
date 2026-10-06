@@ -11,16 +11,21 @@ export default function EmployeesListPage() {
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredEmployees = employees.filter(emp => {
+        // Excluir empleados inactivos / dados de baja
+        if (emp.estado === '0') return false;
+
         const search = searchTerm.toLowerCase();
         return (
             emp.name.toLowerCase().includes(search) ||
+            (emp.apellido && emp.apellido.toLowerCase().includes(search)) ||
             emp.id.includes(searchTerm) ||
             emp.position.toLowerCase().includes(search) ||
-            emp.entryDate.toLowerCase().includes(search)
+            emp.entryDate.toLowerCase().includes(search) ||
+            (emp.codigo_sap && emp.codigo_sap.includes(searchTerm))
         );
     });
 
-
+    const activeCount = employees.filter(e => e.estado !== '0').length;
 
     // Format date helper
     const formatDate = (dateStr: string) => {
@@ -43,48 +48,22 @@ export default function EmployeesListPage() {
         <div>
             {/* Header Section */}
             <div style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
                 padding: '2rem',
                 borderRadius: '16px',
                 marginBottom: '2rem',
-                boxShadow: '0 10px 40px rgba(102, 126, 234, 0.3)'
+                boxShadow: '0 10px 30px rgba(0,0,0,0.12)'
             }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
                         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
                             Directorio de Empleados
                         </h1>
                         <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>
-                            {filteredEmployees.length} de {employees.length} empleados
+                            {filteredEmployees.length} de {activeCount} empleados activos
                         </p>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <button
-                            onClick={async () => {
-                                const btn = document.activeElement as HTMLButtonElement;
-                                if (btn) btn.disabled = true;
-                                try {
-                                    const { syncEmployees } = useDoc(); // Need to call this inside the component
-                                } catch(e) {}
-                                window.location.href = '/zero-paper/admin/upload'; // Redirect to sync page for now
-                            }}
-                            style={{
-                                padding: '0.75rem 1.25rem',
-                                borderRadius: '10px',
-                                border: 'none',
-                                background: 'white',
-                                color: '#667eea',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
-                            }}
-                        >
-                            <Sparkles size={18} />
-                            Sincronizar RRHH (Oracle)
-                        </button>
-
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <div style={{ position: 'relative' }}>
                             <Search size={20} color="rgba(255,255,255,0.9)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
                             <input

@@ -268,6 +268,14 @@ export async function POST(req: NextRequest) {
         const employeesToUpsert = Array.from(empMap.values());
         console.log(`📦 Registros únicos a sincronizar en Supabase: ${employeesToUpsert.length}`);
 
+        // Marcar inactivos para dar de baja automática a los que ya no están activos en SAP
+        if (mode === 'active') {
+            await supabase
+                .from('digi_employees')
+                .update({ estado: '0' })
+                .eq('estado', '1');
+        }
+
         // Insertar en lotes de 500 para máxima velocidad y estabilidad
         const CHUNK_SIZE = 500;
         let totalUpserted = 0;

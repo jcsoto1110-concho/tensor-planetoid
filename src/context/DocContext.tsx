@@ -59,6 +59,7 @@ interface DocContextType {
     clearAllData: () => void;
     getPendingDocuments: () => Array<{ employee: DocEmployee; document: DocFile }>;
     approvePendingDocument: (employeeId: string, docId: string, approvedBy: string, comments?: string) => Promise<void>;
+    approveAllPendingDocuments: (approvedBy: string, comments?: string) => Promise<{ success: boolean; count?: number; error?: string }>;
     rejectPendingDocument: (employeeId: string, docId: string, rejectedBy: string, comments?: string) => Promise<void>;
     syncEmployees: (mode?: 'active' | 'all' | 'inactive') => Promise<{ success: boolean; count?: number; error?: string }>;
 }
@@ -442,6 +443,51 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const approveAllPendingDocuments = async (approvedBy: string, comments: string = 'Aprobación masiva') => {
+        try {
+            const pending = getPendingDocuments();
+            if (pending.length === 0) return { success: true, count: 0 };
+
+            const docIds = pending.map(p => p.document.id);
+
+            const response = await fetch('/api/documents', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ids: docIds,
+                    status: 'APPROVED',
+                    approved_by: approvedBy,
+                    comments: comments
+                })
+            });
+
+            if (!response.ok) throw new Error('Error al aprobar documentos en lote');
+
+            const now = new Date().toISOString();
+            setEmployees(prev => prev.map(emp => ({
+                ...emp,
+                documents: emp.documents.map(doc => {
+                    if (docIds.includes(doc.id)) {
+                        return {
+                            ...doc,
+                            status: 'APPROVED',
+                            approvedBy,
+                            approvedAt: now,
+                            comments
+                        };
+                    }
+                    return doc;
+                })
+            })));
+
+            await addAuditLog('DOCUMENT_APPROVE', 'DOCUMENT', `Aprobación masiva de ${docIds.length} documentos`);
+            return { success: true, count: docIds.length };
+        } catch (error: any) {
+            console.error('Error in approveAllPendingDocuments:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
     const rejectPendingDocument = async (employeeId: string, docId: string, rejectedBy: string, comments?: string) => {
         try {
             const response = await fetch('/api/documents', {
@@ -516,6 +562,7 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
             clearAllData,
             getPendingDocuments,
             approvePendingDocument,
+            approveAllPendingDocuments,
             rejectPendingDocument,
             syncEmployees
         }}>
