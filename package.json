@@ -6,12 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync:sap": "node scripts/sync_sap_to_supabase.mjs",
+    "sync:sap:all": "node scripts/sync_sap_to_supabase.mjs --all"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",
     "@azure/msal-node": "^5.1.5",
     "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@sap/hana-client": "^2.30.27",
     "@supabase/supabase-js": "^2.104.1",
     "@types/nodemailer": "^8.0.0",
     "@types/qrcode": "^1.5.6",

@@ -60,7 +60,7 @@ interface DocContextType {
     getPendingDocuments: () => Array<{ employee: DocEmployee; document: DocFile }>;
     approvePendingDocument: (employeeId: string, docId: string, approvedBy: string, comments?: string) => Promise<void>;
     rejectPendingDocument: (employeeId: string, docId: string, rejectedBy: string, comments?: string) => Promise<void>;
-    syncEmployees: () => Promise<{ success: boolean; count?: number; error?: string }>;
+    syncEmployees: (mode?: 'active' | 'all' | 'inactive') => Promise<{ success: boolean; count?: number; error?: string }>;
 }
 
 const DocContext = createContext<DocContextType>({} as DocContextType);
@@ -484,16 +484,20 @@ export function DocProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const syncEmployees = async () => {
+    const syncEmployees = async (mode: 'active' | 'all' | 'inactive' = 'active') => {
         try {
-            const response = await fetch('/api/employees/sync', { method: 'POST' });
+            const response = await fetch('/api/employees/sync', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode })
+            });
             const data = await response.json();
             if (data.success) {
                 await loadData(); // Refresh list
             }
             return data;
         } catch (error: any) {
-            console.error('Error syncing employees:', error);
+            console.error('Error syncing employees from SAP:', error);
             return { success: false, error: error.message };
         }
     };

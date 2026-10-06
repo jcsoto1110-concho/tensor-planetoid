@@ -1,11 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { executeSapQuery } from '@/lib/sapdb';
-import { supabaseAdmin as supabase } from '@/lib/supabase';
+import hana from '@sap/hana-client';
+import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
-export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // Allow long running for large sync
+// Cargar variables de entorno desde .env.local
+const envPath = path.resolve('.env.local');
+let env = {};
 
-function formatSapDate(d: any): string | null {
+if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, 'utf8');
+    envFile.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+            const [k, ...v] = trimmed.split('=');
+            env[k.trim()] = v.join('=').trim().replace(/^["']|["']$/g, '');
+        }
+    });
+}
+
+const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || 'https://zfbrwcflzbauycszajpc.supabase.co';
+const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const sapHost = env.SAP_HANA_HOST || '172.1.2.10';
+const sapPort = env.SAP_HANA_PORT || '30015';
+const sapUser = env.SAP_HANA_USER || 'USERBI';
+const sapPassword = env.SAP_HANA_PASSWORD || 'MaraBI2021*';
+const sapSchema = env.SAP_HANA_SCHEMA || 'sapabap1';
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+function formatSapDate(d) {
     if (!d) return null;
     if (d instanceof Date) return d.toISOString().split('T')[0];
     const str = String(d).trim();
@@ -187,7 +211,7 @@ const INACTIVE_SQL = `
     WHERE PA0001.ENDDA < CURRENT_DATE
 `;
 
-function mapRowToEmployee(row: any) {
+function mapRow(row) {
     const rawId = String(row.CEDULA || row.cedula || row.PERNR || '').trim();
     if (!rawId) return null;
 
@@ -217,88 +241,101 @@ function mapRowToEmployee(row: any) {
     };
 }
 
-export async function POST(req: NextRequest) {
-    try {
-        let body: any = {};
-        try {
-            body = await req.json();
-        } catch {
-            body = {};
+async function runSync() {
+    const syncAll = process.argv.includes('--all');
+    console.log('=====================================================');
+    console.log(`🚀 SINCRONIZADOR SAP HANA -> SUPABASE`);
+    console.log(`📡 Servidor SAP: ${sapHost}:${sapPort} (Esquema: ${sapSchema})`);
+    console.log(`🌐 Destino Supabase: ${supabaseUrl}`);
+    console.log(`🎯 Modo: ${syncAll ? 'TODOS (Activos + Inactivos)' : 'SOLO ACTIVOS'}`);
+    console.log('=====================================================');
+
+    const client = hana.createConnection();
+    const connConfig = {
+        serverNode: `${sapHost}:${sapPort}`,
+        uid: sapUser,
+        pwd: sapPassword,
+        currentSchema: sapSchema,
+        autoReconnect: true
+    };
+
+    client.connect(connConfig, async (err) => {
+        if (err) {
+            console.error('❌ Error de red conectando a SAP HANA:', err.message);
+            console.error('👉 Asegúrate de estar conectado a la red local de la oficina o VPN (172.1.2.10).');
+            process.exit(1);
         }
 
-        const mode = body.mode || 'active'; // 'active' | 'all' | 'inactive'
-        console.log(`🔄 Iniciando sincronización desde SAP HANA (modo: ${mode})...`);
+        console.log('✅ Conexión establecida con SAP HANA.');
+        console.log('⏳ Extrayendo registros activos...');
 
-        let sapRows: any[] = [];
-
-        if (mode === 'active' || mode === 'all') {
-            console.log('⏳ Consultando empleados activos de SAP...');
-            const activeRows = await executeSapQuery(ACTIVE_SQL);
-            console.log(`✅ Activos encontrados en SAP: ${activeRows.length}`);
-            sapRows = [...sapRows, ...activeRows];
-        }
-
-        if (mode === 'inactive' || mode === 'all') {
-            console.log('⏳ Consultando empleados inactivos de SAP...');
-            const inactiveRows = await executeSapQuery(INACTIVE_SQL);
-            console.log(`✅ Inactivos encontrados en SAP: ${inactiveRows.length}`);
-            sapRows = [...sapRows, ...inactiveRows];
-        }
-
-        if (sapRows.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: 'No se encontraron registros en SAP para sincronizar',
-                count: 0
-            });
-        }
-
-        // Mapear y filtrar duplicados en memoria por ID
-        const empMap = new Map<string, any>();
-        for (const r of sapRows) {
-            const mapped = mapRowToEmployee(r);
-            if (mapped && mapped.id) {
-                // Si ya existe activo, no sobreescribir con inactivo
-                if (!empMap.has(mapped.id) || mapped.estado === '1') {
-                    empMap.set(mapped.id, mapped);
-                }
-            }
-        }
-
-        const employeesToUpsert = Array.from(empMap.values());
-        console.log(`📦 Registros únicos a sincronizar en Supabase: ${employeesToUpsert.length}`);
-
-        // Insertar en lotes de 500 para máxima velocidad y estabilidad
-        const CHUNK_SIZE = 500;
-        let totalUpserted = 0;
-
-        for (let i = 0; i < employeesToUpsert.length; i += CHUNK_SIZE) {
-            const chunk = employeesToUpsert.slice(i, i + CHUNK_SIZE);
-            const { error } = await supabase
-                .from('digi_employees')
-                .upsert(chunk, { onConflict: 'id' });
-
-            if (error) {
-                console.error(`❌ Error en lote ${i} - ${i + chunk.length}:`, error);
-                throw error;
+        client.exec(ACTIVE_SQL, async (err1, activeRows) => {
+            if (err1) {
+                console.error('❌ Error ejecutando consulta de activos:', err1);
+                client.disconnect();
+                process.exit(1);
             }
 
-            totalUpserted += chunk.length;
-            console.log(`💾 Guardados en Supabase: ${totalUpserted} / ${employeesToUpsert.length}`);
-        }
+            console.log(`📊 Empleados activos extraídos: ${activeRows.length}`);
+            let allRows = [...activeRows];
 
-        return NextResponse.json({
-            success: true,
-            message: `Sincronización completada exitosamente desde SAP HANA.`,
-            count: totalUpserted,
-            totalFoundInSap: sapRows.length
+            if (syncAll) {
+                console.log('⏳ Extrayendo registros inactivos...');
+                client.exec(INACTIVE_SQL, async (err2, inactiveRows) => {
+                    client.disconnect();
+                    if (err2) {
+                        console.error('❌ Error extrayendo inactivos:', err2);
+                    } else {
+                        console.log(`📊 Empleados inactivos extraídos: ${inactiveRows.length}`);
+                        allRows = [...allRows, ...inactiveRows];
+                    }
+                    await processAndUpload(allRows);
+                });
+            } else {
+                client.disconnect();
+                await processAndUpload(allRows);
+            }
         });
-
-    } catch (error: any) {
-        console.error('❌ Error en sincronización SAP -> Supabase:', error);
-        return NextResponse.json({
-            success: false,
-            error: error.message || 'Error desconocido sincronizando con SAP'
-        }, { status: 500 });
-    }
+    });
 }
+
+async function processAndUpload(rows) {
+    console.log('⏳ Mapeando y depurando duplicados...');
+    const empMap = new Map();
+
+    for (const r of rows) {
+        const mapped = mapRow(r);
+        if (mapped && mapped.id) {
+            if (!empMap.has(mapped.id) || mapped.estado === '1') {
+                empMap.set(mapped.id, mapped);
+            }
+        }
+    }
+
+    const employees = Array.from(empMap.values());
+    console.log(`📦 Total de registros únicos listos para Supabase: ${employees.length}`);
+
+    const CHUNK_SIZE = 500;
+    let saved = 0;
+
+    for (let i = 0; i < employees.length; i += CHUNK_SIZE) {
+        const chunk = employees.slice(i, i + CHUNK_SIZE);
+        const { error } = await supabase
+            .from('digi_employees')
+            .upsert(chunk, { onConflict: 'id' });
+
+        if (error) {
+            console.error(`❌ Error guardando lote ${i} - ${i + chunk.length}:`, error);
+            process.exit(1);
+        }
+
+        saved += chunk.length;
+        const percent = Math.round((saved / employees.length) * 100);
+        process.stdout.write(`\r💾 Progreso guardado en Supabase: ${saved}/${employees.length} (${percent}%)`);
+    }
+
+    console.log('\n\n🎉 ¡Sincronización completada con éxito en Supabase!');
+    process.exit(0);
+}
+
+runSync();
