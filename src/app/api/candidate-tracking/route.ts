@@ -48,11 +48,28 @@ export async function GET(req: NextRequest) {
   const resumeMap: Record<string, any> = {};
   (resumes || []).forEach((r: any) => { resumeMap[r.id] = r; });
 
+  // Obtener nombres de administradores / reclutadores
+  const { data: admins } = await supabase
+    .from('admin_profiles')
+    .select('cedula, ad_user, nombre');
+
+  const adminMap: Record<string, string> = {};
+  (admins || []).forEach((a: any) => {
+    const displayName = a.nombre || a.ad_user || a.cedula;
+    if (a.cedula) adminMap[a.cedula.toLowerCase().trim()] = displayName;
+    if (a.ad_user) adminMap[a.ad_user.toLowerCase().trim()] = displayName;
+  });
+
   const enriched = tracking
-    .map((t: any) => ({
-      ...t,
-      candidate: resumeMap[t.resume_id] || null,
-    }))
+    .map((t: any) => {
+      const creatorKey = (t.created_by_cedula || '').toLowerCase().trim();
+      const recruiterName = adminMap[creatorKey] || t.created_by_cedula || null;
+      return {
+        ...t,
+        candidate: resumeMap[t.resume_id] || null,
+        recruiter_name: recruiterName,
+      };
+    })
     .filter((t: any) => t.candidate !== null);
 
   return NextResponse.json({ data: enriched });

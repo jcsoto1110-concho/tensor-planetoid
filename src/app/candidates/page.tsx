@@ -1434,6 +1434,10 @@ export default function CandidatesAdmin() {
 
     try {
       const names = (candidate.sender_name || candidate.name || '').split(' ');
+      const formativeCand = formativeCandidates.find(c => c.resume_id === resumeId);
+      const formativeDate = formativeCand?.interview_date || formativeCand?.created_at || null;
+      const formativeSession = formativeCand?.session_title || null;
+
       const candidatePayload = {
         email: candidate.sender_email,
         nombres: names[0] || '',
@@ -1443,14 +1447,19 @@ export default function CandidatesAdmin() {
         cargo: candidate.position || (pipelineData.find(p => p.resume_id === resumeId)?.cargo) || '',
         status: 'PENDING',
         created_by_cedula: user?.cedula,
-        company_slug: user?.company_slug
+        company_slug: user?.company_slug,
+        datos_personales: {
+          formativa_date: formativeDate,
+          formativa_session: formativeSession
+        }
       };
 
-      const { data: existing } = await supabase.from('onboarding_candidates').select('id').eq('email', candidate.sender_email).single();
+      const { data: existing } = await supabase.from('onboarding_candidates').select('id, datos_personales').eq('email', candidate.sender_email).single();
 
       let onboardErr;
       if (existing) {
-        const { error } = await supabase.from('onboarding_candidates').update(candidatePayload).eq('id', existing.id);
+        const mergedDatos = { ...(existing.datos_personales || {}), ...candidatePayload.datos_personales };
+        const { error } = await supabase.from('onboarding_candidates').update({ ...candidatePayload, datos_personales: mergedDatos }).eq('id', existing.id);
         onboardErr = error;
       } else {
         const { error } = await supabase.from('onboarding_candidates').insert(candidatePayload);
@@ -1524,6 +1533,9 @@ export default function CandidatesAdmin() {
         if (!candidate || !candidate.sender_email) continue;
 
         const names = (candidate.sender_name || candidate.name || '').split(' ');
+        const formativeDate = c.interview_date || c.created_at || null;
+        const formativeSession = c.session_title || null;
+
         const candidatePayload = {
           email: candidate.sender_email,
           nombres: names[0] || '',
@@ -1533,14 +1545,19 @@ export default function CandidatesAdmin() {
           cargo: candidate.position || (pipelineData.find(p => p.resume_id === c.resume_id)?.cargo) || '',
           status: 'PENDING',
           created_by_cedula: user?.cedula,
-          company_slug: user?.company_slug
+          company_slug: user?.company_slug,
+          datos_personales: {
+            formativa_date: formativeDate,
+            formativa_session: formativeSession
+          }
         };
 
-        const { data: existing } = await supabase.from('onboarding_candidates').select('id').eq('email', candidate.sender_email).single();
+        const { data: existing } = await supabase.from('onboarding_candidates').select('id, datos_personales').eq('email', candidate.sender_email).single();
 
         let onboardErr;
         if (existing) {
-          const { error } = await supabase.from('onboarding_candidates').update(candidatePayload).eq('id', existing.id);
+          const mergedDatos = { ...(existing.datos_personales || {}), ...candidatePayload.datos_personales };
+          const { error } = await supabase.from('onboarding_candidates').update({ ...candidatePayload, datos_personales: mergedDatos }).eq('id', existing.id);
           onboardErr = error;
         } else {
           const { error } = await supabase.from('onboarding_candidates').insert(candidatePayload);
@@ -2202,6 +2219,98 @@ export default function CandidatesAdmin() {
     XLSX.utils.book_append_sheet(wb, ws, "Pendientes");
     XLSX.writeFile(wb, "Onboarding.xlsx");
   }
+
+  // Obtener fecha y sesión de Formativa vinculada a un candidato de Onboarding
+  const getCandidateFormativaInfo = (c: any) => {
+    if (!c) return null;
+
+    // 1. Datos personales directos si fue almacenado
+    if (c.datos_personales?.formativa_date) {
+      let raw = String(c.datos_personales.formativa_date);
+      let dateFormatted = raw;
+      const parts = raw.split('T')[0].split('-');
+      if (parts.length === 3) {
+        dateFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return {
+        date: dateFormatted,
+        session: c.datos_personales.formativa_session || null
+      };
+    }
+
+    const cEmail = (c.email || '').toLowerCase().trim();
+    const cPhone = (c.telefono || '').replace(/\D/g, '').slice(-9);
+    const cName = `${c.nombres || ''} ${c.apellidos || ''}`.toLowerCase().trim();
+    const cCedula = (c.cedula || '').trim();
+
+    // 2. Buscar en formativeCandidates
+    const fc = formativeCandidates.find((item: any) => {
+      const fcEmail = (item.email_resumes?.sender_email || item.email || '').toLowerCase().trim();
+      if (cEmail && fcEmail && cEmail === fcEmail) return true;
+
+      const fcCedula = (item.email_resumes?.cedula || item.cedula || '').trim();
+      if (cCedula && !cCedula.startsWith('PENDIENTE') && fcCedula && cCedula === fcCedula) return true;
+
+      const fcPhone = (item.email_resumes?.sender_phone || item.telefono || '').replace(/\D/g, '').slice(-9);
+      if (cPhone.length >= 7 && fcPhone && cPhone === fcPhone) return true;
+
+      const fcName = (item.email_resumes?.sender_name || item.name || '').toLowerCase().trim();
+      if (cName.length > 5 && fcName.length > 5 && (cName === fcName || cName.includes(fcName) || fcName.includes(cName))) return true;
+
+      return false;
+    });
+
+    if (fc) {
+      let dateFormatted = '';
+      if (fc.interview_date) {
+        const parts = String(fc.interview_date).split('T')[0].split('-');
+        if (parts.length === 3) {
+          dateFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        } else {
+          dateFormatted = String(fc.interview_date);
+        }
+      } else if (fc.session_title) {
+        const m1 = fc.session_title.match(/(\d{4})(\d{2})(\d{2})/);
+        const m2 = fc.session_title.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (m1) {
+          dateFormatted = `${m1[3]}/${m1[2]}/${m1[1]}`;
+        } else if (m2) {
+          dateFormatted = `${m2[3]}/${m2[2]}/${m2[1]}`;
+        }
+      }
+
+      if (!dateFormatted && fc.created_at) {
+        const d = new Date(fc.created_at);
+        if (!isNaN(d.getTime())) {
+          dateFormatted = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        }
+      }
+
+      return {
+        date: dateFormatted || null,
+        session: fc.session_title || null,
+        time: fc.interview_time || null
+      };
+    }
+
+    // 3. Buscar en pipelineData
+    const pItem = pipelineData.find((p: any) => {
+      const pEmail = (p.candidate?.sender_email || '').toLowerCase().trim();
+      return cEmail && pEmail && cEmail === pEmail;
+    });
+
+    if (pItem?.interview_date) {
+      const parts = String(pItem.interview_date).split('T')[0].split('-');
+      const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : String(pItem.interview_date);
+      return {
+        date: dateFormatted,
+        session: null,
+        time: pItem.interview_time || null
+      };
+    }
+
+    return null;
+  };
 
   // Métricas para el Inbox
   const inboxMetrics = (() => {
@@ -4160,6 +4269,7 @@ export default function CandidatesAdmin() {
                     <th>Psicométrico</th>
                     <th>Teléfono / WhatsApp</th>
                     <th>Estado</th>
+                    <th>Usuario / Reclutador</th>
                     <th>Entrevista</th>
                     <th style={{ textAlign: 'right' }}>Acciones</th>
                   </tr>
@@ -4167,7 +4277,7 @@ export default function CandidatesAdmin() {
                 <tbody>
                   {filteredPipelineData.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                      <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
                         No hay candidatos en el resumen actualmente.
                       </td>
                     </tr>
@@ -4386,6 +4496,36 @@ export default function CandidatesAdmin() {
                             {p.status || 'PENDIENTE'}
                           </span>
                         </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ 
+                              width: '24px', 
+                              height: '24px', 
+                              borderRadius: '50%', 
+                              background: '#eff6ff', 
+                              color: '#2563eb', 
+                              border: '1px solid #bfdbfe',
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              fontSize: '11px', 
+                              fontWeight: 800,
+                              flexShrink: 0
+                            }}>
+                              <User size={13} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
+                                {p.recruiter_name || (p.created_by_cedula === user?.cedula ? user?.name : p.created_by_cedula) || user?.name || 'Reclutador'}
+                              </span>
+                              {p.created_by_cedula && (
+                                <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                  {p.created_by_cedula}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
                         <td style={{ fontSize: '13px', fontWeight: 500, color: '#475569' }}>
                           {p.interview_date ? <span>📅 {new Date(p.interview_date.split(' ')[0] + 'T12:00:00').toLocaleDateString()}</span> : '—'}
                         </td>
@@ -4527,52 +4667,87 @@ export default function CandidatesAdmin() {
           <div className="table-container">
             <table>
               <thead>
-                <tr><th>Candidato</th><th>Cargo</th><th>Cédula</th><th>Estado Onboarding</th><th>Acciones</th></tr>
+                <tr>
+                  <th>Candidato</th>
+                  <th>Cargo</th>
+                  <th>Fecha Formativa</th>
+                  <th>Cédula</th>
+                  <th>Estado Onboarding</th>
+                  <th style={{ textAlign: 'right' }}>Acciones</th>
+                </tr>
               </thead>
               <tbody>
-                {candidates.map(c => (
-                  <tr key={c.id}>
-                    <td>
-                      <div className="user-cell">
-                        <div className="user-avatar"><User size={20} /></div>
-                        <div>
-                          <p className="user-name">{c.nombres} {c.apellidos}</p>
-                          <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>{c.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ color: '#475569', fontWeight: 600 }}>{c.cargo}</td>
-                    <td>{c.cedula?.startsWith('PENDIENTE') ? <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Por completar</span> : <strong>{c.cedula}</strong>}</td>
-                    <td>
-                      <span className="pipeline-badge" style={{ 
-                         background: c.status === 'SYNCED' ? '#e0f2fe' : c.status === 'APPROVED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff', 
-                         color: c.status === 'SYNCED' ? '#0369a1' : c.status === 'APPROVED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
-                         border: '1px solid currentColor',
-                         opacity: 0.8
-                       }}>
-                         {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'APPROVED' ? '✅ APROBADO' : c.status === 'SYNCED' ? '☁️ EN ORACLE' : '⏳ PENDIENTE'}
-                       </span>
-                       {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        {(c.status === 'LLENADO' || c.status === 'APPROVED') && (
-                          <div style={{ display: 'flex', gap: '4px' }}>
-                            <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
-                            <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
-                            <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
-                            {c.status !== 'APPROVED' && (
-                              <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
-                            )}
-                            <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🚀 Sincronizar</button>
+                {candidates.map(c => {
+                  const fInfo = getCandidateFormativaInfo(c);
+                  return (
+                    <tr key={c.id}>
+                      <td>
+                        <div className="user-cell">
+                          <div className="user-avatar"><User size={20} /></div>
+                          <div>
+                            <p className="user-name">{c.nombres} {c.apellidos}</p>
+                            <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>{c.email}</p>
                           </div>
+                        </div>
+                      </td>
+                      <td style={{ color: '#475569', fontWeight: 600 }}>{c.cargo}</td>
+                      <td>
+                        {fInfo?.date ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              📅 {fInfo.date}
+                            </span>
+                            {fInfo.session && (
+                              <span style={{ 
+                                fontSize: '10px', 
+                                fontWeight: 700, 
+                                color: '#0369a1', 
+                                background: '#f0f9ff', 
+                                border: '1px solid #bae6fd', 
+                                padding: '1px 6px', 
+                                borderRadius: '4px', 
+                                width: 'fit-content' 
+                              }}>
+                                🎯 {fInfo.session}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>—</span>
                         )}
-                        {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
-                        <button onClick={() => handleDelete(c.id)} className="track-btn" style={{ color: '#64748b', padding: '6px' }} title="Eliminar registro"><Trash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>{c.cedula?.startsWith('PENDIENTE') ? <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Por completar</span> : <strong>{c.cedula}</strong>}</td>
+                      <td>
+                        <span className="pipeline-badge" style={{ 
+                           background: c.status === 'SYNCED' ? '#e0f2fe' : c.status === 'APPROVED' ? '#f0fdf4' : c.status === 'LLENADO' ? '#f5f3ff' : '#eff6ff', 
+                           color: c.status === 'SYNCED' ? '#0369a1' : c.status === 'APPROVED' ? '#166534' : c.status === 'LLENADO' ? '#5b21b6' : '#1e40af',
+                           border: '1px solid currentColor',
+                           opacity: 0.8
+                         }}>
+                           {c.status === 'LLENADO' ? '📝 LLENADO' : c.status === 'APPROVED' ? '✅ APROBADO' : c.status === 'SYNCED' ? '☁️ EN SAP' : '⏳ PENDIENTE'}
+                         </span>
+                         {c.observaciones && <p style={{ fontSize: '10px', color: '#ef4444', margin: '4px 0 0' }}>⚠️ {c.observaciones}</p>}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                          {(c.status === 'LLENADO' || c.status === 'APPROVED') && (
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button onClick={() => setViewingOnboarding(c)} className="track-btn" style={{ color: '#3b82f6', borderColor: '#dbeafe', padding: '4px 8px', fontSize: '11px' }}>👁️ Ver</button>
+                              <button onClick={() => window.open('/zero-paper/admin/employees', '_blank')} className="track-btn" style={{ color: '#8b5cf6', borderColor: '#ddd6fe', padding: '4px 8px', fontSize: '11px' }}>🏦 Nómina</button>
+                              <button onClick={() => setRejectionModal({ id: c.id, email: c.email, name: `${c.nombres} ${c.apellidos}` })} className="track-btn" style={{ color: '#ef4444', borderColor: '#fecaca', padding: '4px 8px', fontSize: '11px' }}>❌ Rechazar</button>
+                              {c.status !== 'APPROVED' && (
+                                <button onClick={() => handleApproveOnboarding(c.id)} className="track-btn" style={{ color: '#002f6c', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🌟 Aprobar</button>
+                              )}
+                              <button onClick={() => handleSyncToOracle(c.id)} className="track-btn" style={{ background: '#002f6c', color: 'white', borderColor: '#002f6c', padding: '4px 8px', fontSize: '11px' }}>🚀 Sincronizar</button>
+                            </div>
+                          )}
+                          {c.status === 'PENDING' && <span style={{ color: '#94a3b8', fontSize: '12px' }}>Esperando llenado</span>}
+                          <button onClick={() => handleDelete(c.id)} className="track-btn" style={{ color: '#64748b', padding: '6px' }} title="Eliminar registro"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -4593,6 +4768,11 @@ export default function CandidatesAdmin() {
                   <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
                     <p><strong>Cédula:</strong> {viewingOnboarding.cedula}</p>
                     <p><strong>Email:</strong> {viewingOnboarding.email}</p>
+                    <p><strong>Cargo:</strong> {viewingOnboarding.cargo || '—'}</p>
+                    <p><strong>Fecha Formativa:</strong> {(() => {
+                      const fInfo = getCandidateFormativaInfo(viewingOnboarding);
+                      return fInfo?.date ? `${fInfo.date}${fInfo.session ? ` (${fInfo.session})` : ''}` : 'No registrada';
+                    })()}</p>
                     <p><strong>Nacionalidad:</strong> {viewingOnboarding.datos_personales?.nacionalidad}</p>
                     <p><strong>Estado Civil:</strong> {viewingOnboarding.datos_personales?.estado_civil}</p>
                     <p><strong>Ciudad Nac.:</strong> {viewingOnboarding.datos_personales?.ciudad_nacimiento}</p>
