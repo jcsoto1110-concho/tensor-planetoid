@@ -681,6 +681,16 @@ export default function CandidatesAdmin() {
       const totalScore = cEvals.reduce((sum, ev) => sum + ev.score, 0);
       const avgScore = cEvals.length > 0 ? Math.round(totalScore / cEvals.length) : 0;
 
+      // Consolidar comentarios de evaluadores/supervisores
+      const comentarios = cEvals
+        .map(e => {
+          const sup = formativeSupervisors.find(s => s.id === e.supervisor_id);
+          const supName = sup?.name ? `${sup.name}: ` : '';
+          return e.comments ? `${supName}${e.comments}` : null;
+        })
+        .filter(Boolean)
+        .join(' | ') || (c.comments || c.observaciones || c.notes || '');
+
       return {
         'Candidato': c.email_resumes?.sender_name || 'Desconocido',
         'Cédula': c.email_resumes?.cedula || '',
@@ -690,7 +700,8 @@ export default function CandidatesAdmin() {
         'Hora Entrevista': c.interview_time || '',
         'Asistió': c.attended ? 'Sí' : 'No',
         'Puntaje Promedio': avgScore,
-        'Fase': c.fase || 1
+        'Fase': c.fase || 1,
+        'Comentarios': comentarios
       };
     });
 
@@ -5377,11 +5388,9 @@ export default function CandidatesAdmin() {
                     </button>
                   </div>
                 </div>
-
-                {/* Sección de Sesión */}
                 <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                   {/* Input de Título de Sesión Activa */}
-                  <div style={{ flex: '1', minWidth: '240px' }}>
+                  <div style={{ flex: '1.2', minWidth: '220px' }}>
                     <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
                       📋 Título de Sesión Activa
                     </label>
@@ -5398,7 +5407,7 @@ export default function CandidatesAdmin() {
                   </div>
 
                   {/* Selector de sesión para filtrar/ver */}
-                  <div style={{ minWidth: '260px' }}>
+                  <div style={{ minWidth: '220px', flex: '1' }}>
                     <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
                       🔍 Ver Sesión
                     </label>
@@ -5414,6 +5423,29 @@ export default function CandidatesAdmin() {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Buscador de candidato por nombre */}
+                  <div style={{ minWidth: '220px', flex: '1.2' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+                      🔎 Buscar Candidato por Nombre
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={formativeNameFilter}
+                        onChange={e => setFormativeNameFilter(e.target.value)}
+                        placeholder="Buscar por nombre o cargo..."
+                        style={{ width: '100%', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 34px 10px 14px', fontSize: '14px', background: '#f8fafc', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
+                      />
+                      {formativeNameFilter && (
+                        <button
+                          onClick={() => setFormativeNameFilter('')}
+                          style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '16px', padding: 0 }}
+                          title="Limpiar búsqueda"
+                        >×</button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -5516,8 +5548,13 @@ export default function CandidatesAdmin() {
                             <>
                               {(() => {
                                 const sessionFiltered = formativeSessionFilter === 'ALL' ? formativeCandidates : formativeCandidates.filter(c => c.session_title === formativeSessionFilter);
-                                const nameFiltered = formativeNameFilter.trim()
-                                  ? sessionFiltered.filter(c => (c.email_resumes?.sender_name || '').toLowerCase().includes(formativeNameFilter.trim().toLowerCase()))
+                                const q = formativeNameFilter.trim().toLowerCase();
+                                const nameFiltered = q
+                                  ? sessionFiltered.filter(c => 
+                                      (c.email_resumes?.sender_name || '').toLowerCase().includes(q) ||
+                                      (c.email_resumes?.position || '').toLowerCase().includes(q) ||
+                                      (c.email_resumes?.sender_email || '').toLowerCase().includes(q)
+                                    )
                                   : sessionFiltered;
                                 if (nameFiltered.length === 0) return (
                                   <tr>
@@ -5819,7 +5856,15 @@ export default function CandidatesAdmin() {
                   const sessionCands = formativeSessionFilter === 'ALL'
                     ? formativeCandidates
                     : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
-                  return sessionCands.map(c => {
+                  const q = formativeNameFilter.trim().toLowerCase();
+                  const nameFiltered = q
+                    ? sessionCands.filter(c => 
+                        (c.email_resumes?.sender_name || '').toLowerCase().includes(q) ||
+                        (c.email_resumes?.position || '').toLowerCase().includes(q) ||
+                        (c.email_resumes?.sender_email || '').toLowerCase().includes(q)
+                      )
+                    : sessionCands
+                  return nameFiltered.map(c => {
                     const evals = formativeEvaluations.filter((e: any) => e.candidate_id === c.id)
                     const totalScore = evals.reduce((sum: number, e: any) => sum + (e.score || 0), 0)
                     const avgScore = evals.length > 0 ? Math.round(totalScore / evals.length) : 0
@@ -6026,7 +6071,16 @@ export default function CandidatesAdmin() {
                   ? formativeCandidates
                   : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
 
-                const passedCands = sessionCands.filter(c => c.fase === 2);
+                const q = formativeNameFilter.trim().toLowerCase();
+                const nameFiltered = q
+                  ? sessionCands.filter(c => 
+                      (c.email_resumes?.sender_name || '').toLowerCase().includes(q) ||
+                      (c.email_resumes?.position || '').toLowerCase().includes(q) ||
+                      (c.email_resumes?.sender_email || '').toLowerCase().includes(q)
+                    )
+                  : sessionCands
+
+                const passedCands = nameFiltered.filter(c => c.fase === 2);
 
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -6081,7 +6135,16 @@ export default function CandidatesAdmin() {
                   ? formativeCandidates
                   : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
 
-                const ranked = sessionCands.map(c => {
+                const q = formativeNameFilter.trim().toLowerCase();
+                const nameFiltered = q
+                  ? sessionCands.filter(c => 
+                      (c.email_resumes?.sender_name || '').toLowerCase().includes(q) ||
+                      (c.email_resumes?.position || '').toLowerCase().includes(q) ||
+                      (c.email_resumes?.sender_email || '').toLowerCase().includes(q)
+                    )
+                  : sessionCands
+
+                const ranked = nameFiltered.map(c => {
                   const evals = formativeEvaluations.filter((e: any) => e.candidate_id === c.id)
                   const totalScore = evals.reduce((sum: number, e: any) => sum + (e.score || 0), 0)
                   return { ...c, totalScore, evalCount: evals.length }

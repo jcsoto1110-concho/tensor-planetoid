@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
-import { RefreshCw, Star, AlertCircle, LogOut, CheckCircle2 } from 'lucide-react'
+import { RefreshCw, Star, AlertCircle, LogOut, CheckCircle2, Search, X } from 'lucide-react'
 
 interface EvalCandidate {
   id: string
@@ -41,6 +41,7 @@ export default function SupervisorPortal() {
   const [submittedCandidates, setSubmittedCandidates] = useState<Set<string>>(new Set())
   const [submittingId, setSubmittingId] = useState<string | null>(null)
   const [commentsByCandidate, setCommentsByCandidate] = useState<Record<string, string>>({})
+  const [candidateSearchFilter, setCandidateSearchFilter] = useState('')
   
   // Tabs
   const [activeTab, setActiveTab] = useState<'evaluar' | 'resultados'>('evaluar')
@@ -274,6 +275,18 @@ export default function SupervisorPortal() {
     return Object.values(vals).reduce((sum, v) => sum + (v !== '' ? Number(v) : 0), 0)
   }
 
+  // ── Filter active candidates by search query ──────────────────────────────────
+  const filteredCandidates = useMemo(() => {
+    const q = candidateSearchFilter.toLowerCase().trim()
+    if (!q) return activeCandidates
+    return activeCandidates.filter(c =>
+      (c.candidate_name && c.candidate_name.toLowerCase().includes(q)) ||
+      (c.candidate_cargo && c.candidate_cargo.toLowerCase().includes(q)) ||
+      (c.city && c.city.toLowerCase().includes(q)) ||
+      (c.sector && c.sector.toLowerCase().includes(q))
+    )
+  }, [activeCandidates, candidateSearchFilter])
+
   // ─────────────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: '#f8fafc', fontFamily: "'Inter', sans-serif", padding: '16px' }}>
@@ -353,9 +366,40 @@ export default function SupervisorPortal() {
         /* MAIN: MATRIX */
         ) : activeTab === 'resultados' ? (
           <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
-            <div style={{ padding: '24px', borderBottom: '1px solid #f1f5f9' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px', color: '#0f172a' }}>Resultados de Evaluación</h2>
-              <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>Todos los supervisores · ordenado por puntaje total</p>
+            <div style={{ padding: '24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px', color: '#0f172a' }}>Resultados de Evaluación</h2>
+                <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>Todos los supervisores · ordenado por puntaje total</p>
+              </div>
+              {/* Buscador de candidato en resultados */}
+              <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
+                <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
+                <input
+                  type="text"
+                  value={candidateSearchFilter}
+                  onChange={e => setCandidateSearchFilter(e.target.value)}
+                  placeholder="Buscar candidato..."
+                  style={{
+                    width: '100%',
+                    background: '#f8fafc',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '8px 28px 8px 32px',
+                    color: '#0f172a',
+                    fontSize: '13px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                {candidateSearchFilter && (
+                  <button
+                    onClick={() => setCandidateSearchFilter('')}
+                    style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px', padding: 0 }}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '800px' }}>
@@ -372,7 +416,7 @@ export default function SupervisorPortal() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...(activeCandidates as any[])].sort((a, b) => {
+                  {[...(filteredCandidates as any[])].sort((a, b) => {
                     const totalA = allEvals.filter(e => e.candidate_id === a.id).reduce((sum, e) => sum + e.score, 0);
                     const totalB = allEvals.filter(e => e.candidate_id === b.id).reduce((sum, e) => sum + e.score, 0);
                     return totalB - totalA;
@@ -449,13 +493,19 @@ export default function SupervisorPortal() {
                       </tr>
                     );
                   })}
-                  {activeCandidates.length === 0 && (
+                  {activeCandidates.length === 0 ? (
                     <tr>
                       <td colSpan={allSupers.length + 3} style={{ textAlign: 'center', padding: '48px', color: '#64748b' }}>
                         No hay candidatos en evaluación.
                       </td>
                     </tr>
-                  )}
+                  ) : filteredCandidates.length === 0 ? (
+                    <tr>
+                      <td colSpan={allSupers.length + 3} style={{ textAlign: 'center', padding: '48px', color: '#64748b' }}>
+                        No se encontraron candidatos con el filtro &quot;{candidateSearchFilter}&quot;.
+                      </td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
             </div>
@@ -464,7 +514,7 @@ export default function SupervisorPortal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
             {/* Status bar */}
-            <div style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', borderRadius: '12px', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', borderRadius: '12px', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="animate-pulse" style={{ width: '8px', height: '8px', background: activeCandidates.length > 0 ? '#a78bfa' : '#64748b', borderRadius: '50%', display: 'inline-block' }}></span>
                 <span style={{ fontSize: '13px', color: '#c4b5fd', fontWeight: 600 }}>
@@ -473,6 +523,39 @@ export default function SupervisorPortal() {
                     : 'Sin candidatos activos — el reclutador no ha iniciado evaluación todavía'}
                 </span>
               </div>
+
+              {/* Buscador de candidato en evaluación en vivo */}
+              {activeCandidates.length > 0 && (
+                <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
+                  <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
+                  <input
+                    type="text"
+                    value={candidateSearchFilter}
+                    onChange={e => setCandidateSearchFilter(e.target.value)}
+                    placeholder="Buscar candidato por nombre..."
+                    style={{
+                      width: '100%',
+                      background: 'rgba(15,23,42,0.85)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      borderRadius: '8px',
+                      padding: '7px 28px 7px 32px',
+                      color: '#f8fafc',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  {candidateSearchFilter && (
+                    <button
+                      onClick={() => setCandidateSearchFilter('')}
+                      style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px', padding: 0 }}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              )}
+
               <span style={{ fontSize: '11px', color: '#64748b' }}>Actualización automática cada 5 s</span>
             </div>
 
@@ -485,18 +568,31 @@ export default function SupervisorPortal() {
                   El reclutador debe hacer clic en <strong>&quot;🎯 Evaluar&quot;</strong> o <strong>&quot;Iniciar Evaluación Grupal&quot;</strong> en el panel de Formativas para que los candidatos aparezcan aquí.
                 </p>
               </div>
+            ) : filteredCandidates.length === 0 ? (
+              /* Sin resultados con el filtro */
+              <div style={{ background: 'rgba(30,41,59,0.7)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '48px 32px', textAlign: 'center' }}>
+                <p style={{ color: '#94a3b8', fontSize: '14px', margin: '0 0 12px' }}>
+                  No se encontraron candidatos con el filtro <strong>&quot;{candidateSearchFilter}&quot;</strong>.
+                </p>
+                <button
+                  onClick={() => setCandidateSearchFilter('')}
+                  style={{ background: '#7c3aed', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Limpiar búsqueda
+                </button>
+              </div>
             ) : (
               /* ─── MATRIX TABLE ─── */
               <div style={{ background: 'rgba(30,41,59,0.6)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: `${220 + activeCandidates.length * 170}px` }}>
+                  <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: `${220 + filteredCandidates.length * 170}px` }}>
                     <thead>
                       <tr style={{ background: 'rgba(124,58,237,0.15)' }}>
                         {/* Sticky criteria column header */}
                         <th style={{ position: 'sticky', left: 0, zIndex: 2, background: 'rgba(15,23,42,0.98)', padding: '16px 20px', textAlign: 'left', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', minWidth: '220px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                           Criterio de Evaluación
                         </th>
-                        {activeCandidates.map(c => (
+                        {filteredCandidates.map(c => (
                           <th key={c.id} style={{ padding: '12px 16px', textAlign: 'center', minWidth: '160px', borderRight: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'top' }}>
                             <div style={{ fontSize: '13px', fontWeight: 800, color: '#f8fafc', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '148px' }}>{c.candidate_name}</div>
                             <div style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 600, marginBottom: '4px' }}>{c.candidate_cargo}</div>
@@ -521,7 +617,7 @@ export default function SupervisorPortal() {
                           {/* Category header row */}
                           <tr key={`cat-${category}`} style={{ background: 'rgba(124,58,237,0.08)' }}>
                             <td
-                              colSpan={activeCandidates.length + 1}
+                              colSpan={filteredCandidates.length + 1}
                               style={{ padding: '8px 20px', fontSize: '10px', fontWeight: 900, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.1em', borderTop: '1px solid rgba(124,58,237,0.2)', borderBottom: '1px solid rgba(124,58,237,0.1)' }}
                             >
                               {category}
@@ -537,7 +633,7 @@ export default function SupervisorPortal() {
                                 <span style={{ display: 'block', fontSize: '10px', color: '#475569', marginTop: '1px' }}>máx 10 pts</span>
                               </td>
                               {/* Input numérico por criterio, por candidato */}
-                              {activeCandidates.map(c => {
+                              {filteredCandidates.map(c => {
                                 const isSubmitted = submittedCandidates.has(c.id)
                                 const val = criterionValues[c.id]?.[opt.id] ?? ''
                                 const numVal = val === '' ? 0 : Number(val)
@@ -599,7 +695,7 @@ export default function SupervisorPortal() {
                           <span style={{ fontSize: '12px', fontWeight: 800, color: '#a78bfa', display: 'block' }}>Puntaje</span>
                           <span style={{ fontSize: '10px', color: '#64748b' }}>Auto · edita si deseas</span>
                         </td>
-                        {activeCandidates.map(c => {
+                        {filteredCandidates.map(c => {
                           const auto = scoreOf(c.id)
                           const isSubmitted = submittedCandidates.has(c.id)
                           const hasAny = auto > 0 || Object.values(criterionValues[c.id] || {}).some(v => v !== '')
@@ -653,7 +749,7 @@ export default function SupervisorPortal() {
                           <span style={{ fontSize: '12px', fontWeight: 800, color: '#f8fafc', display: 'block' }}>Comentarios</span>
                           <span style={{ fontSize: '10px', color: '#64748b' }}>Opcional pero recomendado</span>
                         </td>
-                        {activeCandidates.map(c => {
+                        {filteredCandidates.map(c => {
                           const isSubmitted = submittedCandidates.has(c.id)
                           return (
                             <td key={`comments-${c.id}`} style={{ textAlign: 'center', padding: '12px 8px', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
@@ -687,7 +783,7 @@ export default function SupervisorPortal() {
                         <td style={{ position: 'sticky', left: 0, zIndex: 1, background: 'rgba(15,23,42,0.98)', padding: '14px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                           Acción
                         </td>
-                        {activeCandidates.map(c => {
+                        {filteredCandidates.map(c => {
                           const isSubmitted = submittedCandidates.has(c.id)
                           const isSubmitting = submittingId === c.id
                           const vals = criterionValues[c.id] || {}
