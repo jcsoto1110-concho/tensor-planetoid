@@ -448,24 +448,33 @@ export default function CandidatesAdmin() {
         // Filtrar sólo por empresa para ver todos los candidatos de la compañía
         const filteredCands = cands.filter((c: any) => c.email_resumes?.company_slug === user.company_slug)
         setFormativeCandidates(filteredCands)
-        // Extraer sesiones únicas para el selector
-        const sessions = [...new Set(
+        // Extraer sesiones únicas para el selector (activas primero, cerradas después)
+        const activeSessions = [...new Set(
           filteredCands
             .map((c: any) => c.session_title)
-            .filter((s: any) => s && s.trim() !== '')
-        )] as string[]
-        sessions.sort((a, b) => b.localeCompare(a)) // Más reciente primero
-        setFormativeSessions(sessions)
+            .filter((s: any) => s && s.trim() !== '' && !s.startsWith('[CERRADA]'))
+        )] as string[];
+        activeSessions.sort((a, b) => b.localeCompare(a));
 
-        // Fix: Si la sesión seleccionada ya no existe (por ejemplo, se acaba de cerrar), resetear el filtro
+        const closedSessions = [...new Set(
+          filteredCands
+            .map((c: any) => c.session_title)
+            .filter((s: any) => s && s.trim() !== '' && s.startsWith('[CERRADA]'))
+        )] as string[];
+        closedSessions.sort((a, b) => b.localeCompare(a));
+
+        const sessions = [...activeSessions, ...closedSessions];
+        setFormativeSessions(sessions);
+
+        // Fix: Si la sesión seleccionada ya no existe, resetear el filtro
         setFormativeSessionFilter(prev => {
           if (prev !== 'ALL' && !sessions.includes(prev)) {
-            return 'ALL'
+            return 'ALL';
           }
-          return prev
-        })
+          return prev;
+        });
       }
-      if (sups) setFormativeSupervisors(sups)
+      if (sups) setFormativeSupervisors(sups);
       setFormativeAssignments([])
       if (evals) setFormativeEvaluations(evals)
       if (opts) setFormativeOptions(opts)
@@ -675,56 +684,105 @@ export default function CandidatesAdmin() {
       sessionCands = formativeCandidates.filter(c => c.session_title === sessionName);
     } else {
       sessionCands = [...formativeCandidates];
-      sessionName = formativeSessionTitle || 'Todas_las_Sesiones';
+      sessionName = formativeSessionTitle || 'Todas_las_Sesiones_Activas';
     }
 
     if (sessionCands.length === 0) {
-      alert('No hay candidatos en formativas para cerrar.');
+      alert('No hay candidatos en sesiones formativas para cerrar.');
       return;
     }
 
+    const cleanTitle = sessionName.replace('[CERRADA] ', '');
     const confirmMsg = formativeSessionFilter !== 'ALL'
-      ? `¿Estás seguro de cerrar la sesión "${sessionName}" (${sessionCands.length} candidatos)?\nSus datos se descargarán en un archivo Excel y la pantalla quedará limpia.`
-      : `¿Estás seguro de cerrar y archivar los ${sessionCands.length} candidatos actualmente en pantalla?\nSus datos se descargarán en un archivo Excel y la pantalla quedará limpia.`;
+      ? `¿Estás seguro de cerrar la sesión "${cleanTitle}" (${sessionCands.length} candidatos)?\n\n✅ Sus datos, calificaciones y comentarios se guardarán en la tabla de Histórico (formative_history), se descargará el Excel y la pantalla quedará limpia.`
+      : `¿Estás seguro de cerrar y archivar los ${sessionCands.length} candidatos en pantalla?\n\n✅ Sus datos, calificaciones y comentarios se guardarán en la tabla de Histórico (formative_history), se descargará el Excel y la pantalla quedará limpia.`;
 
     if (!confirm(confirmMsg)) return;
 
-    const dataToExport = sessionCands.map(c => {
+    // 1. Preparar registros para la tabla de Histórico (formative_history)
+    const historyRecords = sessionCands.map(c => {
       const cEvals = formativeEvaluations.filter(e => e.candidate_id === c.id);
-      const totalScore = cEvals.reduce((sum, ev) => sum + ev.score, 0);
+      const totalScore = cEvals.reduce((sum, ev) => sum + (ev.score || 0), 0);
       const avgScore = cEvals.length > 0 ? Math.round(totalScore / cEvals.length) : 0;
+
+      // Detalle de evaluadores
+      const evaluadoresConPuntaje = cEvals.map(e => {
+        const sup = formativeSupervisors.find(s => s.id === e.supervisor_id);
+        return `${sup?.name || 'Supervisor'}: ${e.score} pts`;
+      }).join(' | ');
 
       // Consolidar comentarios de evaluadores/supervisores
       const comentarios = cEvals
         .map(e => {
           const sup = formativeSupervisors.find(s => s.id === e.supervisor_id);
-          const supName = sup?.name ? `${sup.name}: ` : '';
+          const supName = sup?.name ? `[${sup.name}]: ` : '';
           return e.comments ? `${supName}${e.comments}` : null;
         })
         .filter(Boolean)
-        .join(' | ') || (c.comments || c.observaciones || c.notes || '');
+        .join(' \n') || (c.comments || c.observaciones || c.notes || '');
 
       return {
-        'Candidato': c.email_resumes?.sender_name || 'Desconocido',
-        'Cédula': c.email_resumes?.cedula || '',
-        'Cargo': c.email_resumes?.position || '',
-        'Sesión': c.session_title || sessionName,
-        'Fecha Entrevista': c.interview_date || '',
-        'Hora Entrevista': c.interview_time || '',
-        'Asistió': c.attended ? 'Sí' : 'No',
-        'Puntaje Promedio': avgScore,
-        'Fase': c.fase || 1,
-        'Comentarios': comentarios
+        resume_id: c.resume_id || null,
+        session_title: c.session_title || cleanTitle,
+        candidate_name: c.email_resumes?.sender_name || 'Desconocido',
+        cedula: c.email_resumes?.cedula || '',
+        position: c.email_resumes?.position || '',
+        phone: c.email_resumes?.sender_phone || '',
+        email: c.email_resumes?.sender_email || '',
+        city: c.email_resumes?.city || '',
+        sector: c.email_resumes?.sector || '',
+        interview_date: c.interview_date || (c.created_at ? c.created_at.split('T')[0] : null),
+        interview_time: c.interview_time || '',
+        confirmed: !!c.confirmed,
+        attended: !!c.attended,
+        evaluators_detail: evaluadoresConPuntaje || 'Sin evaluar',
+        total_score: totalScore,
+        avg_score: avgScore,
+        fase: c.fase || 1,
+        comments: comentarios,
+        company_slug: c.email_resumes?.company_slug || user?.company_slug || null,
+        closed_by: user?.cedula || (user as any)?.email || 'Admin',
+        closed_at: new Date().toISOString()
       };
     });
 
+    // 2. Insertar en la tabla formative_history
+    const { error: histErr } = await supabase.from('formative_history').insert(historyRecords);
+    if (histErr) {
+      console.error('Error guardando en formative_history:', histErr);
+      alert('⚠️ Hubo un error al guardar el histórico en la base de datos: ' + histErr.message);
+      return;
+    }
+
+    // 3. Exportar Excel de respaldo de la sesión
+    const dataToExport = historyRecords.map(h => ({
+      'Candidato': h.candidate_name,
+      'Cédula': h.cedula,
+      'Cargo': h.position,
+      'Teléfono': h.phone,
+      'Correo': h.email,
+      'Ciudad / Sector': [h.city, h.sector].filter(Boolean).join(' - '),
+      'Sesión': h.session_title,
+      'Fecha Entrevista': h.interview_date || '',
+      'Hora Entrevista': h.interview_time || '',
+      'Confirmó': h.confirmed ? 'Sí' : 'No',
+      'Asistió': h.attended ? 'Sí' : 'No',
+      'Detalle Evaluadores': h.evaluators_detail,
+      'Puntaje Total': h.total_score,
+      'Puntaje Promedio': h.avg_score,
+      'Fase': h.fase === 2 ? 'Fase 2' : 'Fase 1',
+      'Comentarios': h.comments
+    }));
+
     if (dataToExport.length > 0) {
+      const cleanFileName = cleanTitle.replace(/[^a-zA-Z0-9_\-]/g, '_');
       const ws = XLSX.utils.json_to_sheet(dataToExport);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Formativas");
-      XLSX.writeFile(wb, `Formativas_${sessionName}.xlsx`);
+      XLSX.writeFile(wb, `Formativas_${cleanFileName}.xlsx`);
     }
 
+    // 4. Actualizar estado en candidate_tracking a 'FORMATIVA_CERRADA'
     const resumeIdsToArchive = sessionCands.map(c => c.resume_id).filter(Boolean);
     if (resumeIdsToArchive.length > 0) {
       const { error: trackErr } = await supabase.from('candidate_tracking')
@@ -743,6 +801,7 @@ export default function CandidatesAdmin() {
       }
     }
 
+    // 5. Limpiar de la tabla activa formative_candidates
     const candidateIdsToDelete = sessionCands.map(c => c.id).filter(Boolean);
     if (candidateIdsToDelete.length > 0) {
       const { error: delErr } = await supabase
@@ -751,9 +810,7 @@ export default function CandidatesAdmin() {
         .in('id', candidateIdsToDelete);
 
       if (delErr) {
-        console.error('Error al eliminar candidatos de formativas:', delErr);
-        alert('⚠️ Hubo un error al eliminar los candidatos en la base de datos: ' + delErr.message);
-        return;
+        console.error('Error al limpiar candidatos de formative_candidates:', delErr);
       }
     }
 
@@ -766,7 +823,7 @@ export default function CandidatesAdmin() {
     setFormativeSessionTitle(newTitle);
     setFormativeSessionFilter('ALL');
 
-    alert(`✅ ${sessionCands.length} candidato(s) de formativas fueron cerrados y archivados con éxito.`);
+    alert(`✅ ¡Cierre exitoso! ${sessionCands.length} candidato(s) fueron guardados permanentemente en el histórico (formative_history) y se descargó el Excel.`);
   };
 
   const handleExportEvaluationsByDateRange = async () => {
@@ -781,13 +838,28 @@ export default function CandidatesAdmin() {
 
     setExportingEvaluations(true);
     try {
-      // 1. Obtener candidatos de formativas
-      const { data: cands, error: candsErr } = await supabase
+      // 1. Obtener registros históricos de la tabla formative_history
+      let historyQuery = supabase
+        .from('formative_history')
+        .select('*')
+        .gte('interview_date', exportStartDate)
+        .lte('interview_date', exportEndDate)
+        .order('interview_date', { ascending: false });
+
+      if (user?.company_slug) {
+        historyQuery = historyQuery.eq('company_slug', user.company_slug);
+      }
+
+      const { data: historyData, error: historyErr } = await historyQuery;
+      if (historyErr) {
+        console.error('Error consultando formative_history:', historyErr);
+      }
+
+      // 2. Obtener candidatos activos en formative_candidates en ese rango (por si aún no han cerrado la sesión)
+      const { data: activeCands } = await supabase
         .from('formative_candidates')
         .select('*, email_resumes(*)')
         .order('created_at', { ascending: false });
-
-      if (candsErr) throw candsErr;
 
       const { data: evals } = await supabase.from('formative_evaluations').select('*');
       const { data: sups } = await supabase.from('formative_supervisors').select('*');
@@ -795,51 +867,29 @@ export default function CandidatesAdmin() {
       const allEvals = evals || [];
       const allSups = sups || [];
 
-      // Filtrar candidatos pertenecientes a la empresa cuya fecha (entrevista, creación o evaluación) esté en el rango
-      const matchedCands = (cands || []).filter((c: any) => {
+      const filteredActive = (activeCands || []).filter((c: any) => {
         if (user?.company_slug && c.email_resumes?.company_slug && c.email_resumes.company_slug !== user.company_slug) {
           return false;
         }
         const cDateStr = c.interview_date || (c.created_at ? c.created_at.split('T')[0] : '');
-
-        // Verificar coincidencia por fecha de entrevista o registro
-        const candDateMatch = cDateStr && cDateStr >= exportStartDate && cDateStr <= exportEndDate;
-        if (candDateMatch) return true;
-
-        // O verificar si tiene alguna evaluación registrada en el rango de fechas seleccionado
-        const candidateEvals = allEvals.filter((e: any) => e.candidate_id === c.id);
-        const evalDateMatch = candidateEvals.some((e: any) => {
-          const eDateStr = e.created_at ? e.created_at.split('T')[0] : (e.updated_at ? e.updated_at.split('T')[0] : '');
-          return eDateStr && eDateStr >= exportStartDate && eDateStr <= exportEndDate;
-        });
-
-        return evalDateMatch;
+        return cDateStr && cDateStr >= exportStartDate && cDateStr <= exportEndDate;
       });
 
-      if (matchedCands.length === 0) {
-        alert(`No se encontraron evaluaciones ni candidatos de formativas entre el ${exportStartDate} y el ${exportEndDate}.`);
-        return;
-      }
-
-      // 2. Mapear datos a formato tabular Excel
-      const dataToExport = matchedCands.map((c: any) => {
+      // Mapear los activos a la estructura de exportación
+      const activeRows = filteredActive.map((c: any) => {
         const cEvals = allEvals.filter((e: any) => e.candidate_id === c.id);
         const totalScore = cEvals.reduce((sum: number, ev: any) => sum + (ev.score || 0), 0);
         const avgScore = cEvals.length > 0 ? Math.round(totalScore / cEvals.length) : 0;
 
-        // Evaluadores y sus puntajes
         const evaluadoresConPuntaje = cEvals.map((e: any) => {
           const sup = allSups.find((s: any) => s.id === e.supervisor_id);
           return `${sup?.name || 'Supervisor'}: ${e.score} pts`;
         }).join(' | ');
 
-        // Comentarios detallados por evaluador
         const comentariosConsolidados = cEvals.map((e: any) => {
           const sup = allSups.find((s: any) => s.id === e.supervisor_id);
           return e.comments ? `[${sup?.name || 'Supervisor'}]: ${e.comments}` : null;
         }).filter(Boolean).join(' \n') || (c.comments || c.observaciones || c.notes || '');
-
-        const fechaFormativa = c.interview_date || (c.created_at ? c.created_at.split('T')[0] : '');
 
         return {
           'Candidato': c.email_resumes?.sender_name || 'Desconocido',
@@ -849,7 +899,7 @@ export default function CandidatesAdmin() {
           'Correo': c.email_resumes?.sender_email || '',
           'Ciudad / Sector': [c.email_resumes?.city, c.email_resumes?.sector].filter(Boolean).join(' - '),
           'Sesión Formativa': c.session_title || '—',
-          'Fecha Formativa / Entrevista': fechaFormativa,
+          'Fecha Formativa / Entrevista': c.interview_date || (c.created_at ? c.created_at.split('T')[0] : ''),
           'Hora': c.interview_time || '',
           'Confirmó Asistencia': c.confirmed ? 'Sí' : 'No',
           'Asistió': c.attended ? 'Sí' : 'No',
@@ -858,11 +908,41 @@ export default function CandidatesAdmin() {
           'Puntaje Total': totalScore,
           'Puntaje Promedio': avgScore,
           'Fase': c.fase === 2 ? 'Fase 2' : 'Fase 1',
-          'Comentarios': comentariosConsolidados
+          'Comentarios': comentariosConsolidados,
+          'Estado': 'Sesión Activa'
         };
       });
 
-      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      // Mapear los históricos
+      const historyRows = (historyData || []).map((h: any) => ({
+        'Candidato': h.candidate_name || 'Desconocido',
+        'Cédula': h.cedula || '',
+        'Cargo': h.position || '',
+        'Teléfono': h.phone || '',
+        'Correo': h.email || '',
+        'Ciudad / Sector': [h.city, h.sector].filter(Boolean).join(' - '),
+        'Sesión Formativa': h.session_title || '—',
+        'Fecha Formativa / Entrevista': h.interview_date || (h.closed_at ? h.closed_at.split('T')[0] : ''),
+        'Hora': h.interview_time || '',
+        'Confirmó Asistencia': h.confirmed ? 'Sí' : 'No',
+        'Asistió': h.attended ? 'Sí' : 'No',
+        'Cant. Evaluadores': h.evaluators_detail ? h.evaluators_detail.split('|').length : 0,
+        'Detalle Evaluadores': h.evaluators_detail || 'Sin evaluar',
+        'Puntaje Total': h.total_score || 0,
+        'Puntaje Promedio': h.avg_score || 0,
+        'Fase': h.fase === 2 ? 'Fase 2' : 'Fase 1',
+        'Comentarios': h.comments || '',
+        'Estado': 'Cerrada / Histórico'
+      }));
+
+      const allRowsToExport = [...activeRows, ...historyRows];
+
+      if (allRowsToExport.length === 0) {
+        alert(`No se encontraron evaluaciones ni candidatos entre el ${exportStartDate} y el ${exportEndDate}.`);
+        return;
+      }
+
+      const ws = XLSX.utils.json_to_sheet(allRowsToExport);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Evaluaciones Formativas");
       XLSX.writeFile(wb, `Evaluaciones_Formativas_${exportStartDate}_a_${exportEndDate}.xlsx`);
@@ -878,7 +958,7 @@ export default function CandidatesAdmin() {
 
   const handleExportMedica = () => {
     const sessionCands = formativeSessionFilter === 'ALL'
-      ? formativeCandidates
+      ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]'))
       : formativeCandidates.filter(c => c.session_title === formativeSessionFilter);
 
     const passedCands = sessionCands.filter(c => c.fase === 2);
@@ -5573,14 +5653,14 @@ export default function CandidatesAdmin() {
                       className="ranking-btn-primary"
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                     >
-                      📅 Citar Grupo ({formativeSessionFilter === 'ALL' ? formativeCandidates.length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
+                      📅 Citar Grupo ({formativeSessionFilter === 'ALL' ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]')).length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
                     </button>
                     <button
                       onClick={() => setShowWhatsAppModal(true)}
                       className="ranking-btn-primary"
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #10b981, #059669)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                     >
-                      💬 WhatsApp Grupal ({formativeSessionFilter === 'ALL' ? formativeCandidates.length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
+                      💬 WhatsApp Grupal ({formativeSessionFilter === 'ALL' ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]')).length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
                     </button>
                     {/* Botones de evaluación grupal */}
                     <button
@@ -5589,7 +5669,7 @@ export default function CandidatesAdmin() {
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                       🎯 Iniciar Evaluación Grupal
-                      {(() => { const n = (formativeSessionFilter === 'ALL' ? formativeCandidates : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)).length; return n > 0 ? <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '999px', padding: '1px 7px', fontWeight: 900 }}>{n}</span> : null })()}
+                      {(() => { const n = (formativeSessionFilter === 'ALL' ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]')) : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)).length; return n > 0 ? <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '999px', padding: '1px 7px', fontWeight: 900 }}>{n}</span> : null })()}
                     </button>
                     <button
                       onClick={() => handleBulkEvaluating(false)}
@@ -5667,14 +5747,25 @@ export default function CandidatesAdmin() {
                     <select
                       value={formativeSessionFilter}
                       onChange={e => setFormativeSessionFilter(e.target.value)}
-                      style={{ width: '100%', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', background: '#f8fafc', color: '#1e293b', cursor: 'pointer' }}
+                      style={{ width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', background: '#f8fafc', color: '#1e293b', cursor: 'pointer', fontWeight: 600 }}
                     >
-                      <option value="ALL">Todas las sesiones ({formativeCandidates.length})</option>
-                      {formativeSessions.map(s => (
+                      <option value="ALL">
+                        📋 Todas las sesiones activas ({formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]')).length})
+                      </option>
+                      {formativeSessions.filter(s => !s.startsWith('[CERRADA]')).map(s => (
                         <option key={s} value={s}>
                           {s} ({formativeCandidates.filter(c => c.session_title === s).length} candidatos)
                         </option>
                       ))}
+                      {formativeSessions.some(s => s.startsWith('[CERRADA]')) && (
+                        <optgroup label="Historial de Sesiones Cerradas">
+                          {formativeSessions.filter(s => s.startsWith('[CERRADA]')).map(s => (
+                            <option key={s} value={s}>
+                              🔒 {s.replace('[CERRADA] ', '')} ({formativeCandidates.filter(c => c.session_title === s).length} candidatos)
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
 
@@ -5771,7 +5862,7 @@ export default function CandidatesAdmin() {
                         </div>
                         <span style={{ fontSize: '12px', background: '#eff6ff', color: '#1e40af', padding: '4px 8px', borderRadius: '6px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                           {formativeSessionFilter === 'ALL'
-                            ? `${formativeCandidates.length} candidatos`
+                            ? `${formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]')).length} candidatos activos`
                             : `${formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length} de ${formativeCandidates.length}`
                           }
                         </span>
@@ -5800,7 +5891,9 @@ export default function CandidatesAdmin() {
                           ) : (
                             <>
                               {(() => {
-                                const sessionFiltered = formativeSessionFilter === 'ALL' ? formativeCandidates : formativeCandidates.filter(c => c.session_title === formativeSessionFilter);
+                                const sessionFiltered = formativeSessionFilter === 'ALL'
+                                  ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]'))
+                                  : formativeCandidates.filter(c => c.session_title === formativeSessionFilter);
                                 const q = formativeNameFilter.trim().toLowerCase();
                                 const nameFiltered = q
                                   ? sessionFiltered.filter(c => 
@@ -6107,7 +6200,7 @@ export default function CandidatesAdmin() {
                 // Calcular resultados por candidato
                 const resultsData = (() => {
                   const sessionCands = formativeSessionFilter === 'ALL'
-                    ? formativeCandidates
+                    ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]'))
                     : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
                   const q = formativeNameFilter.trim().toLowerCase();
                   const nameFiltered = q
@@ -6321,7 +6414,7 @@ export default function CandidatesAdmin() {
               {/* ── PESTAÑA: VALORACIÓN MÉDICA ─────────────────────────────── */}
               {formativasSubTab === 'medica' && (() => {
                 const sessionCands = formativeSessionFilter === 'ALL'
-                  ? formativeCandidates
+                  ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]'))
                   : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
 
                 const q = formativeNameFilter.trim().toLowerCase();
@@ -6385,7 +6478,7 @@ export default function CandidatesAdmin() {
               {/* ── PESTAÑA: FASE 2 ─────────────────────────────────────────── */}
               {formativasSubTab === 'fase2' && (() => {
                 const sessionCands = formativeSessionFilter === 'ALL'
-                  ? formativeCandidates
+                  ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]'))
                   : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
 
                 const q = formativeNameFilter.trim().toLowerCase();
