@@ -407,6 +407,19 @@ export default function CandidatesAdmin() {
   const [targetSessionName, setTargetSessionName] = useState('')
   const [mergingSessions, setMergingSessions] = useState(false)
 
+  // Exportar Evaluaciones por Rango de Fechas
+  const [showDateRangeExportModal, setShowDateRangeExportModal] = useState(false)
+  const [exportStartDate, setExportStartDate] = useState(() => {
+    const d = new Date()
+    d.setDate(1)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
+  const [exportEndDate, setExportEndDate] = useState(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
+  const [exportingEvaluations, setExportingEvaluations] = useState(false)
+
   const fetchFormativeData = async () => {
     if (!user) return
     try {
@@ -754,6 +767,113 @@ export default function CandidatesAdmin() {
     setFormativeSessionFilter('ALL');
 
     alert(`✅ ${sessionCands.length} candidato(s) de formativas fueron cerrados y archivados con éxito.`);
+  };
+
+  const handleExportEvaluationsByDateRange = async () => {
+    if (!exportStartDate || !exportEndDate) {
+      alert('Por favor selecciona una fecha de inicio y una fecha de fin.');
+      return;
+    }
+    if (exportStartDate > exportEndDate) {
+      alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
+      return;
+    }
+
+    setExportingEvaluations(true);
+    try {
+      // 1. Obtener candidatos de formativas
+      const { data: cands, error: candsErr } = await supabase
+        .from('formative_candidates')
+        .select('*, email_resumes(*)')
+        .order('created_at', { ascending: false });
+
+      if (candsErr) throw candsErr;
+
+      const { data: evals } = await supabase.from('formative_evaluations').select('*');
+      const { data: sups } = await supabase.from('formative_supervisors').select('*');
+
+      const allEvals = evals || [];
+      const allSups = sups || [];
+
+      // Filtrar candidatos pertenecientes a la empresa cuya fecha (entrevista, creación o evaluación) esté en el rango
+      const matchedCands = (cands || []).filter((c: any) => {
+        if (user?.company_slug && c.email_resumes?.company_slug && c.email_resumes.company_slug !== user.company_slug) {
+          return false;
+        }
+        const cDateStr = c.interview_date || (c.created_at ? c.created_at.split('T')[0] : '');
+
+        // Verificar coincidencia por fecha de entrevista o registro
+        const candDateMatch = cDateStr && cDateStr >= exportStartDate && cDateStr <= exportEndDate;
+        if (candDateMatch) return true;
+
+        // O verificar si tiene alguna evaluación registrada en el rango de fechas seleccionado
+        const candidateEvals = allEvals.filter((e: any) => e.candidate_id === c.id);
+        const evalDateMatch = candidateEvals.some((e: any) => {
+          const eDateStr = e.created_at ? e.created_at.split('T')[0] : (e.updated_at ? e.updated_at.split('T')[0] : '');
+          return eDateStr && eDateStr >= exportStartDate && eDateStr <= exportEndDate;
+        });
+
+        return evalDateMatch;
+      });
+
+      if (matchedCands.length === 0) {
+        alert(`No se encontraron evaluaciones ni candidatos de formativas entre el ${exportStartDate} y el ${exportEndDate}.`);
+        return;
+      }
+
+      // 2. Mapear datos a formato tabular Excel
+      const dataToExport = matchedCands.map((c: any) => {
+        const cEvals = allEvals.filter((e: any) => e.candidate_id === c.id);
+        const totalScore = cEvals.reduce((sum: number, ev: any) => sum + (ev.score || 0), 0);
+        const avgScore = cEvals.length > 0 ? Math.round(totalScore / cEvals.length) : 0;
+
+        // Evaluadores y sus puntajes
+        const evaluadoresConPuntaje = cEvals.map((e: any) => {
+          const sup = allSups.find((s: any) => s.id === e.supervisor_id);
+          return `${sup?.name || 'Supervisor'}: ${e.score} pts`;
+        }).join(' | ');
+
+        // Comentarios detallados por evaluador
+        const comentariosConsolidados = cEvals.map((e: any) => {
+          const sup = allSups.find((s: any) => s.id === e.supervisor_id);
+          return e.comments ? `[${sup?.name || 'Supervisor'}]: ${e.comments}` : null;
+        }).filter(Boolean).join(' \n') || (c.comments || c.observaciones || c.notes || '');
+
+        const fechaFormativa = c.interview_date || (c.created_at ? c.created_at.split('T')[0] : '');
+
+        return {
+          'Candidato': c.email_resumes?.sender_name || 'Desconocido',
+          'Cédula': c.email_resumes?.cedula || '',
+          'Cargo': c.email_resumes?.position || '',
+          'Teléfono': c.email_resumes?.sender_phone || '',
+          'Correo': c.email_resumes?.sender_email || '',
+          'Ciudad / Sector': [c.email_resumes?.city, c.email_resumes?.sector].filter(Boolean).join(' - '),
+          'Sesión Formativa': c.session_title || '—',
+          'Fecha Formativa / Entrevista': fechaFormativa,
+          'Hora': c.interview_time || '',
+          'Confirmó Asistencia': c.confirmed ? 'Sí' : 'No',
+          'Asistió': c.attended ? 'Sí' : 'No',
+          'Cant. Evaluadores': cEvals.length,
+          'Detalle Evaluadores': evaluadoresConPuntaje || 'Sin evaluar',
+          'Puntaje Total': totalScore,
+          'Puntaje Promedio': avgScore,
+          'Fase': c.fase === 2 ? 'Fase 2' : 'Fase 1',
+          'Comentarios': comentariosConsolidados
+        };
+      });
+
+      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Evaluaciones Formativas");
+      XLSX.writeFile(wb, `Evaluaciones_Formativas_${exportStartDate}_a_${exportEndDate}.xlsx`);
+
+      setShowDateRangeExportModal(false);
+    } catch (err: any) {
+      console.error('Error al exportar evaluaciones:', err);
+      alert('Error al generar el reporte: ' + err.message);
+    } finally {
+      setExportingEvaluations(false);
+    }
   };
 
   const handleExportMedica = () => {
@@ -3122,6 +3242,131 @@ export default function CandidatesAdmin() {
         </div>
       )}
 
+      {showDateRangeExportModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                📥 Descargar Evaluaciones por Fechas
+              </h3>
+              <button onClick={() => setShowDateRangeExportModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', lineHeight: 1.5 }}>
+              Selecciona el rango de fechas para exportar el consolidado de evaluaciones en formato Excel (.xlsx), incluyendo datos de candidatos, evaluadores, puntajes y comentarios.
+            </p>
+
+            {/* Accesos rápidos de rango */}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                Accesos Rápidos
+              </label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    setExportStartDate(today);
+                    setExportEndDate(today);
+                  }}
+                  style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600, color: '#334155' }}
+                >
+                  Hoy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const day = now.getDay();
+                    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+                    const monday = new Date(now.setDate(diff));
+                    const sunday = new Date(now.setDate(monday.getDate() + 6));
+                    setExportStartDate(monday.toISOString().split('T')[0]);
+                    setExportEndDate(sunday.toISOString().split('T')[0]);
+                  }}
+                  style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600, color: '#334155' }}
+                >
+                  Esta Semana
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    const format = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    setExportStartDate(format(startOfMonth));
+                    setExportEndDate(format(endOfMonth));
+                  }}
+                  style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600, color: '#334155' }}
+                >
+                  Este Mes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const startPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const endPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                    const format = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    setExportStartDate(format(startPrevMonth));
+                    setExportEndDate(format(endPrevMonth));
+                  }}
+                  style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer', fontWeight: 600, color: '#334155' }}
+                >
+                  Mes Anterior
+                </button>
+              </div>
+            </div>
+
+            {/* Inputs de fecha desde / hasta */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                  📅 Fecha Desde
+                </label>
+                <input
+                  type="date"
+                  value={exportStartDate}
+                  onChange={e => setExportStartDate(e.target.value)}
+                  style={{ width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontWeight: 600, outline: 'none', background: '#f8fafc', color: '#0f172a' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                  📅 Fecha Hasta
+                </label>
+                <input
+                  type="date"
+                  value={exportEndDate}
+                  onChange={e => setExportEndDate(e.target.value)}
+                  style={{ width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontWeight: 600, outline: 'none', background: '#f8fafc', color: '#0f172a' }}
+                />
+              </div>
+            </div>
+
+            {/* Botones de acción */}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <button
+                onClick={() => setShowDateRangeExportModal(false)}
+                className="track-btn"
+                disabled={exportingEvaluations}
+              >
+                Cancelar
+              </button>
+              <button
+                className="ranking-btn-primary"
+                style={{ width: 'auto', background: 'linear-gradient(135deg, #059669, #047857)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                onClick={handleExportEvaluationsByDateRange}
+                disabled={exportingEvaluations || !exportStartDate || !exportEndDate}
+              >
+                {exportingEvaluations ? '⏳ Generando Excel...' : '📊 Descargar Excel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showJobMaintenance && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '500px' }}>
@@ -5378,6 +5623,14 @@ export default function CandidatesAdmin() {
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #475569, #334155)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                     >
                       🔒 Cierre de Formativa
+                    </button>
+                    <button
+                      onClick={() => setShowDateRangeExportModal(true)}
+                      className="ranking-btn-primary"
+                      style={{ width: 'auto', background: 'linear-gradient(135deg, #059669, #047857)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      title="Descargar evaluaciones en Excel por rango de fechas (desde / hasta)"
+                    >
+                      📥 Descargar por Fechas
                     </button>
                     <button
                       onClick={() => setShowOptionsModal(true)}
