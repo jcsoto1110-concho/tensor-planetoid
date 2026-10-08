@@ -30,3 +30,17 @@ CREATE INDEX IF NOT EXISTS idx_formative_history_date ON public.formative_histor
 CREATE INDEX IF NOT EXISTS idx_formative_history_company ON public.formative_history(company_slug);
 CREATE INDEX IF NOT EXISTS idx_formative_history_cedula ON public.formative_history(cedula);
 CREATE INDEX IF NOT EXISTS idx_formative_history_closed_at ON public.formative_history(closed_at);
+
+-- Habilitar RLS y políticas de acceso
+ALTER TABLE public.formative_history ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Permitir select público formative_history" ON public.formative_history;
+DROP POLICY IF EXISTS "Permitir insert público formative_history" ON public.formative_history;
+DROP POLICY IF EXISTS "Permitir update público formative_history" ON public.formative_history;
+DROP POLICY IF EXISTS "Permitir delete público formative_history" ON public.formative_history;
+
+CREATE POLICY "Permitir select público formative_history" ON public.formative_history FOR SELECT USING (true);
+CREATE POLICY "Permitir insert público formative_history" ON public.formative_history FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir update público formative_history" ON public.formative_history FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Permitir delete público formative_history" ON public.formative_history FOR DELETE USING (true);
+
