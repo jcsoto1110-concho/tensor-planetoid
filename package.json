@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "sync:sap": "node scripts/sync_sap_to_supabase.mjs",
-    "sync:sap:all": "node scripts/sync_sap_to_supabase.mjs --all"
+    "sync:sap:all": "node scripts/sync_sap_to_supabase.mjs --all",
+    "sync:benefits": "node scripts/sync_benefits_90days.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",
