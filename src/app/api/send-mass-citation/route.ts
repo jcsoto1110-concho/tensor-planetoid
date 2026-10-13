@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 export async function POST(req: NextRequest) {
   try {
-    const { candidates, date, time, companySlug } = await req.json();
+    const { candidates, date, time, companySlug, address, sessionTitle } = await req.json();
 
     if (!candidates || !Array.isArray(candidates) || candidates.length === 0) {
       return NextResponse.json({ error: 'Lista de candidatos requerida' }, { status: 400 });
@@ -31,6 +31,14 @@ export async function POST(req: NextRequest) {
 
     const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    const isGyeSession = (sessionTitle && (
+      sessionTitle.toUpperCase().includes('GYE') || 
+      sessionTitle.toUpperCase().includes('-GY') || 
+      sessionTitle.toUpperCase().includes('_GY') || 
+      sessionTitle.toUpperCase().endsWith('GY') || 
+      sessionTitle.toUpperCase().includes('GUAYAQUIL')
+    )) || (address && address.toUpperCase().includes('SANTA LEONOR'));
+
     for (const candidate of candidates) {
       const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('es-EC', {
         weekday: 'long',
@@ -39,7 +47,18 @@ export async function POST(req: NextRequest) {
         day: 'numeric'
       });
 
-      const message = `Hola ${candidate.name},\n\nHas sido seleccionado para la etapa de Evaluación Formativa para el puesto de ${candidate.cargo}.\n\nDetalles de la citación:\nFecha: ${formattedDate}\nHora: ${time}\nLugar: Oficina Principal (Cerezos)\n\nPor favor, sé puntual.\n\nSaludos cordiales,\nTalento Humano`;
+      const candSession = candidate.session_title || sessionTitle || '';
+      const isCandGye = candSession.toUpperCase().includes('GYE') || 
+                        candSession.toUpperCase().includes('-GY') || 
+                        candSession.toUpperCase().includes('_GY') || 
+                        candSession.toUpperCase().endsWith('GY') || 
+                        candSession.toUpperCase().includes('GUAYAQUIL') ||
+                        isGyeSession;
+
+      const finalAddress = address?.trim() || (isCandGye ? 'Cdla Santa Leonor mz 10 solar 4' : 'Galo Plaza Lasso 13205 y de los Cerezos.');
+      const finalLugar = isCandGye ? 'Sede Guayaquil (Cdla Santa Leonor mz 10 solar 4)' : 'Oficina Principal (Cerezos)';
+
+      const message = `Hola ${candidate.name},\n\nHas sido seleccionado para la etapa de Evaluación Formativa para el puesto de ${candidate.cargo}.\n\nDetalles de la citación:\nFecha: ${formattedDate}\nHora: ${time}\nLugar: ${finalAddress}\n\nPor favor, sé puntual.\n\nSaludos cordiales,\nTalento Humano`;
 
       await transporter.sendMail({
         from: `"RRHH Selección" <${smtpUser}>`,
@@ -59,7 +78,7 @@ export async function POST(req: NextRequest) {
               <p style="margin: 0 0 8px; color: #1e293b; font-weight: bold;">📅 Detalles de tu Cita:</p>
               <p style="margin: 4px 0; color: #475569;"><strong>Fecha:</strong> ${formattedDate}</p>
               <p style="margin: 4px 0; color: #475569;"><strong>Hora:</strong> ${time}</p>
-              <p style="margin: 4px 0; color: #475569;"><strong>Dirección:</strong> Galo Plaza Lasso 13205 y de los Cerezos.</p>
+              <p style="margin: 4px 0; color: #475569;"><strong>Dirección:</strong> ${finalAddress}</p>
             </div>
             
             <p>Por favor, confirma tu asistencia respondiendo a este correo electrónico o presentándote puntualmente en la fecha y hora indicadas con tu documento de identidad.</p>

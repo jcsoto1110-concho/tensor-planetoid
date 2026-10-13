@@ -34,6 +34,10 @@ export async function POST(req: NextRequest) {
     const formattedDate = isInterview ? new Date(interviewDate.split(' ')[0] + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
     const time = isInterview ? interviewDate.split(' ')[1] || '09:00' : '';
 
+    const isGyeCandidate = (notes && (notes.toUpperCase().includes('SANTA LEONOR') || notes.toUpperCase().includes('GYE') || notes.toUpperCase().includes('GUAYAQUIL'))) ||
+                           (cargo && (cargo.toUpperCase().includes('GYE') || cargo.toUpperCase().includes('GUAYAQUIL')));
+    const interviewLugar = isGyeCandidate ? 'Cdla Santa Leonor mz 10 solar 4' : 'Galo Plaza Lasso 13205 y de los Cerezos.';
+
     const htmlMessage = isInterview 
       ? `<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
           <div style="background: #0f172a; padding: 24px; text-align: center;">
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
             <div style="background: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin: 24px 0;">
               <p style="margin: 0 0 12px; font-size: 15px;">📅 <strong>Fecha:</strong> ${formattedDate}</p>
               <p style="margin: 0 0 12px; font-size: 15px;">⏰ <strong>Hora:</strong> ${time}</p>
-              <p style="margin: 0; font-size: 15px;">📍 <strong>Lugar:</strong> Galo Plaza Lasso 13205 y de los Cerezos.</p>
+              <p style="margin: 0; font-size: 15px;">📍 <strong>Lugar:</strong> ${interviewLugar}.</p>
             </div>
             
             <p>Por favor, confirma tu asistencia respondiendo a este correo. Te esperamos puntualmente.</p>

@@ -363,7 +363,52 @@ export default function CandidatesAdmin() {
   const [showMassCitationModal, setShowMassCitationModal] = useState(false)
   const [massCitationDate, setMassCitationDate] = useState('')
   const [massCitationTime, setMassCitationTime] = useState('09:00')
+  const [massCitationAddress, setMassCitationAddress] = useState('')
   const [sendingMassCitation, setSendingMassCitation] = useState(false)
+
+  const isGyeSessionName = (title: string) => {
+    if (!title) return false
+    const t = title.toUpperCase()
+    return t.includes('GYE') || t.includes('-GY') || t.includes('_GY') || t.endsWith('GY') || t.includes('GUAYAQUIL')
+  }
+
+  const getFormativeInterviewAddress = (sessionName: string) => {
+    return isGyeSessionName(sessionName) ? 'Cdla Santa Leonor mz 10 solar 4' : 'Galo Plaza Lasso 13205 y de los Cerezos.'
+  }
+
+  const getFormativeWhatsAppTemplate = (sessionName: string, dateStr?: string, timeStr?: string) => {
+    const isGYE = isGyeSessionName(sessionName)
+    const ciudad = isGYE ? 'Guayaquil' : 'Quito'
+    const direccion = isGYE ? 'Cdla Santa Leonor mz 10 solar 4' : 'Av. Galo Plaza Lasso 13205 y De los Cerezos.'
+    let fechaText = 'Viernes 12 de junio de 2026.'
+    if (dateStr) {
+      try {
+        fechaText = new Date(dateStr + 'T00:00:00').toLocaleDateString('es-EC', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      } catch (e) {
+        fechaText = dateStr
+      }
+    }
+    const horaText = timeStr ? `${timeStr} (Trata de llegar 10 min. antes)` : '09h30 (Trata de llegar 10 min. antes)'
+
+    return `Estimad@ candidat@, te invitamos a participar en nuestro proceso de selección para nuestras tiendas Marathon en ${ciudad}, llamado "Formativas". ⚽\n` +
+      `Te comparto los detalles para que puedas asistir: \n` +
+      `📅Fecha: ${fechaText} \n` +
+      `🕘Hora: ${horaText}\n` +
+      `📍Dirección: ${direccion}\n` +
+      `Te recomendamos asistir con un estilo semiformal y zapatos deportivos. Por favor confirma tu asistencia.`
+  }
+
+  const handleOpenMassCitationModal = () => {
+    const currentSession = formativeSessionFilter !== 'ALL' ? formativeSessionFilter : formativeSessionTitle
+    setMassCitationAddress(getFormativeInterviewAddress(currentSession))
+    setShowMassCitationModal(true)
+  }
+
+  const handleOpenWhatsAppModal = () => {
+    const currentSession = formativeSessionFilter !== 'ALL' ? formativeSessionFilter : formativeSessionTitle
+    setWhatsappTemplateText(getFormativeWhatsAppTemplate(currentSession, massCitationDate, massCitationTime))
+    setShowWhatsAppModal(true)
+  }
 
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [whatsappTemplateText, setWhatsappTemplateText] = useState(
@@ -517,7 +562,11 @@ export default function CandidatesAdmin() {
   }
 
   const handleSendMassCitation = async () => {
-    if (formativeCandidates.length === 0) {
+    const targetCandidates = formativeSessionFilter === 'ALL'
+      ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]'))
+      : formativeCandidates.filter(c => c.session_title === formativeSessionFilter)
+
+    if (targetCandidates.length === 0) {
       alert('No hay candidatos en formativas para citar.')
       return
     }
@@ -528,10 +577,17 @@ export default function CandidatesAdmin() {
 
     setSendingMassCitation(true)
     try {
-      const candidatesPayload = formativeCandidates.map(c => ({
+      const activeSessionName = formativeSessionFilter !== 'ALL'
+        ? formativeSessionFilter
+        : (targetCandidates[0]?.session_title || formativeSessionTitle)
+
+      const addressToUse = massCitationAddress.trim() || getFormativeInterviewAddress(activeSessionName)
+
+      const candidatesPayload = targetCandidates.map(c => ({
         email: c.email_resumes?.sender_email,
         name: c.email_resumes?.sender_name,
-        cargo: c.email_resumes?.position || 'Candidato'
+        cargo: c.email_resumes?.position || 'Candidato',
+        session_title: c.session_title || activeSessionName
       })).filter(c => c.email)
 
       const res = await fetch('/api/send-mass-citation', {
@@ -541,13 +597,15 @@ export default function CandidatesAdmin() {
           candidates: candidatesPayload,
           date: massCitationDate,
           time: massCitationTime,
-          companySlug: user?.company_slug
+          companySlug: user?.company_slug,
+          address: addressToUse,
+          sessionTitle: activeSessionName
         })
       })
 
       const data = await res.json()
       if (res.ok) {
-        const formativeIds = formativeCandidates.map(c => c.id)
+        const formativeIds = targetCandidates.map(c => c.id)
         const { error } = await supabase
           .from('formative_candidates')
           .update({
@@ -559,7 +617,7 @@ export default function CandidatesAdmin() {
 
         if (error) throw error
 
-        alert(`✅ Cita grupal programada con éxito. Se enviaron ${data.count} correos masivos.`)
+        alert(`✅ Cita grupal programada con éxito. Se enviaron ${data.count} correos masivos a la sede:\n📍 ${addressToUse}`)
         await fetchFormativeData()
         setShowMassCitationModal(false)
       } else {
@@ -729,7 +787,7 @@ export default function CandidatesAdmin() {
         position: c.email_resumes?.position || '',
         phone: c.email_resumes?.sender_phone || '',
         email: c.email_resumes?.sender_email || '',
-        city: c.email_resumes?.city || '',
+        city: c.email_resumes?.city || (isGyeSessionName(c.session_title || cleanTitle) ? 'Guayaquil' : 'Quito'),
         sector: c.email_resumes?.sector || '',
         interview_date: c.interview_date || (c.created_at ? c.created_at.split('T')[0] : null),
         interview_time: c.interview_time || '',
@@ -2722,15 +2780,15 @@ export default function CandidatesAdmin() {
       {/* MODALES */}
       {showMassCitationModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '420px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '440px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>📅 Programar Cita Grupal</h3>
               <button onClick={() => setShowMassCitationModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
             </div>
-            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
-              Se enviará un correo masivo de invitación a todos los candidatos seleccionados con la misma fecha y hora.
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '18px' }}>
+              Se enviará un correo masivo de invitación a todos los candidatos seleccionados con la misma fecha, hora y dirección.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
               <div>
                 <label className="ranking-label">Fecha</label>
                 <input type="date" className="ranking-input" value={massCitationDate} onChange={e => setMassCitationDate(e.target.value)} style={{ marginBottom: 0 }} />
@@ -2740,6 +2798,28 @@ export default function CandidatesAdmin() {
                 <input type="time" className="ranking-input" value={massCitationTime} onChange={e => setMassCitationTime(e.target.value)} style={{ marginBottom: 0 }} />
               </div>
             </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label className="ranking-label">📍 Dirección de Entrevista</label>
+              <input
+                type="text"
+                className="ranking-input"
+                value={massCitationAddress}
+                onChange={e => setMassCitationAddress(e.target.value)}
+                placeholder="Dirección donde se presentarán los candidatos..."
+                style={{ marginBottom: '6px', fontSize: '13px', border: isGyeSessionName(formativeSessionFilter !== 'ALL' ? formativeSessionFilter : formativeSessionTitle) ? '1.5px solid #16a34a' : '1px solid #cbd5e1' }}
+              />
+              {isGyeSessionName(formativeSessionFilter !== 'ALL' ? formativeSessionFilter : formativeSessionTitle) ? (
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '6px', color: '#166534', fontSize: '11.5px', fontWeight: 700 }}>
+                  🏢 Sede Guayaquil detectada (GYE) — Cdla Santa Leonor mz 10 solar 4
+                </div>
+              ) : (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px 10px', color: '#475569', fontSize: '11px', fontWeight: 600 }}>
+                  🏢 Sede Quito — Galo Plaza Lasso 13205 y de los Cerezos
+                </div>
+              )}
+            </div>
+
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowMassCitationModal(false)} className="track-btn">Cancelar</button>
               <button
@@ -5649,14 +5729,14 @@ export default function CandidatesAdmin() {
                   </div>
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <button
-                      onClick={() => setShowMassCitationModal(true)}
+                      onClick={handleOpenMassCitationModal}
                       className="ranking-btn-primary"
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                     >
                       📅 Citar Grupo ({formativeSessionFilter === 'ALL' ? formativeCandidates.filter(c => !c.session_title?.startsWith('[CERRADA]')).length : formativeCandidates.filter(c => c.session_title === formativeSessionFilter).length})
                     </button>
                     <button
-                      onClick={() => setShowWhatsAppModal(true)}
+                      onClick={handleOpenWhatsAppModal}
                       className="ranking-btn-primary"
                       style={{ width: 'auto', background: 'linear-gradient(135deg, #10b981, #059669)', padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
                     >
@@ -5724,16 +5804,29 @@ export default function CandidatesAdmin() {
                 <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                   {/* Input de Título de Sesión Activa */}
                   <div style={{ flex: '1.2', minWidth: '220px' }}>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-                      📋 Título de Sesión Activa
-                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
+                        📋 Título de Sesión Activa
+                      </label>
+                      {isGyeSessionName(formativeSessionTitle) && (
+                        <span style={{ color: '#16a34a', fontWeight: 800, fontSize: '10.5px', background: '#dcfce7', padding: '2px 8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+                          📍 GYE (Cdla Santa Leonor mz 10 solar 4)
+                        </span>
+                      )}
+                    </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input
                         type="text"
                         value={formativeSessionTitle}
-                        onChange={e => setFormativeSessionTitle(e.target.value)}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setFormativeSessionTitle(val);
+                          if (formativeSessionFilter === 'ALL') {
+                            setWhatsappTemplateText(getFormativeWhatsAppTemplate(val, massCitationDate, massCitationTime));
+                          }
+                        }}
                         placeholder="Ej: Formativas 20260604"
-                        style={{ flex: 1, border: '1.5px solid #7c3aed', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', fontWeight: 600, background: '#faf5ff', color: '#5b21b6', outline: 'none' }}
+                        style={{ flex: 1, border: isGyeSessionName(formativeSessionTitle) ? '1.5px solid #16a34a' : '1.5px solid #7c3aed', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', fontWeight: 600, background: isGyeSessionName(formativeSessionTitle) ? '#f0fdf4' : '#faf5ff', color: isGyeSessionName(formativeSessionTitle) ? '#166534' : '#5b21b6', outline: 'none' }}
                       />
                     </div>
                     <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#94a3b8' }}>Los candidatos que agregues irán a esta sesión</p>
@@ -5746,7 +5839,12 @@ export default function CandidatesAdmin() {
                     </label>
                     <select
                       value={formativeSessionFilter}
-                      onChange={e => setFormativeSessionFilter(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setFormativeSessionFilter(val);
+                        const sessionToCheck = val !== 'ALL' ? val : formativeSessionTitle;
+                        setWhatsappTemplateText(getFormativeWhatsAppTemplate(sessionToCheck, massCitationDate, massCitationTime));
+                      }}
                       style={{ width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', background: '#f8fafc', color: '#1e293b', cursor: 'pointer', fontWeight: 600 }}
                     >
                       <option value="ALL">
