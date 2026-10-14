@@ -454,10 +454,24 @@ export async function POST(req: NextRequest) {
                 if (!pernr || !cedula) continue;
                 if (eligibleMap.has(pernr)) continue;
 
-                const rawFechaIngreso = row.FECHA_INGRESO_REAL || row.Fecha_Ingreso;
-                const parsedIngreso = parseSapDate(rawFechaIngreso);
+                // Condición solicitada: ingreso a partir de julio de este año (1 de julio en adelante)
+                const currentYear = today.getFullYear();
+                const minEntryDate = new Date(currentYear, 6, 1); // 1 de julio de este año
+
+                const dIngreso = parseSapDate(row.Fecha_Ingreso);
+                const dReal = parseSapDate(row.FECHA_INGRESO_REAL);
+
+                let parsedIngreso: Date | null = null;
+                if (dIngreso && dIngreso >= minEntryDate) {
+                    parsedIngreso = dIngreso;
+                } else if (dReal && dReal >= minEntryDate) {
+                    parsedIngreso = dReal;
+                }
+
+                // Si no ingresó a partir de julio de este año, se descarta
                 if (!parsedIngreso || isNaN(parsedIngreso.getTime())) continue;
 
+                // Calcular días laborados desde el ingreso
                 const diffMs = today.getTime() - parsedIngreso.getTime();
                 const diasLaborados = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                 if (diasLaborados < 90) continue;

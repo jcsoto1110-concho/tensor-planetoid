@@ -464,9 +464,21 @@ async function runSync() {
             // Si ya procesamos el registro más reciente de este pernr (por BEGDA DESC), omitir duplicados
             if (eligibleMap.has(pernr)) continue;
 
-            // Calcular fecha de ingreso
-            const rawFechaIngreso = row.FECHA_INGRESO_REAL || row.Fecha_Ingreso;
-            const parsedIngreso = parseSapDate(rawFechaIngreso);
+            // Condición solicitada: ingreso a partir de julio de este año (1 de julio en adelante)
+            const currentYear = today.getFullYear();
+            const minEntryDate = new Date(currentYear, 6, 1); // 1 de julio de este año
+
+            const dIngreso = parseSapDate(row.Fecha_Ingreso);
+            const dReal = parseSapDate(row.FECHA_INGRESO_REAL);
+
+            let parsedIngreso = null;
+            if (dIngreso && dIngreso >= minEntryDate) {
+                parsedIngreso = dIngreso;
+            } else if (dReal && dReal >= minEntryDate) {
+                parsedIngreso = dReal;
+            }
+
+            // Si no ingresó a partir de julio de este año, se descarta
             if (!parsedIngreso || isNaN(parsedIngreso.getTime())) {
                 continue;
             }
