@@ -464,24 +464,16 @@ async function runSync() {
             // Si ya procesamos el registro más reciente de este pernr (por BEGDA DESC), omitir duplicados
             if (eligibleMap.has(pernr)) continue;
 
-            // Condición solicitada: ingreso a partir de julio de este año (1 de julio en adelante)
-            const currentYear = today.getFullYear();
-            const minEntryDate = new Date(currentYear, 6, 1); // 1 de julio de este año
+            // Condición solicitada: ingresados a partir del 1 de julio de 2026
+            const fechaCorteJulio2026 = new Date(2026, 6, 1); // 01/07/2026
 
-            const dIngreso = parseSapDate(row.Fecha_Ingreso);
-            const dReal = parseSapDate(row.FECHA_INGRESO_REAL);
+            // Prioridad a FECHA_INGRESO_REAL (fecha real de ingreso a la compañía)
+            const rawFechaIngreso = row.FECHA_INGRESO_REAL || row.Fecha_Ingreso;
+            const parsedIngreso = parseSapDate(rawFechaIngreso);
+            if (!parsedIngreso || isNaN(parsedIngreso.getTime())) continue;
 
-            let parsedIngreso = null;
-            if (dIngreso && dIngreso >= minEntryDate) {
-                parsedIngreso = dIngreso;
-            } else if (dReal && dReal >= minEntryDate) {
-                parsedIngreso = dReal;
-            }
-
-            // Si no ingresó a partir de julio de este año, se descarta
-            if (!parsedIngreso || isNaN(parsedIngreso.getTime())) {
-                continue;
-            }
+            // Descartar si ingresó antes del 1 de julio de 2026
+            if (parsedIngreso < fechaCorteJulio2026) continue;
 
             // Calcular días laborados
             const diffMs = today.getTime() - parsedIngreso.getTime();
