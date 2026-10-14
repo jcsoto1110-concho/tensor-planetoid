@@ -444,7 +444,7 @@ async function runSync() {
         }
 
         const today = new Date();
-        const eligibleRecords = [];
+        const eligibleMap = new Map();
         let skippedPasantes = 0;
         let skippedLessThan90 = 0;
         let skippedNotActive = 0;
@@ -456,6 +456,13 @@ async function runSync() {
                 skippedNotActive++;
                 continue;
             }
+
+            const pernr = String(row.Num_Per || '').trim();
+            const cedula = String(row.CEDULA || '').trim();
+            if (!pernr || !cedula) continue;
+
+            // Si ya procesamos el registro más reciente de este pernr (por BEGDA DESC), omitir duplicados
+            if (eligibleMap.has(pernr)) continue;
 
             // Calcular fecha de ingreso
             const rawFechaIngreso = row.FECHA_INGRESO_REAL || row.Fecha_Ingreso;
@@ -480,10 +487,6 @@ async function runSync() {
                 skippedPasantes++;
                 continue;
             }
-
-            const pernr = String(row.Num_Per || '').trim();
-            const cedula = String(row.CEDULA || '').trim();
-            if (!pernr || !cedula) continue;
 
             const existing = existingMap.get(pernr);
 
@@ -523,14 +526,16 @@ async function runSync() {
                 updated_at: new Date().toISOString()
             };
 
-            eligibleRecords.push(record);
+            eligibleMap.set(pernr, record);
         }
+
+        const eligibleRecords = Array.from(eligibleMap.values());
 
         console.log(`\n🎯 Resumen de filtrado:`);
         console.log(`- Inactivos descartados: ${skippedNotActive}`);
         console.log(`- Menos de 90 días descartados: ${skippedLessThan90}`);
         console.log(`- Pasantes descartados: ${skippedPasantes}`);
-        console.log(`- Colaboradores elegibles (>= 90 días): ${eligibleRecords.length}`);
+        console.log(`- Colaboradores únicos elegibles (>= 90 días): ${eligibleRecords.length}`);
 
         if (eligibleRecords.length === 0) {
             console.log('ℹ️ No hay colaboradores para sincronizar hoy.');
