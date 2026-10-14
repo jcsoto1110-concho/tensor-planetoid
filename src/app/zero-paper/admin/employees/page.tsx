@@ -33,7 +33,29 @@ export default function EmployeesListPage() {
     const [rejectModal, setRejectModal] = useState<{ id: string; name: string } | null>(null);
     const [rejectObs, setRejectObs] = useState('');
     const [qrModal, setQrModal] = useState<{ item: any; qrDataUrl: string } | null>(null);
-    const [showSyncInfoModal, setShowSyncInfoModal] = useState(false);
+    const [isSyncingSap, setIsSyncingSap] = useState(false);
+
+    const handleSyncSapBenefits = async () => {
+        setIsSyncingSap(true);
+        try {
+            const res = await fetch('/api/benefits-90-days', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'sync_sap' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ ${data.message || 'Sincronización con SAP HANA completada exitosamente'}`);
+                await fetchBenefits();
+            } else {
+                alert(`❌ Error al sincronizar con SAP: ${data.error}`);
+            }
+        } catch (e: any) {
+            alert(`❌ Error al conectar con SAP HANA: ${e.message}`);
+        } finally {
+            setIsSyncingSap(false);
+        }
+    };
 
     const fetchBenefits = async () => {
         setBenefitsLoading(true);
@@ -749,23 +771,26 @@ export default function EmployeesListPage() {
 
                             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                                 <button
-                                    onClick={() => setShowSyncInfoModal(true)}
+                                    onClick={handleSyncSapBenefits}
+                                    disabled={isSyncingSap}
                                     style={{
                                         padding: '12px 20px',
                                         borderRadius: '10px',
                                         border: '1px solid rgba(255,255,255,0.2)',
-                                        background: 'rgba(255,255,255,0.1)',
+                                        background: isSyncingSap ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
                                         color: 'white',
-                                        cursor: 'pointer',
+                                        cursor: isSyncingSap ? 'not-allowed' : 'pointer',
                                         fontWeight: 700,
                                         fontSize: '13px',
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '8px',
-                                        transition: 'all 0.2s'
+                                        transition: 'all 0.2s',
+                                        opacity: isSyncingSap ? 0.8 : 1
                                     }}
                                 >
-                                    <RefreshCw size={15} /> Sincronización SAP
+                                    <RefreshCw size={15} className={isSyncingSap ? 'animate-spin' : ''} />
+                                    {isSyncingSap ? 'Sincronizando con SAP HANA...' : 'Sincronizar SAP HANA'}
                                 </button>
                                 <button
                                     onClick={handleBatchApprove}
@@ -1007,19 +1032,20 @@ export default function EmployeesListPage() {
                                                     Ejecuta la sincronización desde la red de la oficina con SAP HANA para actualizar a los colaboradores con 90 días.
                                                 </p>
                                                 <button
-                                                    onClick={() => setShowSyncInfoModal(true)}
+                                                    onClick={handleSyncSapBenefits}
+                                                    disabled={isSyncingSap}
                                                     style={{
                                                         padding: '8px 16px',
                                                         borderRadius: '8px',
                                                         border: '1px solid #cbd5e1',
                                                         background: 'white',
-                                                        cursor: 'pointer',
+                                                        cursor: isSyncingSap ? 'not-allowed' : 'pointer',
                                                         fontSize: '12.5px',
                                                         fontWeight: 700,
                                                         color: '#002f6c'
                                                     }}
                                                 >
-                                                    ⚡ Ver Instrucciones de Sincronización SAP
+                                                    {isSyncingSap ? 'Sincronizando con SAP HANA...' : '⚡ Sincronizar desde SAP HANA Ahora'}
                                                 </button>
                                             </td>
                                         </tr>
@@ -1373,61 +1399,6 @@ export default function EmployeesListPage() {
                             </button>
                             <button onClick={handleRejectBenefit} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#dc2626', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
                                 Confirmar Rechazo
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL INFORMACIÓN SINCRONIZACIÓN SAP */}
-            {showSyncInfoModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-                    <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '520px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                ⚡ Sincronización desde SAP HANA (90 Días)
-                            </h3>
-                            <button onClick={() => setShowSyncInfoModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X /></button>
-                        </div>
-
-                        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px', fontSize: '13px', color: '#475569', lineHeight: 1.6 }}>
-                            <p style={{ margin: '0 0 10px' }}>
-                                <strong>Arquitectura de Red Corporativa:</strong><br/>
-                                El servidor de SAP HANA se encuentra en la IP interna de oficina <code>172.1.2.10</code>.
-                            </p>
-                            <p style={{ margin: 0 }}>
-                                Para extraer los colaboradores con 90 días cumplidos hacia la base de datos de Supabase, ejecuta este comando en la terminal de cualquier máquina conectada a la red de la oficina:
-                            </p>
-                            <div style={{ background: '#0f172a', color: '#38bdf8', padding: '10px 14px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '12.5px', marginTop: '10px', userSelect: 'all' }}>
-                                npm run sync:benefits
-                            </div>
-                        </div>
-
-                        <p style={{ fontSize: '12.5px', color: '#64748b', margin: '0 0 20px' }}>
-                            Una vez ejecutada la sincronización, haz clic en el botón de abajo para recargar la lista de aprobaciones de inmediato.
-                        </p>
-
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={() => {
-                                    setShowSyncInfoModal(false);
-                                    fetchBenefits();
-                                }}
-                                style={{
-                                    padding: '10px 20px',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    background: '#002f6c',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    fontWeight: 700,
-                                    fontSize: '13px',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                }}
-                            >
-                                <RefreshCw size={14} /> Recargar Lista Ahora
                             </button>
                         </div>
                     </div>
