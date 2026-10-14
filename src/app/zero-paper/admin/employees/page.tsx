@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import { useDoc } from '@/context/DocContext';
 import Link from 'next/link';
