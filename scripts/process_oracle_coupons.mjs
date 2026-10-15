@@ -70,15 +70,8 @@ function calculateLuhn(payload12) {
     return (10 - (sum % 10)) % 10;
 }
 
-// Generar 3 letras mayúsculas aleatorias para el prefijo del cupón
-function generateRandomPrefix() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let res = '';
-    for (let i = 0; i < 3; i++) {
-        res += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return res;
-}
+// Prefijo fijo de 3 letras para identificar que los certificados vienen de este sistema (ATS)
+const CERT_PREFIX = 'ATS';
 
 // Lista oficial de estilos excluidos provista por Talento Humano
 const P_ESTILOS = "-5009|-5010|-5111|-5222|-5305|-5476|-5492|-5617|-5618|-5760|-3450|-VA-AC|-VA-AZ|-VA-BG|-VA-NG|-VT-BG|-VT-NG|-107-02|-107-04|-107-05|-107-06|-108-01|-201-02|-201-04|-202-06|-203-08|-710-02|-715-01|-715-02|-720-03|-10-11287-600|-10-11287-601|-10-12043-304|-10-12043-309|-10-12043-313|-10-12485-366|-10-12485-368|-10-12485-372|-10-12485-373|-10-12485-374|-10-12485-375|-10-12486-0833|-10-12486-0835|-10-12486-0837|-10-12486-0907|-10-12486-384|-10-12486-391|-10-12486-392|-10-12486-407|-10-12486-428|-CM1|-EF1|-PBW1|-PC1|-PE1|-PE2|-PE5|-SFE1|-SPV2|-SWI14|-SWI15|-VP2|-VP3|-VP4|-WC2|-WC8|-WI10|-WI11|-WI4|-AB4WS|-BBB11|-BR3CWS|-BR6WS|-CPROC|-CPRON|-CPWSB|-JR601|-JR602|-JR603|-JR604|-JR605|-MAT4WS001|-MAT4WS002|-MAT4WS003|-MAT6WS001|-MAT6WS002|-MAT6WS003|-MAT6WS005|-RWS105|-RWS106|-SA401|-SA402|-SP401|-CH50GSD|-FR50GSD|-GC50GSD";
@@ -209,7 +202,7 @@ async function processBatch(employees) {
                 const subCode = rule.subCodePrefix;
                 const paddedSec = String(currentSecCert).padStart(9, '0');
                 const checkDigit = calculateLuhn(subCode + paddedSec);
-                const prefix3 = generateRandomPrefix();
+                const prefix3 = CERT_PREFIX;
                 const codigoCupon = `${prefix3}${subCode}${paddedSec}${checkDigit}`;
 
                 const insertSql = `
