@@ -1572,6 +1572,23 @@ export default function EmployeesListPage() {
                                         </div>
                                     </div>
                                 )}
+
+                                <div style={{
+                                    marginTop: '12px',
+                                    background: '#eff6ff',
+                                    border: '1.5px solid #bfdbfe',
+                                    borderRadius: '12px',
+                                    padding: '10px 14px',
+                                    textAlign: 'left',
+                                    display: 'flex',
+                                    gap: '10px',
+                                    alignItems: 'center'
+                                }}>
+                                    <span style={{ fontSize: '20px', lineHeight: 1 }}>🤖</span>
+                                    <div style={{ fontSize: '11.5px', color: '#1e40af', lineHeight: 1.4 }}>
+                                        <strong>Disponible en Sporty:</strong> El colaborador puede consultar y descargar este QR de descuento en cualquier momento desde su chat con <strong>Sporty</strong> (opción: <em>QR de Descuento</em>).
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

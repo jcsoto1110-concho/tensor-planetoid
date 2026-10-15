@@ -726,6 +726,17 @@ export async function POST(req: NextRequest) {
 
                 let emailSent = false;
 
+                // Cargar imagen de Sporty si existe
+                let sportyBannerBuffer: Buffer | null = null;
+                try {
+                    const bannerPath = path.resolve('public/images/sporty_banner.png');
+                    if (fs.existsSync(bannerPath)) {
+                        sportyBannerBuffer = fs.readFileSync(bannerPath);
+                    }
+                } catch (bErr) {
+                    console.warn('Banner de Sporty no disponible para adjuntar:', bErr);
+                }
+
                 // Enviar correo si tenemos email del colaborador y cliente de Azure Graph activo
                 if (graphClient && emp.email) {
                     try {
@@ -736,39 +747,77 @@ export async function POST(req: NextRequest) {
                             <meta charset="utf-8">
                             <style>
                                 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6; margin: 0; padding: 0; background-color: #f1f5f9; }
-                                .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+                                .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
                                 .header { background: linear-gradient(135deg, #002f6c 0%, #001838 100%); color: #ffffff; padding: 36px 30px; text-align: center; }
                                 .content { padding: 32px 30px; }
-                                .badge { display: inline-block; background-color: #e0e7ff; color: #3730a3; padding: 6px 14px; border-radius: 9999px; font-weight: 700; font-size: 13px; margin-bottom: 12px; }
+                                .badge { display: inline-block; background-color: #fef08a; color: #854d0e; padding: 6px 14px; border-radius: 9999px; font-weight: 800; font-size: 12px; margin-bottom: 12px; letter-spacing: 0.05em; }
+                                .sporty-card { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6; border-radius: 16px; padding: 22px; margin: 24px 0; text-align: left; }
+                                .sporty-badge { display: inline-block; background: #2563eb; color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 8px; }
                                 .card-cupo { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 14px; padding: 20px; text-align: center; margin: 24px 0; }
-                                .cupo-monto { font-size: 36px; font-weight: 900; color: #002f6c; margin: 8px 0; }
-                                .qr-box { text-align: center; margin: 24px 0; padding: 16px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: inline-block; }
-                                .instructions { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 14px 18px; border-radius: 0 10px 10px 0; font-size: 13.5px; color: #166534; margin: 20px 0; }
-                                .empresas-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center; }
-                                .empresa-tag { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 800; margin: 4px; border: 1px solid #bae6fd; }
+                                .cupo-monto { font-size: 38px; font-weight: 900; color: #002f6c; margin: 8px 0; letter-spacing: -0.02em; }
+                                .qr-box { text-align: center; margin: 20px 0; padding: 18px; background: #ffffff; border-radius: 14px; border: 1.5px solid #e2e8f0; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+                                .instructions { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 16px 20px; border-radius: 0 12px 12px 0; font-size: 13.5px; color: #166534; margin: 20px 0; }
+                                .empresas-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin: 20px 0; text-align: center; }
+                                .empresa-tag { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 800; margin: 4px; border: 1px solid #bae6fd; }
+                                .step-pill { background: #ffffff; border-radius: 10px; padding: 10px 14px; margin: 8px 0; border: 1px solid #bfdbfe; font-size: 13px; color: #1e3a8a; display: flex; align-items: center; gap: 8px; }
                                 .footer { background-color: #f8fafc; padding: 24px 30px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
                             </style>
                         </head>
                         <body>
                             <div class="container">
                                 <div class="header">
-                                    <div class="badge">🎁 BENEFICIO DE COLABORADOR</div>
-                                    <h1 style="margin: 0; font-size: 24px; font-weight: 800;">¡Felicitaciones por tus 90 Días!</h1>
-                                    <p style="margin: 10px 0 0; opacity: 0.9; font-size: 15px;">Superdeporte S.A. / Grupo Marathon</p>
+                                    <div class="badge">🎉 ¡FELICITACIONES POR TUS 90 DÍAS!</div>
+                                    <h1 style="margin: 0; font-size: 24px; font-weight: 800;">¡Bienvenido/a a tu Beneficio de Descuento de Colaborador!</h1>
+                                    <p style="margin: 10px 0 0; opacity: 0.9; font-size: 14px;">Superdeporte S.A. / Grupo Marathon</p>
                                 </div>
                                 <div class="content">
-                                    <p style="font-size: 16px;">Estimado/a <strong>${emp.nombre_completo}</strong>,</p>
-                                    <p>Nos alegra celebrar junto a ti tus primeros 90 días en la empresa. Como parte de tu paquete de beneficios, nos complace informarte que ya tienes habilitado tu <strong>Cupo de Descuento de Colaborador</strong>.</p>
-                                    
-                                    <div class="card-cupo">
-                                        <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 700;">Cupo Asignado para Compras</div>
-                                        <div class="cupo-monto">$${Number(emp.cupo_aprobado).toLocaleString('es-EC', { minimumFractionDigits: 2 })}</div>
-                                        <div style="font-size: 12.5px; color: #64748b;">Aplica según las políticas institucionales de descuento para empleados.</div>
+                                    <p style="font-size: 16px; margin-top: 0;">Estimado/a <strong>${emp.nombre_completo}</strong>,</p>
+                                    <p>¡Nos complace darte la bienvenida a tu beneficio de empleado! Al haber cumplido exitosamente tus primeros <strong>90 días</strong> en nuestra compañía, ya tienes habilitado tu <strong>Cupo de Descuento para Compras</strong>.</p>
+
+                                    <!-- SECCIÓN DESTACADA SPORTY -->
+                                    <div class="sporty-card">
+                                        <div class="sporty-badge">🤖 DISPONIBLE EN SPORTY</div>
+                                        <h3 style="margin: 0 0 8px; color: #1e3a8a; font-size: 18px; font-weight: 800;">
+                                            ¡Obtén tu QR de Descuento directamente desde SPORTY!
+                                        </h3>
+                                        <p style="color: #1e40af; font-size: 13.5px; margin: 0 0 14px; line-height: 1.5;">
+                                            Además de este correo, tu código QR personal ya se encuentra disponible <strong>24/7 en nuestro asistente virtual Sporty</strong> para que puedas consultarlo y presentarlo siempre desde tu teléfono celular.
+                                        </p>
+
+                                        <div style="font-size: 13px; font-weight: 800; color: #1e3a8a; margin-bottom: 6px;">
+                                            ¿Cómo obtener tu código en Sporty?
+                                        </div>
+                                        <div class="step-pill">
+                                            <strong>1.</strong> Abre tu chat habitual con <strong>Sporty</strong> (Teams / WhatsApp / Intranet).
+                                        </div>
+                                        <div class="step-pill">
+                                            <strong>2.</strong> En el menú <em>¿Qué puedes consultar hoy en Sporty?</em>, elige la opción:
+                                        </div>
+                                        <div style="background: #2563eb; color: white; border-radius: 10px; padding: 10px 14px; font-size: 13.5px; font-weight: 800; text-align: center; margin: 8px 0; box-shadow: 0 2px 6px rgba(37,99,235,0.3);">
+                                            📱 QR de Descuento (Accede a tu código de empleado)
+                                        </div>
+                                        <div class="step-pill">
+                                            <strong>3.</strong> ¡Listo! Sporty te entregará tu QR al instante para canjear tus compras.
+                                        </div>
                                     </div>
 
+                                    ${sportyBannerBuffer ? `
+                                    <div style="text-align: center; margin: 20px 0;">
+                                        <img src="cid:sportyBanner" alt="Sporty - QR de Descuento" style="width: 100%; max-width: 520px; border-radius: 14px; border: 1px solid #e2e8f0; display: block; margin: 0 auto;" />
+                                    </div>
+                                    ` : ''}
+
+                                    <!-- CUPO ASIGNADO -->
+                                    <div class="card-cupo">
+                                        <div style="font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 800;">Tu Cupo Asignado para Descuentos</div>
+                                        <div class="cupo-monto">$${Number(emp.cupo_aprobado).toLocaleString('es-EC', { minimumFractionDigits: 2 })}</div>
+                                        <div style="font-size: 12.5px; color: #64748b;">Aplica con el <strong>30% de descuento</strong> institucional según políticas vigentes.</div>
+                                    </div>
+
+                                    <!-- EMPRESAS AUTORIZADAS -->
                                     <div class="empresas-box">
                                         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 800; margin-bottom: 8px;">
-                                            🏢 Empresas Habilitadas para Compras con Descuento:
+                                            🏢 Empresas Habilitadas para tus Compras:
                                         </div>
                                         <div>
                                             ${selectedEmpresas.map(code => {
@@ -778,37 +827,40 @@ export async function POST(req: NextRequest) {
                                         </div>
                                     </div>
 
+                                    <!-- QR CODE ADJUNTO -->
                                     <div style="text-align: center;">
                                         <p style="font-weight: 700; margin-bottom: 8px; color: #0f172a;">Tu Código QR de Identificación:</p>
                                         <div class="qr-box">
                                             <img src="cid:qrCodeBeneficio" alt="Código QR Beneficio" style="width: 220px; height: 220px; display: block;" />
                                             <div style="margin-top: 8px; font-family: monospace; font-size: 12px; color: #64748b; font-weight: 700;">
-                                                ID: ${emp.pernr} | C.I.: ${emp.cedula}
+                                                ID Empleado: ${emp.pernr} | Cédula: ${emp.cedula}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="instructions">
-                                        <strong>¿Cómo utilizar tu beneficio?</strong><br>
-                                        Presenta este código QR desde tu teléfono celular junto con tu cédula de identidad en cualquiera de nuestras tiendas autorizadas de las empresas seleccionadas al momento de pagar.
+                                        <strong>📌 ¿Cómo utilizar tu beneficio en tienda?</strong><br>
+                                        1. Solicita tu <strong>QR de Descuento</strong> en <strong>Sporty</strong> o presenta el código QR de este correo desde tu celular.<br>
+                                        2. Presenta tu <strong>cédula de identidad original</strong> en la caja de cualquier tienda autorizada.<br>
+                                        3. El cajero escaneará tu código y aplicará automáticamente tu descuento institucional.
                                     </div>
 
-                                    <p style="font-size: 13.5px; color: #64748b;">
-                                        Si tienes dudas sobre el consumo o alcance de tu cupo, comunícate con el área de Talento Humano.
+                                    <p style="font-size: 13px; color: #64748b; margin-top: 24px;">
+                                        Para cualquier duda o consulta sobre el alcance de tu beneficio, comunícate con el departamento de Talento Humano.
                                     </p>
                                 </div>
                                 <div class="footer">
-                                    <p style="margin: 0;">Superdeporte S.A. / Marathon Sports · Departamento de Talento Humano</p>
-                                    <p style="margin: 6px 0 0; font-size: 11px;">Este es un mensaje automático generado por el Sistema de Digitalización Zero-Paper.</p>
+                                    <p style="margin: 0; font-weight: 700;">Superdeporte S.A. / Marathon Sports · Talento Humano</p>
+                                    <p style="margin: 6px 0 0; font-size: 11px;">Mensaje de bienvenida al programa de beneficios corporativos.</p>
                                 </div>
                             </div>
                         </body>
                         </html>
                         `;
 
-                        const sendMailPayload = {
+                        const sendMailPayload: any = {
                             message: {
-                                subject: '🎉 ¡Felicitaciones! Ya tienes habilitado tu Cupo de Descuento (Beneficio 90 Días)',
+                                subject: '🎉 ¡Bienvenido/a a tu Beneficio 90 Días! Obtén tu QR de Descuento en Sporty',
                                 body: {
                                     contentType: 'HTML',
                                     content: emailHtml
@@ -829,7 +881,15 @@ export async function POST(req: NextRequest) {
                                         contentBytes: qrPngBuffer.toString('base64'),
                                         contentId: 'qrCodeBeneficio',
                                         isInline: true
-                                    }
+                                    },
+                                    ...(sportyBannerBuffer ? [{
+                                        '@odata.type': '#microsoft.graph.fileAttachment',
+                                        name: 'sporty-banner.png',
+                                        contentType: 'image/png',
+                                        contentBytes: sportyBannerBuffer.toString('base64'),
+                                        contentId: 'sportyBanner',
+                                        isInline: true
+                                    }] : [])
                                 ]
                             },
                             saveToSentItems: true
