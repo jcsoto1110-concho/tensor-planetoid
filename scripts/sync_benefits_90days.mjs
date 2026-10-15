@@ -525,6 +525,7 @@ async function runSync() {
                 cupo_aprobado: existing ? existing.cupo_aprobado : cupo,
                 estado: existing ? existing.estado : 'PENDIENTE',
                 discount_id_ws: existing?.discount_id_ws || null,
+                empresas: existing?.empresas || ['E200', 'E100', 'E101'],
                 qr_token: existing?.qr_token || null,
                 email_sent: existing ? existing.email_sent : false,
                 updated_at: new Date().toISOString()

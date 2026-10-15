@@ -332,6 +332,7 @@ export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status') || 'ALL';
+        const empresa = searchParams.get('empresa') || 'ALL';
         const search = (searchParams.get('search') || '').trim().toLowerCase();
 
         const supabase = getSupabase();
@@ -351,10 +352,21 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
-        const allRecords = data || [];
+        const rawRecords = data || [];
+        const allRecords = rawRecords.map((r: any) => ({
+            ...r,
+            empresas: (Array.isArray(r.empresas) && r.empresas.length > 0)
+                ? r.empresas
+                : (typeof r.empresas === 'string' && r.empresas.trim()
+                    ? r.empresas.split(',').map((s: string) => s.trim())
+                    : ['E200', 'E100', 'E101'])
+        }));
 
-        // Filtrado por búsqueda en memoria
-        const filtered = allRecords.filter(r => {
+        // Filtrado por búsqueda y empresa en memoria
+        const filtered = allRecords.filter((r: any) => {
+            if (empresa !== 'ALL' && (!r.empresas || !r.empresas.includes(empresa))) {
+                return false;
+            }
             if (!search) return true;
             return (
                 (r.nombre_completo && r.nombre_completo.toLowerCase().includes(search)) ||
@@ -387,11 +399,11 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// 2. PUT: Modificar cupo u observaciones
+// 2. PUT: Modificar cupo, empresas u observaciones
 export async function PUT(req: NextRequest) {
     try {
         const body = await req.json();
-        const { id, cupo_aprobado, observaciones } = body;
+        const { id, cupo_aprobado, observaciones, empresas } = body;
 
         if (!id) {
             return NextResponse.json({ success: false, error: 'ID es requerido' }, { status: 400 });
@@ -402,6 +414,9 @@ export async function PUT(req: NextRequest) {
 
         if (cupo_aprobado !== undefined) updateData.cupo_aprobado = Number(cupo_aprobado);
         if (observaciones !== undefined) updateData.observaciones = observaciones;
+        if (empresas !== undefined) {
+            updateData.empresas = Array.isArray(empresas) ? empresas : [empresas];
+        }
 
         const { data, error } = await supabase
             .from('digi_employee_benefits_90d')
@@ -438,7 +453,7 @@ export async function POST(req: NextRequest) {
             // Obtener registros existentes para preservar estados, cupos editados o IDs previos
             const { data: existingBenefits } = await supabase
                 .from('digi_employee_benefits_90d')
-                .select('pernr, cupo_aprobado, estado, discount_id_ws, qr_token, email_sent');
+                .select('pernr, cupo_aprobado, estado, discount_id_ws, qr_token, email_sent, empresas');
 
             const existingMap = new Map();
             if (existingBenefits) {
@@ -505,6 +520,7 @@ export async function POST(req: NextRequest) {
                     cupo_aprobado: existing ? existing.cupo_aprobado : cupo,
                     estado: existing ? existing.estado : 'PENDIENTE',
                     discount_id_ws: existing?.discount_id_ws || null,
+                    empresas: existing?.empresas || ['E200', 'E100', 'E101'],
                     qr_token: existing?.qr_token || null,
                     email_sent: existing ? existing.email_sent : false,
                     updated_at: new Date().toISOString()
@@ -586,6 +602,9 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ success: false, error: 'Debe especificar al menos un ID' }, { status: 400 });
             }
 
+            const empresasMap = body.empresasMap || {};
+            const globalEmpresas = body.empresas;
+
             // Consultar datos de los empleados a aprobar
             const { data: employeesToApprove, error: fetchErr } = await supabase
                 .from('digi_employee_benefits_90d')
@@ -636,10 +655,21 @@ export async function POST(req: NextRequest) {
             for (const emp of employeesToApprove) {
                 const qrToken = emp.qr_token || `BEN90-${emp.pernr}-${Date.now()}`;
                 
-                // Generar contenido del QR Code
+                // Empresas aprobadas para este colaborador (E200 Superdeporte, E100 Equinox, E101 Mundo Dep)
+                const selectedEmpresas: string[] = empresasMap[emp.id] || 
+                    (Array.isArray(globalEmpresas) && globalEmpresas.length > 0 
+                        ? globalEmpresas 
+                        : (Array.isArray(emp.empresas) && emp.empresas.length > 0 ? emp.empresas : ['E200', 'E100', 'E101']));
+
+                // HOOK / DISPARADOR PARA EL WEB SERVICE DE CERTIFICADO DE DESCUENTO
+                // Con esta selección se disparará la creación del certificado de descuento en el WS
+                console.log(`🚀 [CERTIFICADO DESCUENTO WS] Creando certificados para ${emp.nombre_completo} (PERNR: ${emp.pernr}) en empresas:`, selectedEmpresas);
+
+                // Generar contenido del QR Code con las empresas autorizadas
                 const qrPayload = JSON.stringify({
                     empresa: 'SUPERDEPORTE S.A. / MARATHON',
                     beneficio: 'CUPO_DESCUENTO_90_DIAS',
+                    empresas_autorizadas: selectedEmpresas,
                     pernr: emp.pernr,
                     cedula: emp.cedula,
                     colaborador: emp.nombre_completo,
@@ -681,6 +711,8 @@ export async function POST(req: NextRequest) {
                                 .cupo-monto { font-size: 36px; font-weight: 900; color: #002f6c; margin: 8px 0; }
                                 .qr-box { text-align: center; margin: 24px 0; padding: 16px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: inline-block; }
                                 .instructions { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 14px 18px; border-radius: 0 10px 10px 0; font-size: 13.5px; color: #166534; margin: 20px 0; }
+                                .empresas-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center; }
+                                .empresa-tag { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 800; margin: 4px; border: 1px solid #bae6fd; }
                                 .footer { background-color: #f8fafc; padding: 24px 30px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
                             </style>
                         </head>
@@ -701,6 +733,18 @@ export async function POST(req: NextRequest) {
                                         <div style="font-size: 12.5px; color: #64748b;">Aplica según las políticas institucionales de descuento para empleados.</div>
                                     </div>
 
+                                    <div class="empresas-box">
+                                        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 800; margin-bottom: 8px;">
+                                            🏢 Empresas Habilitadas para Compras con Descuento:
+                                        </div>
+                                        <div>
+                                            ${selectedEmpresas.map(code => {
+                                                const label = code === 'E200' ? 'E200 - Superdeporte' : code === 'E100' ? 'E100 - Equinox' : code === 'E101' ? 'E101 - Mundo Dep' : code;
+                                                return `<span class="empresa-tag">${label}</span>`;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+
                                     <div style="text-align: center;">
                                         <p style="font-weight: 700; margin-bottom: 8px; color: #0f172a;">Tu Código QR de Identificación:</p>
                                         <div class="qr-box">
@@ -713,7 +757,7 @@ export async function POST(req: NextRequest) {
 
                                     <div class="instructions">
                                         <strong>¿Cómo utilizar tu beneficio?</strong><br>
-                                        Presenta este código QR desde tu teléfono celular junto con tu cédula de identidad en cualquiera de nuestras tiendas autorizadas al momento de pagar.
+                                        Presenta este código QR desde tu teléfono celular junto con tu cédula de identidad en cualquiera de nuestras tiendas autorizadas de las empresas seleccionadas al momento de pagar.
                                     </div>
 
                                     <p style="font-size: 13.5px; color: #64748b;">
@@ -765,11 +809,12 @@ export async function POST(req: NextRequest) {
                     }
                 }
 
-                // Actualizar registro en Supabase
+                // Actualizar registro en Supabase incluyendo empresas asignadas
                 const { error: updErr } = await supabase
                     .from('digi_employee_benefits_90d')
                     .update({
                         estado: 'APROBADO',
+                        empresas: selectedEmpresas,
                         qr_token: qrToken,
                         email_sent: emailSent,
                         email_sent_at: emailSent ? now.toISOString() : null,
@@ -785,7 +830,8 @@ export async function POST(req: NextRequest) {
                         pernr: emp.pernr,
                         nombre: emp.nombre_completo,
                         email_sent: emailSent,
-                        cupo_aprobado: emp.cupo_aprobado
+                        cupo_aprobado: emp.cupo_aprobado,
+                        empresas: selectedEmpresas
                     });
                 }
             }

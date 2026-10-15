@@ -7,9 +7,15 @@ import QRCode from 'qrcode';
 import { 
     Search, FileText, User as UserIcon, ChevronRight, Briefcase, Calendar, 
     Trash2, X, Upload, UserPlus, Sparkles, Gift, CheckCircle, AlertCircle, 
-    RefreshCw, QrCode, Mail, Edit3, DollarSign, Check, Eye, Download, ShieldCheck
+    RefreshCw, QrCode, Mail, Edit3, DollarSign, Check, Eye, Download, ShieldCheck, Building2
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+
+const EMPRESAS_DISPONIBLES = [
+    { code: 'E200', name: 'Superdeporte S.A.', short: 'Superdeporte' },
+    { code: 'E100', name: 'Equinox', short: 'Equinox' },
+    { code: 'E101', name: 'Mundo Dep', short: 'Mundo Dep' }
+];
 
 export default function EmployeesListPage() {
     const { employees } = useDoc();
@@ -23,6 +29,7 @@ export default function EmployeesListPage() {
     const [benefits, setBenefits] = useState<any[]>([]);
     const [benefitsLoading, setBenefitsLoading] = useState(false);
     const [benefitsFilter, setBenefitsFilter] = useState<'ALL' | 'PENDIENTE' | 'APROBADO' | 'RECHAZADO'>('PENDIENTE');
+    const [benefitsEmpresaFilter, setBenefitsEmpresaFilter] = useState<string>('ALL');
     const [benefitsSearch, setBenefitsSearch] = useState('');
     const [benefitsStats, setBenefitsStats] = useState({ total: 0, pendientes: 0, aprobados: 0, rechazados: 0, montoTotalAprobado: 0 });
     const [selectedBenefitIds, setSelectedBenefitIds] = useState<Set<string>>(new Set());
@@ -60,7 +67,7 @@ export default function EmployeesListPage() {
     const fetchBenefits = async () => {
         setBenefitsLoading(true);
         try {
-            const res = await fetch(`/api/benefits-90-days?status=${benefitsFilter}&search=${encodeURIComponent(benefitsSearch)}`);
+            const res = await fetch(`/api/benefits-90-days?status=${benefitsFilter}&empresa=${benefitsEmpresaFilter}&search=${encodeURIComponent(benefitsSearch)}`);
             const data = await res.json();
             if (data.success) {
                 setBenefits(data.data || []);
@@ -77,7 +84,50 @@ export default function EmployeesListPage() {
         if (mainTab === 'benefits90') {
             fetchBenefits();
         }
-    }, [mainTab, benefitsFilter]);
+    }, [mainTab, benefitsFilter, benefitsEmpresaFilter]);
+
+    // Cambiar empresa para un colaborador (E200, E100, E101)
+    const handleToggleEmpresa = async (benefitId: string, currentEmpresas: string[] | undefined, codeToToggle: string) => {
+        const list = Array.isArray(currentEmpresas) && currentEmpresas.length > 0 ? [...currentEmpresas] : ['E200', 'E100', 'E101'];
+        let updated: string[];
+        if (list.includes(codeToToggle)) {
+            if (list.length === 1) {
+                alert('⚠️ El colaborador debe tener al menos una empresa seleccionada para su certificado.');
+                return;
+            }
+            updated = list.filter(c => c !== codeToToggle);
+        } else {
+            updated = [...list, codeToToggle];
+        }
+
+        // Optimistic update
+        setBenefits(prev => prev.map(b => b.id === benefitId ? { ...b, empresas: updated } : b));
+
+        try {
+            await fetch('/api/benefits-90-days', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: benefitId, empresas: updated })
+            });
+        } catch (e) {
+            console.error('Error actualizando empresas:', e);
+        }
+    };
+
+    // Seleccionar todas las empresas para un colaborador
+    const handleSelectAllEmpresas = async (benefitId: string) => {
+        const all = ['E200', 'E100', 'E101'];
+        setBenefits(prev => prev.map(b => b.id === benefitId ? { ...b, empresas: all } : b));
+        try {
+            await fetch('/api/benefits-90-days', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: benefitId, empresas: all })
+            });
+        } catch (e) {
+            console.error('Error actualizando empresas:', e);
+        }
+    };
 
     // Aprobar individual
     const handleApproveBenefit = async (id: string) => {
@@ -187,6 +237,7 @@ export default function EmployeesListPage() {
             const qrPayload = JSON.stringify({
                 empresa: 'SUPERDEPORTE S.A. / MARATHON',
                 beneficio: 'CUPO_DESCUENTO_90_DIAS',
+                empresas_autorizadas: item.empresas || ['E200', 'E100', 'E101'],
                 pernr: item.pernr,
                 cedula: item.cedula,
                 colaborador: item.nombre_completo,
@@ -935,9 +986,32 @@ export default function EmployeesListPage() {
                             </button>
                         </div>
 
-                        {/* Buscador */}
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <div style={{ position: 'relative', minWidth: '280px' }}>
+                        {/* Buscador y Filtro por Empresa */}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div style={{ position: 'relative' }}>
+                                <select
+                                    value={benefitsEmpresaFilter}
+                                    onChange={e => setBenefitsEmpresaFilter(e.target.value)}
+                                    style={{
+                                        padding: '9px 14px',
+                                        borderRadius: '10px',
+                                        border: '1.5px solid #cbd5e1',
+                                        background: 'white',
+                                        fontSize: '12.5px',
+                                        fontWeight: 700,
+                                        color: '#0f172a',
+                                        outline: 'none',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option value="ALL">🏢 Todas las Empresas</option>
+                                    <option value="E200">E200 - Superdeporte</option>
+                                    <option value="E100">E100 - Equinox</option>
+                                    <option value="E101">E101 - Mundo Dep</option>
+                                </select>
+                            </div>
+
+                            <div style={{ position: 'relative', minWidth: '260px' }}>
                                 <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                 <input
                                     type="text"
@@ -1006,6 +1080,7 @@ export default function EmployeesListPage() {
                                         <th style={{ padding: '14px 16px' }}>Puesto / Operación</th>
                                         <th style={{ padding: '14px 16px' }}>Antigüedad</th>
                                         <th style={{ padding: '14px 16px' }}>Nivel / Categoría</th>
+                                        <th style={{ padding: '14px 16px' }}>Empresas Descuento</th>
                                         <th style={{ padding: '14px 16px' }}>Cupo de Descuento ($)</th>
                                         <th style={{ padding: '14px 16px' }}>Estado</th>
                                         <th style={{ padding: '14px 16px', textAlign: 'right' }}>Acciones</th>
@@ -1014,7 +1089,7 @@ export default function EmployeesListPage() {
                                 <tbody>
                                     {benefitsLoading ? (
                                         <tr>
-                                            <td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+                                            <td colSpan={9} style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                                                     <RefreshCw size={28} className="animate-spin" style={{ color: '#002f6c' }} />
                                                     <span style={{ fontWeight: 600 }}>Cargando registros de beneficios 90 días...</span>
@@ -1023,7 +1098,7 @@ export default function EmployeesListPage() {
                                         </tr>
                                     ) : benefits.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
+                                            <td colSpan={9} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
                                                 <Gift size={40} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
                                                 <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#475569' }}>
                                                     No se encontraron colaboradores en esta vista
@@ -1145,6 +1220,61 @@ export default function EmployeesListPage() {
                                                                 return <span style={{ background: '#fef3c7', color: '#b45309', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>🏪 Tienda / Bodega</span>;
                                                             }
                                                         })()}
+                                                    </td>
+                                                    {/* SELECTOR INTERACTIVO DE EMPRESAS DE DESCUENTO */}
+                                                    <td style={{ padding: '14px 16px' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                                                {EMPRESAS_DISPONIBLES.map(emp => {
+                                                                    const empList = Array.isArray(b.empresas) && b.empresas.length > 0 ? b.empresas : ['E200', 'E100', 'E101'];
+                                                                    const isSelected = empList.includes(emp.code);
+                                                                    const isPending = b.estado === 'PENDIENTE';
+
+                                                                    return (
+                                                                        <button
+                                                                            key={emp.code}
+                                                                            type="button"
+                                                                            disabled={!isPending}
+                                                                            onClick={() => handleToggleEmpresa(b.id, b.empresas, emp.code)}
+                                                                            title={isPending ? `Clic para ${isSelected ? 'quitar' : 'asignar'} certificado en ${emp.name}` : emp.name}
+                                                                            style={{
+                                                                                padding: '3px 7px',
+                                                                                borderRadius: '6px',
+                                                                                fontSize: '11px',
+                                                                                fontWeight: 800,
+                                                                                border: isSelected ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+                                                                                background: isSelected ? '#eff6ff' : '#f8fafc',
+                                                                                color: isSelected ? '#1e40af' : '#94a3b8',
+                                                                                cursor: isPending ? 'pointer' : 'default',
+                                                                                display: 'inline-flex',
+                                                                                alignItems: 'center',
+                                                                                gap: '4px',
+                                                                                transition: 'all 0.15s ease'
+                                                                            }}
+                                                                        >
+                                                                            <span style={{
+                                                                                width: '6px',
+                                                                                height: '6px',
+                                                                                borderRadius: '50%',
+                                                                                background: isSelected ? '#2563eb' : '#cbd5e1'
+                                                                            }} />
+                                                                            {emp.code}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                            {b.estado === 'PENDIENTE' && (
+                                                                <div style={{ display: 'flex', gap: '6px', fontSize: '10.5px' }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleSelectAllEmpresas(b.id)}
+                                                                        style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+                                                                    >
+                                                                        ✓ Todas
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td style={{ padding: '14px 16px' }}>
                                                         {isEditing ? (
@@ -1337,6 +1467,22 @@ export default function EmployeesListPage() {
                                 </div>
                                 <div style={{ marginTop: '8px', display: 'inline-block', background: '#dcfce7', color: '#15803d', padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', fontWeight: 900 }}>
                                     Cupo Aprobado: ${Number(qrModal.item.cupo_aprobado).toFixed(2)}
+                                </div>
+
+                                <div style={{ marginTop: '12px', padding: '8px 12px', background: 'white', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                        Empresas Autorizadas:
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                        {(qrModal.item.empresas || ['E200', 'E100', 'E101']).map((code: string) => {
+                                            const label = code === 'E200' ? 'E200 - Superdeporte' : code === 'E100' ? 'E100 - Equinox' : code === 'E101' ? 'E101 - Mundo Dep' : code;
+                                            return (
+                                                <span key={code} style={{ background: '#eff6ff', color: '#1d4ed8', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
+                                                    {label}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         </div>
