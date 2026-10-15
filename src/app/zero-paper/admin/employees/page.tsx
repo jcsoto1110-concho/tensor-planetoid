@@ -41,6 +41,7 @@ export default function EmployeesListPage() {
     const [rejectObs, setRejectObs] = useState('');
     const [qrModal, setQrModal] = useState<{ item: any; qrDataUrl: string } | null>(null);
     const [isSyncingSap, setIsSyncingSap] = useState(false);
+    const [isProcessingOracle, setIsProcessingOracle] = useState(false);
 
     const handleSyncSapBenefits = async () => {
         setIsSyncingSap(true);
@@ -61,6 +62,30 @@ export default function EmployeesListPage() {
             alert(`❌ Error al conectar con SAP HANA: ${e.message}`);
         } finally {
             setIsSyncingSap(false);
+        }
+    };
+
+    const handleProcessOracleCoupons = async () => {
+        setIsProcessingOracle(true);
+        try {
+            const res = await fetch('/api/benefits-90-days', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'generate_oracle_coupons' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ ${data.message}`);
+                await fetchBenefits();
+            } else if (data.isLocalRequired) {
+                alert(`ℹ️ Proceso de Red Local Oracle:\n\n${data.error}\n\nPara procesar las asignaciones pendientes en Oracle Retail Pro, ejecute en la consola del servidor:\nnpm run process:coupons`);
+            } else {
+                alert(`❌ Error: ${data.error || 'No se pudieron generar los certificados en Oracle'}`);
+            }
+        } catch (e: any) {
+            alert(`❌ Error al conectar con el servicio: ${e.message}`);
+        } finally {
+            setIsProcessingOracle(false);
         }
     };
 
@@ -844,6 +869,29 @@ export default function EmployeesListPage() {
                                     {isSyncingSap ? 'Sincronizando con SAP HANA...' : 'Sincronizar SAP HANA'}
                                 </button>
                                 <button
+                                    onClick={handleProcessOracleCoupons}
+                                    disabled={isProcessingOracle}
+                                    title="Emite los certificados de descuento en Oracle Retail Pro para todos los colaboradores aprobados"
+                                    style={{
+                                        padding: '10px 18px',
+                                        borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.25)',
+                                        background: isProcessingOracle ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)',
+                                        color: 'white',
+                                        cursor: isProcessingOracle ? 'not-allowed' : 'pointer',
+                                        fontWeight: 700,
+                                        fontSize: '13px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s',
+                                        opacity: isProcessingOracle ? 0.8 : 1
+                                    }}
+                                >
+                                    <Sparkles size={15} className={isProcessingOracle ? 'animate-spin' : ''} />
+                                    {isProcessingOracle ? 'Procesando en Oracle...' : 'Emitir Certificados Oracle'}
+                                </button>
+                                <button
                                     onClick={handleBatchApprove}
                                     disabled={selectedBenefitIds.size === 0}
                                     style={{
@@ -1336,8 +1384,37 @@ export default function EmployeesListPage() {
                                                                 <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                                                     <CheckCircle size={12} /> Aprobado
                                                                 </span>
+                                                                {b.discount_id_ws ? (
+                                                                    <div style={{ marginTop: '4px' }}>
+                                                                        <span 
+                                                                            title={`Certificado(s) Retail Pro: ${b.discount_id_ws}`} 
+                                                                            style={{ 
+                                                                                background: '#eff6ff', 
+                                                                                color: '#1d4ed8', 
+                                                                                fontSize: '10.5px', 
+                                                                                fontWeight: 800, 
+                                                                                padding: '2px 6px', 
+                                                                                borderRadius: '6px', 
+                                                                                border: '1px solid #bfdbfe',
+                                                                                display: 'inline-block',
+                                                                                maxWidth: '160px',
+                                                                                overflow: 'hidden',
+                                                                                textOverflow: 'ellipsis',
+                                                                                whiteSpace: 'nowrap'
+                                                                            }}
+                                                                        >
+                                                                            🎟️ {b.discount_id_ws}
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div style={{ marginTop: '4px' }}>
+                                                                        <span style={{ background: '#fef3c7', color: '#92400e', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', border: '1px solid #fde68a' }}>
+                                                                            ⏳ Pendiente Oracle
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                                 {b.email_sent && (
-                                                                    <div style={{ fontSize: '10.5px', color: '#0284c7', marginTop: '2px', fontWeight: 600 }}>
+                                                                    <div style={{ fontSize: '10.5px', color: '#0284c7', marginTop: '3px', fontWeight: 600 }}>
                                                                         📧 Notificado con QR
                                                                     </div>
                                                                 )}
@@ -1484,6 +1561,17 @@ export default function EmployeesListPage() {
                                         })}
                                     </div>
                                 </div>
+
+                                {qrModal.item.discount_id_ws && (
+                                    <div style={{ marginTop: '10px', padding: '10px 14px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', marginBottom: '4px' }}>
+                                            🎟️ Certificado(s) Retail Pro Emitido(s):
+                                        </div>
+                                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#15803d', letterSpacing: '0.04em', wordBreak: 'break-all' }}>
+                                            {qrModal.item.discount_id_ws}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

@@ -4,6 +4,8 @@ import QRCode from 'qrcode';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import { executeSapQuery } from '@/lib/sapdb';
+import path from 'path';
+import fs from 'fs';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -595,6 +597,37 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: true, data });
         }
 
+        // ACCIÓN NUEVA: PROCESAR CERTIFICADOS ORACLE MANUALMENTE
+        if (action === 'generate_oracle_coupons') {
+            try {
+                const scriptPath = path.resolve('scripts/process_oracle_coupons.mjs');
+                if (!fs.existsSync(scriptPath)) {
+                    return NextResponse.json({
+                        success: false,
+                        error: 'Script scripts/process_oracle_coupons.mjs no encontrado en el servidor local.'
+                    }, { status: 404 });
+                }
+                const { pathToFileURL } = await import('url');
+                const { processOracleCoupons } = await import(pathToFileURL(scriptPath).href);
+                const result = await processOracleCoupons();
+                return NextResponse.json({
+                    success: true,
+                    count: result.count || 0,
+                    totalCertificados: result.totalCertificados || 0,
+                    message: result.count > 0 
+                        ? `¡Se generaron ${result.totalCertificados} certificados en Oracle para ${result.count} colaborador(es)!`
+                        : 'No se encontraron colaboradores pendientes para generar certificados en Oracle.'
+                });
+            } catch (oracleErr: any) {
+                console.error('Error ejecutando processOracleCoupons:', oracleErr);
+                return NextResponse.json({
+                    success: false,
+                    isLocalRequired: true,
+                    error: `La base Oracle (192.168.91.14) está en la red interna privada: ${oracleErr.message}. Ejecute 'npm run process:coupons' en la consola local.`
+                }, { status: 500 });
+            }
+        }
+
         // ACCIÓN D: APROBAR Y ENVIAR QR POR EMAIL
         if (action === 'approve') {
             const targetIds: string[] = ids || (id ? [id] : []);
@@ -810,19 +843,30 @@ export async function POST(req: NextRequest) {
                 }
 
                 // Actualizar registro en Supabase incluyendo empresas asignadas
-                const { error: updErr } = await supabase
+                const updateData: any = {
+                    estado: 'APROBADO',
+                    empresas: selectedEmpresas,
+                    qr_token: qrToken,
+                    email_sent: emailSent,
+                    email_sent_at: emailSent ? now.toISOString() : null,
+                    aprobado_por: aprobado_por || 'Talento Humano',
+                    aprobado_at: now.toISOString(),
+                    updated_at: now.toISOString()
+                };
+
+                let { error: updErr } = await supabase
                     .from('digi_employee_benefits_90d')
-                    .update({
-                        estado: 'APROBADO',
-                        empresas: selectedEmpresas,
-                        qr_token: qrToken,
-                        email_sent: emailSent,
-                        email_sent_at: emailSent ? now.toISOString() : null,
-                        aprobado_por: aprobado_por || 'Talento Humano',
-                        aprobado_at: now.toISOString(),
-                        updated_at: now.toISOString()
-                    })
+                    .update({ ...updateData, cupon_oracle_estado: 'PENDIENTE' })
                     .eq('id', emp.id);
+
+                if (updErr) {
+                    // Fallback defensivo si la columna cupon_oracle_estado aún no fue creada en Supabase
+                    const retry = await supabase
+                        .from('digi_employee_benefits_90d')
+                        .update(updateData)
+                        .eq('id', emp.id);
+                    updErr = retry.error;
+                }
 
                 if (!updErr) {
                     results.push({
@@ -834,6 +878,18 @@ export async function POST(req: NextRequest) {
                         empresas: selectedEmpresas
                     });
                 }
+            }
+
+            // Intentar ejecución directa en Oracle si el servidor tiene acceso a la red local (192.168.91.14)
+            try {
+                const scriptPath = path.resolve('scripts/process_oracle_coupons.mjs');
+                if (fs.existsSync(scriptPath)) {
+                    const { pathToFileURL } = await import('url');
+                    const { processOracleCoupons } = await import(pathToFileURL(scriptPath).href);
+                    await processOracleCoupons();
+                }
+            } catch (oracleAsyncErr: any) {
+                console.log('ℹ️ Generación directa en Oracle diferida a daemon/script local:', oracleAsyncErr.message);
             }
 
             return NextResponse.json({

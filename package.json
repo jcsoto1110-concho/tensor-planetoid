@@ -9,7 +9,9 @@
     "lint": "eslint",
     "sync:sap": "node scripts/sync_sap_to_supabase.mjs",
     "sync:sap:all": "node scripts/sync_sap_to_supabase.mjs --all",
-    "sync:benefits": "node scripts/sync_benefits_90days.mjs"
+    "sync:benefits": "node scripts/sync_benefits_90days.mjs",
+    "process:coupons": "node scripts/process_oracle_coupons.mjs",
+    "process:coupons:watch": "node scripts/process_oracle_coupons.mjs --watch"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",
