@@ -1127,7 +1127,6 @@ export default function EmployeesListPage() {
                                         <th style={{ padding: '14px 16px' }}>Colaborador</th>
                                         <th style={{ padding: '14px 16px' }}>Puesto / Operación</th>
                                         <th style={{ padding: '14px 16px' }}>Antigüedad</th>
-                                        <th style={{ padding: '14px 16px' }}>Nivel / Categoría</th>
                                         <th style={{ padding: '14px 16px' }}>Empresas Descuento</th>
                                         <th style={{ padding: '14px 16px' }}>Cupo de Descuento ($)</th>
                                         <th style={{ padding: '14px 16px' }}>Estado</th>
@@ -1137,7 +1136,7 @@ export default function EmployeesListPage() {
                                 <tbody>
                                     {benefitsLoading ? (
                                         <tr>
-                                            <td colSpan={9} style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+                                            <td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                                                     <RefreshCw size={28} className="animate-spin" style={{ color: '#002f6c' }} />
                                                     <span style={{ fontWeight: 600 }}>Cargando registros de beneficios 90 días...</span>
@@ -1146,7 +1145,7 @@ export default function EmployeesListPage() {
                                         </tr>
                                     ) : benefits.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
+                                            <td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
                                                 <Gift size={40} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
                                                 <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#475569' }}>
                                                     No se encontraron colaboradores en esta vista
@@ -1254,20 +1253,6 @@ export default function EmployeesListPage() {
                                                                 ⚡ {b.dias_laborados} días cumplidos
                                                             </span>
                                                         </div>
-                                                    </td>
-                                                    <td style={{ padding: '14px 16px' }}>
-                                                        {(() => {
-                                                            const t = b.tipo_operacion;
-                                                            if (t === 'GERENCIA') {
-                                                                return <span style={{ background: '#f3e8ff', color: '#7e22ce', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>🏢 Gerencia</span>;
-                                                            } else if (t === 'JEFATURA_SUPERVISION') {
-                                                                return <span style={{ background: '#e0e7ff', color: '#4338ca', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>👔 Jefatura / Sup.</span>;
-                                                            } else if (t === 'ADM_ASISTENCIAL') {
-                                                                return <span style={{ background: '#ecfdf5', color: '#047857', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>📑 Adm / Asistencial</span>;
-                                                            } else {
-                                                                return <span style={{ background: '#fef3c7', color: '#b45309', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>🏪 Tienda / Bodega</span>;
-                                                            }
-                                                        })()}
                                                     </td>
                                                     {/* SELECTOR INTERACTIVO DE EMPRESAS DE DESCUENTO */}
                                                     <td style={{ padding: '14px 16px' }}>
