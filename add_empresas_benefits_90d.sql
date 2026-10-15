@@ -7,9 +7,9 @@
 -- ==============================================================================
 
 ALTER TABLE public.digi_employee_benefits_90d 
-ADD COLUMN IF NOT EXISTS empresas TEXT[] DEFAULT ARRAY['E200', 'E100', 'E101']::TEXT[];
+ADD COLUMN IF NOT EXISTS empresas TEXT[] DEFAULT ARRAY['E200']::TEXT[];
 
 -- Actualizar registros existentes que no tengan empresas definidas
 UPDATE public.digi_employee_benefits_90d
-SET empresas = ARRAY['E200', 'E100', 'E101']::TEXT[]
+SET empresas = ARRAY['E200']::TEXT[]
 WHERE empresas IS NULL OR cardinality(empresas) = 0;

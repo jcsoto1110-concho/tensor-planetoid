@@ -191,7 +191,7 @@ async function processBatch(employees) {
             // Empresas a generar para este empleado
             const empresas = Array.isArray(emp.empresas) && emp.empresas.length > 0 
                 ? emp.empresas 
-                : ['E200', 'E100', 'E101'];
+                : ['E200'];
 
             console.log(`   Empresas seleccionadas: [${empresas.join(', ')}]`);
 

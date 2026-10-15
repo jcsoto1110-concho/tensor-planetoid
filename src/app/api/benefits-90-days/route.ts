@@ -361,7 +361,7 @@ export async function GET(req: NextRequest) {
                 ? r.empresas
                 : (typeof r.empresas === 'string' && r.empresas.trim()
                     ? r.empresas.split(',').map((s: string) => s.trim())
-                    : ['E200', 'E100', 'E101'])
+                    : ['E200'])
         }));
 
         // Filtrado por búsqueda y empresa en memoria
@@ -522,7 +522,7 @@ export async function POST(req: NextRequest) {
                     cupo_aprobado: existing ? existing.cupo_aprobado : cupo,
                     estado: existing ? existing.estado : 'PENDIENTE',
                     discount_id_ws: existing?.discount_id_ws || null,
-                    empresas: existing?.empresas || ['E200', 'E100', 'E101'],
+                    empresas: existing?.empresas || ['E200'],
                     qr_token: existing?.qr_token || null,
                     email_sent: existing ? existing.email_sent : false,
                     updated_at: new Date().toISOString()
@@ -692,7 +692,7 @@ export async function POST(req: NextRequest) {
                 const selectedEmpresas: string[] = empresasMap[emp.id] || 
                     (Array.isArray(globalEmpresas) && globalEmpresas.length > 0 
                         ? globalEmpresas 
-                        : (Array.isArray(emp.empresas) && emp.empresas.length > 0 ? emp.empresas : ['E200', 'E100', 'E101']));
+                        : (Array.isArray(emp.empresas) && emp.empresas.length > 0 ? emp.empresas : ['E200']));
 
                 // HOOK / DISPARADOR PARA EL WEB SERVICE DE CERTIFICADO DE DESCUENTO
                 // Con esta selección se disparará la creación del certificado de descuento en el WS

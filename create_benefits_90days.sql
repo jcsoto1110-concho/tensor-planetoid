@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.digi_employee_benefits_90d (
     estado VARCHAR(50) NOT NULL DEFAULT 'PENDIENTE', -- PENDIENTE, APROBADO, RECHAZADO, CONSUMIDO
     qr_token TEXT,
     discount_id_ws VARCHAR(100), -- ID devuelto por el Web Service de creación de códigos de descuento
-    empresas TEXT[] DEFAULT ARRAY['E200', 'E100', 'E101']::TEXT[], -- E200 (Superdeporte), E100 (Equinox), E101 (Mundo Dep)
+    empresas TEXT[] DEFAULT ARRAY['E200']::TEXT[], -- E200 (Superdeporte), E100 (Equinox), E101 (Mundo Dep)
     email_sent BOOLEAN DEFAULT FALSE,
     email_sent_at TIMESTAMPTZ,
     aprobado_por VARCHAR(255),

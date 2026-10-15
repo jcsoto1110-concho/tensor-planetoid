@@ -113,7 +113,7 @@ export default function EmployeesListPage() {
 
     // Cambiar empresa para un colaborador (E200, E100, E101)
     const handleToggleEmpresa = async (benefitId: string, currentEmpresas: string[] | undefined, codeToToggle: string) => {
-        const list = Array.isArray(currentEmpresas) && currentEmpresas.length > 0 ? [...currentEmpresas] : ['E200', 'E100', 'E101'];
+        const list = Array.isArray(currentEmpresas) && currentEmpresas.length > 0 ? [...currentEmpresas] : ['E200'];
         let updated: string[];
         if (list.includes(codeToToggle)) {
             if (list.length === 1) {
@@ -262,7 +262,7 @@ export default function EmployeesListPage() {
             const qrPayload = JSON.stringify({
                 empresa: 'SUPERDEPORTE S.A. / MARATHON',
                 beneficio: 'CUPO_DESCUENTO_90_DIAS',
-                empresas_autorizadas: item.empresas || ['E200', 'E100', 'E101'],
+                empresas_autorizadas: item.empresas || ['E200'],
                 pernr: item.pernr,
                 cedula: item.cedula,
                 colaborador: item.nombre_completo,
@@ -1274,7 +1274,7 @@ export default function EmployeesListPage() {
                                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                                             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                                                                 {EMPRESAS_DISPONIBLES.map(emp => {
-                                                                    const empList = Array.isArray(b.empresas) && b.empresas.length > 0 ? b.empresas : ['E200', 'E100', 'E101'];
+                                                                    const empList = Array.isArray(b.empresas) && b.empresas.length > 0 ? b.empresas : ['E200'];
                                                                     const isSelected = empList.includes(emp.code);
                                                                     const isPending = b.estado === 'PENDIENTE';
 
@@ -1551,7 +1551,7 @@ export default function EmployeesListPage() {
                                         Empresas Autorizadas:
                                     </div>
                                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                        {(qrModal.item.empresas || ['E200', 'E100', 'E101']).map((code: string) => {
+                                        {(qrModal.item.empresas || ['E200']).map((code: string) => {
                                             const label = code === 'E200' ? 'E200 - Superdeporte' : code === 'E100' ? 'E100 - Equinox' : code === 'E101' ? 'E101 - Mundo Dep' : code;
                                             return (
                                                 <span key={code} style={{ background: '#eff6ff', color: '#1d4ed8', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
