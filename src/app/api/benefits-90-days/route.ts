@@ -272,60 +272,108 @@ ORDER BY PA0001.PERNR, PA0001.BEGDA DESC
 `;
 
 function calcularCupo(row: any) {
-    const posicion = String(row.Posicion || row.DESCRIPCION_POSICION || '').toUpperCase();
-    const gerencia = String(row.Gerencia || '').toUpperCase();
-    const jefatura = String(row.Jefatura || '').toUpperCase();
-    const unidadOrg = String(row.Unidad_Organizativa || '').toUpperCase();
-    const operacion = String(row.Descripcion_operacion || '').toUpperCase();
-    const centroCosto = String(row.Centro_costo || '').toUpperCase();
-    const areaPersonal = String(row.Are_Personal || '').toUpperCase();
-    const grupoPersonal = String(row.GRUPO_PERSONAL || '').toUpperCase();
+    const posicion = String(row.posicion || row.Posicion || row.DESCRIPCION_POSICION || '').toUpperCase().trim();
+    const gerencia = String(row.gerencia || row.Gerencia || '').toUpperCase().trim();
+    const operacion = String(row.operacion || row.Descripcion_operacion || '').toUpperCase().trim();
+    const unidadOrg = String(row.Unidad_Organizativa || '').toUpperCase().trim();
+    const centroCosto = String(row.Centro_costo || '').toUpperCase().trim();
+    const areaPersonal = String(row.Are_Personal || '').toUpperCase().trim();
+    const grupoPersonal = String(row.grupo_personal || row.GRUPO_PERSONAL || '').toUpperCase().trim();
 
     // 1. Exclusión obligatoria: No aplica a pasantes
     if (grupoPersonal.includes('PASANTE') || posicion.includes('PASANTE')) {
         return { aplica: false, tipo: 'PASANTE', cupo: 0, motivo: 'Pasante no aplica al beneficio' };
     }
 
-    // 2. Gerencias: $6,000
+    // 2. Tienda y Bodegas (CD): $1,000
+    // Asesores de venta, bodegueros, bodega, cajero
+    const isTiendaBodega = 
+        posicion.startsWith('ASVENT') || // ASVENTAR... Asesor de Ventas
+        posicion.startsWith('AUBODE') || // AUBODEGR..., AUBODEGD... Auxiliar de Bodega
+        posicion.startsWith('CAJERO') || // CAJERO_R... Cajero
+        posicion.startsWith('BODEG') ||  // BODEGUED..., BODEGUERO
+        posicion.includes('VENTA') || 
+        posicion.includes('ASESOR') || 
+        posicion.includes('BODEGA') || 
+        posicion.includes('BODEGUER') || 
+        posicion.includes('CAJER') || 
+        posicion.includes('ESTIBADOR') || 
+        posicion.includes('PERCHERO') || 
+        posicion.includes('DESPACH') ||
+        posicion.includes('OPERADOR DE BODEGA') ||
+        operacion.includes('TIENDA') ||
+        operacion.includes('BODEGA') ||
+        operacion.includes('CENTRO DE DISTRIB');
+
+    if (isTiendaBodega && 
+        !posicion.includes('JEFE') && 
+        !posicion.startsWith('JEALMA') && 
+        !posicion.startsWith('SUALMA') && 
+        !posicion.startsWith('SUTIEN') && 
+        !posicion.includes('GERENTE') && 
+        !posicion.includes('SUPERVISOR')
+    ) {
+        return { aplica: true, tipo: 'TIENDA_BODEGA', cupo: 1000.00, motivo: 'Tienda y Bodegas (CD): Asesor de ventas, bodeguero, bodega, cajero' };
+    }
+
+    // 3. Gerencias: $6,000
     if (
+        posicion.startsWith('GEREN') ||
         posicion.includes('GERENTE') || 
         posicion.includes('GERENCIA') || 
         gerencia.includes('GERENCIA GENERAL') || 
         posicion.includes('DIRECTOR') || 
-        posicion.includes('VICEPRESIDENTE')
+        posicion.includes('VICEPRESIDENTE') ||
+        posicion.startsWith('VP')
     ) {
         return { aplica: true, tipo: 'GERENCIA', cupo: 6000.00, motivo: 'Gerencias y Directores' };
     }
 
-    // 3. Jefaturas y Supervisión: $2,500
+    // 4. Jefaturas y Supervisión: $2,500
+    // Solo cuando el cargo/posición propia del colaborador es de Jefatura, Supervisión, Coordinación o Líder
     if (
+        posicion.startsWith('JEALMA') || 
+        posicion.startsWith('JEDEB') ||  
+        posicion.startsWith('JEF') ||
+        posicion.startsWith('SUALMA') || 
+        posicion.startsWith('SUTIEN') || 
+        posicion.startsWith('SUP') ||
+        posicion.startsWith('COORD') ||
         posicion.includes('JEFE') || 
         posicion.includes('JEFATURA') || 
         posicion.includes('SUPERVISOR') || 
+        posicion.includes('SUPERVISORA') || 
         posicion.includes('SUPERVISION') || 
         posicion.includes('COORDINADOR') || 
-        posicion.includes('LIDER') || 
-        jefatura.includes('JEFATURA')
+        posicion.includes('COORDINADORA') ||
+        posicion.includes('ADMINISTRADOR DE TIENDA') ||
+        posicion.includes('SUBGERENTE') ||
+        posicion.includes('LIDER')
     ) {
-        return { aplica: true, tipo: 'JEFATURA_SUPERVISION', cupo: 2500.00, motivo: 'Jefaturas, Supervisión y Coordinación' };
+        return { aplica: true, tipo: 'JEFATURA_SUPERVISION', cupo: 2500.00, motivo: 'Jefaturas y Supervisión' };
     }
 
-    // 4. Adm Asistencial y Mayoristas: $1,500
+    // 5. Adm Asistencial: $1,500
     const isMayoristas = operacion.includes('MAYORISTA') || unidadOrg.includes('MAYORISTA') || centroCosto.includes('MAYORISTA');
     const isAdministrativo = 
-        areaPersonal.includes('ADMIN') || 
-        unidadOrg.includes('ADMIN') || 
+        posicion.startsWith('ANALIS') ||
+        posicion.startsWith('ASIST') ||
+        posicion.includes('ANALISTA') ||
         posicion.includes('ASISTENTE') || 
-        posicion.includes('ANALISTA') || 
-        posicion.includes('AUXILIAR ADMIN') || 
+        posicion.includes('AUXILIAR') || 
         posicion.includes('RECEPCION') || 
-        posicion.includes('SECRETAR');
+        posicion.includes('SECRETAR') ||
+        posicion.includes('CONTAB') ||
+        posicion.includes('ESPECIALISTA') ||
+        areaPersonal.includes('ADMIN') || 
+        unidadOrg.includes('ADMIN') ||
+        operacion.includes('ADMIN');
 
     if (isMayoristas || isAdministrativo) {
-        return { aplica: true, tipo: 'ADM_ASISTENCIAL', cupo: 1500.00, motivo: isMayoristas ? 'Canal Mayoristas' : 'Administrativo Asistencial' };
+        return { aplica: true, tipo: 'ADM_ASISTENCIAL', cupo: 1500.00, motivo: isMayoristas ? 'Canal Mayoristas' : 'Adm Asistencial' };
     }
 
-    // 5. Por defecto: Tienda y Bodegas (CD): $1,000
+    // 6. Por defecto: Tienda y Bodegas (CD): $1,000
     return { aplica: true, tipo: 'TIENDA_BODEGA', cupo: 1000.00, motivo: 'Tienda y Bodegas (CD)' };
 }
 
@@ -519,7 +567,7 @@ export async function POST(req: NextRequest) {
                     dias_laborados: diasLaborados,
                     tipo_operacion: tipo,
                     cupo_sugerido: cupo,
-                    cupo_aprobado: existing ? existing.cupo_aprobado : cupo,
+                    cupo_aprobado: (existing && existing.estado !== 'PENDIENTE') ? existing.cupo_aprobado : cupo,
                     estado: existing ? existing.estado : 'PENDIENTE',
                     discount_id_ws: existing?.discount_id_ws || null,
                     empresas: existing?.empresas || ['E200'],

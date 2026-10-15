@@ -1263,7 +1263,7 @@ export default function EmployeesListPage() {
                                                             } else if (t === 'JEFATURA_SUPERVISION') {
                                                                 return <span style={{ background: '#e0e7ff', color: '#4338ca', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>👔 Jefatura / Sup.</span>;
                                                             } else if (t === 'ADM_ASISTENCIAL') {
-                                                                return <span style={{ background: '#ecfdf5', color: '#047857', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>📑 Adm / Mayoristas</span>;
+                                                                return <span style={{ background: '#ecfdf5', color: '#047857', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>📑 Adm / Asistencial</span>;
                                                             } else {
                                                                 return <span style={{ background: '#fef3c7', color: '#b45309', fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>🏪 Tienda / Bodega</span>;
                                                             }
