@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'agent-oracle-coupons',
       script: './agent.mjs',
-      args: '--watch',
+      exec_mode: 'fork',
       instances: 1,
       autorestart: true,
       watch: false,

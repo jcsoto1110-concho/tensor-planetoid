@@ -45,18 +45,23 @@ const ORACLE_CONFIG = {
     connectString: process.env.ORACLE_RPRO_CONNECT_STRING || envConfig.ORACLE_RPRO_CONNECT_STRING || '192.168.91.14:1521/rproods'
 };
 
-const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || 'C:\\SAP_Monitor\\instantclient_19_22';
-
-// Inicializar Oracle Client en modo Thick
+// Inicializar Oracle Client en modo Thick si la ruta existe
 try {
-    if (fs.existsSync(ORACLE_CLIENT_LIB)) {
+    if (ORACLE_CLIENT_LIB && fs.existsSync(ORACLE_CLIENT_LIB)) {
         oracledb.initOracleClient({ libDir: ORACLE_CLIENT_LIB });
+        console.log(`🔌 Oracle Instant Client cargado desde: ${ORACLE_CLIENT_LIB}`);
+    } else if (process.platform === 'win32' && fs.existsSync('C:\\SAP_Monitor\\instantclient_19_22')) {
+        oracledb.initOracleClient({ libDir: 'C:\\SAP_Monitor\\instantclient_19_22' });
+        console.log('🔌 Oracle Instant Client cargado desde C:\\SAP_Monitor\\instantclient_19_22');
+    } else if (process.platform === 'linux' && fs.existsSync('/opt/oracle/instantclient')) {
+        oracledb.initOracleClient({ libDir: '/opt/oracle/instantclient' });
+        console.log('🔌 Oracle Instant Client cargado desde /opt/oracle/instantclient');
     } else {
-        oracledb.initOracleClient();
+        console.log('ℹ️ Operando en modo directo/Thin o librerías por defecto del sistema.');
     }
 } catch (e) {
     if (!e.message.includes('already been called')) {
-        console.warn('⚠️ Nota sobre initOracleClient:', e.message);
+        console.warn('⚠️ Nota sobre initOracleClient (continuando):', e.message);
     }
 }
 
@@ -334,29 +339,35 @@ export async function processOracleCoupons() {
 }
 
 // ==============================================================================
-// 4. ARRANQUE DEL AGENTE (MODO VIGILANTE / CICLO)
+// 4. ARRANQUE DEL AGENTE (MODO VIGILANTE / CICLO PERMANENTE)
 // ==============================================================================
-const isWatch = process.argv.includes('--watch') || process.env.AGENT_WATCH === 'true';
+const isOnce = process.argv.includes('--once');
 
-if (isWatch) {
+if (isOnce) {
+    console.log('⚡ Ejecutando ciclo único (modo --once)...');
+    processOracleCoupons()
+        .then(() => process.exit(0))
+        .catch(err => {
+            console.error('Error en ciclo único:', err);
+            process.exit(1);
+        });
+} else {
+    // POR DEFECTO: El agente corre permanentemente cada 30 segundos (ideal para PM2)
     const intervalSec = 30;
     console.log('===============================================================');
     console.log('🤖 AGENTE VIGILANTE ORACLE RETAIL PRO (192.168.91.14)');
     console.log(`⏱️ Verificando nuevas aprobaciones cada ${intervalSec} segundos...`);
     console.log('===============================================================');
 
+    // Intervalo continuo
     setInterval(async () => {
         try {
             await processOracleCoupons();
         } catch (e) {
-            console.error('Error en ciclo watch:', e.message);
+            console.error('Error en ciclo vigilante:', e.message);
         }
     }, intervalSec * 1000);
 
-    // Ejecución inmediata inicial
-    processOracleCoupons().catch(e => console.error(e));
-} else {
-    processOracleCoupons()
-        .then(() => process.exit(0))
-        .catch(() => process.exit(1));
+    // Ejecución inicial inmediata
+    processOracleCoupons().catch(e => console.error('Error en verificación inicial:', e));
 }
