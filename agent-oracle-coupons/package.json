@@ -1,0 +1,15 @@
+{
+  "name": "agent-oracle-coupons",
+  "version": "1.0.0",
+  "description": "Agente autónomo para emisión de certificados de descuento en Oracle Retail Pro",
+  "type": "module",
+  "main": "agent.mjs",
+  "scripts": {
+    "start": "node agent.mjs --watch",
+    "once": "node agent.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "oracledb": "^6.8.0"
+  }
+}
