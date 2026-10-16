@@ -271,7 +271,107 @@ WHERE
 ORDER BY PA0001.PERNR, PA0001.BEGDA DESC
 `;
 
-function calcularCupo(row: any) {
+export interface CupoRule {
+    id?: string;
+    patron: string;
+    descripcion?: string;
+    cupo: number;
+    activo?: boolean;
+}
+
+const DEFAULT_CUPO_RULES: CupoRule[] = [
+    { patron: 'ASVENT', descripcion: 'Asesor de Ventas', cupo: 1000.00, activo: true },
+    { patron: 'AUBODE', descripcion: 'Auxiliar de Bodega', cupo: 1000.00, activo: true },
+    { patron: 'CAJERO', descripcion: 'Cajero / Facturación', cupo: 1000.00, activo: true },
+    { patron: 'BODEG', descripcion: 'Bodegueros / Operadores de Bodega', cupo: 1000.00, activo: true },
+    { patron: 'ANALIS', descripcion: 'Analistas Administrativos / BI', cupo: 1500.00, activo: true },
+    { patron: 'ASIST', descripcion: 'Asistentes Administrativos', cupo: 1500.00, activo: true },
+    { patron: 'MAYORISTA', descripcion: 'Canal Mayoristas', cupo: 1500.00, activo: true },
+    { patron: 'JEALMA', descripcion: 'Jefes de Almacén', cupo: 2500.00, activo: true },
+    { patron: 'SUALMA', descripcion: 'Supervisores de Almacén', cupo: 2500.00, activo: true },
+    { patron: 'SUTIEN', descripcion: 'Supervisores de Tienda', cupo: 2500.00, activo: true },
+    { patron: 'COORD', descripcion: 'Coordinadores / Líderes', cupo: 2500.00, activo: true },
+    { patron: 'GEREN', descripcion: 'Gerencias y Directores', cupo: 6000.00, activo: true },
+];
+
+async function getCupoRules(supabase: any): Promise<CupoRule[]> {
+    try {
+        const { data: dedicatedRules, error: dedErr } = await supabase
+            .from('digi_cupo_rules')
+            .select('*')
+            .order('id', { ascending: true });
+
+        if (!dedErr && dedicatedRules && dedicatedRules.length > 0) {
+            return dedicatedRules.map((r: any) => ({
+                id: String(r.id),
+                patron: String(r.patron || '').toUpperCase().trim(),
+                descripcion: r.descripcion || '',
+                cupo: Number(r.cupo) || 0,
+                activo: r.activo !== false
+            }));
+        }
+    } catch (_) {}
+
+    try {
+        const { data: auditLog, error: auditErr } = await supabase
+            .from('digi_audit_logs')
+            .select('description')
+            .eq('entity_type', 'CONFIG_CUPOS_RULES')
+            .order('timestamp', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (!auditErr && auditLog?.description) {
+            const parsed = JSON.parse(auditLog.description);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                return parsed.map((r: any, idx: number) => ({
+                    id: String(r.id || idx + 1),
+                    patron: String(r.patron || '').toUpperCase().trim(),
+                    descripcion: r.descripcion || '',
+                    cupo: Number(r.cupo) || 0,
+                    activo: r.activo !== false
+                }));
+            }
+        }
+    } catch (e) {
+        console.warn('No se pudieron cargar reglas personalizadas desde digi_audit_logs:', e);
+    }
+
+    return DEFAULT_CUPO_RULES;
+}
+
+async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string) {
+    const cleanRules = rules.map((r, i) => ({
+        id: String(r.id || i + 1),
+        patron: String(r.patron || '').toUpperCase().trim(),
+        descripcion: (r.descripcion || '').trim(),
+        cupo: Math.max(0, Number(r.cupo) || 0),
+        activo: r.activo !== false
+    })).filter(r => r.patron.length > 0);
+
+    const { error: logErr } = await supabase
+        .from('digi_audit_logs')
+        .insert({
+            action: 'UPDATE_CONFIG',
+            entity_type: 'CONFIG_CUPOS_RULES',
+            entity_id: 'GLOBAL',
+            user_name: userName || 'Talento Humano',
+            description: JSON.stringify(cleanRules),
+            timestamp: new Date().toISOString()
+        });
+
+    if (logErr) {
+        console.error('Error guardando en digi_audit_logs:', logErr);
+    }
+
+    try {
+        await supabase.from('digi_cupo_rules').upsert(cleanRules, { onConflict: 'patron' });
+    } catch (_) {}
+
+    return cleanRules;
+}
+
+function calcularCupo(row: any, customRules?: CupoRule[]) {
     const posicion = String(row.posicion || row.Posicion || row.DESCRIPCION_POSICION || '').toUpperCase().trim();
     const gerencia = String(row.gerencia || row.Gerencia || '').toUpperCase().trim();
     const operacion = String(row.operacion || row.Descripcion_operacion || '').toUpperCase().trim();
@@ -285,13 +385,37 @@ function calcularCupo(row: any) {
         return { aplica: false, tipo: 'PASANTE', cupo: 0, motivo: 'Pasante no aplica al beneficio' };
     }
 
-    // 2. Tienda y Bodegas (CD): $1,000
-    // Asesores de venta, bodegueros, bodega, cajero
+    // 2. Evaluar reglas configuradas por el usuario (ej. ASVENT, CAJERO, AUBODE, etc.)
+    if (customRules && customRules.length > 0) {
+        for (const rule of customRules) {
+            if (rule.activo === false) continue;
+            const pat = (rule.patron || '').toUpperCase().trim();
+            if (!pat) continue;
+
+            if (
+                posicion.startsWith(pat) || 
+                posicion.includes(pat) || 
+                operacion.includes(pat) || 
+                gerencia.includes(pat) ||
+                unidadOrg.includes(pat)
+            ) {
+                return { 
+                    aplica: true, 
+                    tipo: pat, 
+                    cupo: Number(rule.cupo) || 0, 
+                    motivo: rule.descripcion ? `${rule.descripcion} (${pat})` : `Puesto configurado: ${pat}` 
+                };
+            }
+        }
+    }
+
+    // 3. Fallback a reglas estándar por defecto si no coincide ninguna regla personalizada
+    // Tienda y Bodegas (CD): $1,000
     const isTiendaBodega = 
-        posicion.startsWith('ASVENT') || // ASVENTAR... Asesor de Ventas
-        posicion.startsWith('AUBODE') || // AUBODEGR..., AUBODEGD... Auxiliar de Bodega
-        posicion.startsWith('CAJERO') || // CAJERO_R... Cajero
-        posicion.startsWith('BODEG') ||  // BODEGUED..., BODEGUERO
+        posicion.startsWith('ASVENT') ||
+        posicion.startsWith('AUBODE') ||
+        posicion.startsWith('CAJERO') ||
+        posicion.startsWith('BODEG') ||
         posicion.includes('VENTA') || 
         posicion.includes('ASESOR') || 
         posicion.includes('BODEGA') || 
@@ -316,7 +440,7 @@ function calcularCupo(row: any) {
         return { aplica: true, tipo: 'TIENDA_BODEGA', cupo: 1000.00, motivo: 'Tienda y Bodegas (CD): Asesor de ventas, bodeguero, bodega, cajero' };
     }
 
-    // 3. Gerencias: $6,000
+    // Gerencias: $6,000
     if (
         posicion.startsWith('GEREN') ||
         posicion.includes('GERENTE') || 
@@ -329,8 +453,7 @@ function calcularCupo(row: any) {
         return { aplica: true, tipo: 'GERENCIA', cupo: 6000.00, motivo: 'Gerencias y Directores' };
     }
 
-    // 4. Jefaturas y Supervisión: $2,500
-    // Solo cuando el cargo/posición propia del colaborador es de Jefatura, Supervisión, Coordinación o Líder
+    // Jefaturas y Supervisión: $2,500
     if (
         posicion.startsWith('JEALMA') || 
         posicion.startsWith('JEDEB') ||  
@@ -353,7 +476,7 @@ function calcularCupo(row: any) {
         return { aplica: true, tipo: 'JEFATURA_SUPERVISION', cupo: 2500.00, motivo: 'Jefaturas y Supervisión' };
     }
 
-    // 5. Adm Asistencial: $1,500
+    // Adm Asistencial: $1,500
     const isMayoristas = operacion.includes('MAYORISTA') || unidadOrg.includes('MAYORISTA') || centroCosto.includes('MAYORISTA');
     const isAdministrativo = 
         posicion.startsWith('ANALIS') ||
@@ -373,7 +496,7 @@ function calcularCupo(row: any) {
         return { aplica: true, tipo: 'ADM_ASISTENCIAL', cupo: 1500.00, motivo: isMayoristas ? 'Canal Mayoristas' : 'Adm Asistencial' };
     }
 
-    // 6. Por defecto: Tienda y Bodegas (CD): $1,000
+    // Por defecto: Tienda y Bodegas (CD): $1,000
     return { aplica: true, tipo: 'TIENDA_BODEGA', cupo: 1000.00, motivo: 'Tienda y Bodegas (CD)' };
 }
 
@@ -381,11 +504,17 @@ function calcularCupo(row: any) {
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
+        const rulesOnly = searchParams.get('rules');
+        const supabase = getSupabase();
+
+        if (rulesOnly === 'true') {
+            const rules = await getCupoRules(supabase);
+            return NextResponse.json({ success: true, rules });
+        }
+
         const status = searchParams.get('status') || 'ALL';
         const empresa = searchParams.get('empresa') || 'ALL';
         const search = (searchParams.get('search') || '').trim().toLowerCase();
-
-        const supabase = getSupabase();
 
         let query = supabase
             .from('digi_employee_benefits_90d')
@@ -483,13 +612,64 @@ export async function PUT(req: NextRequest) {
     }
 }
 
-// 3. POST: Acciones (sync_sap, approve, reject, set_ws_discount_id)
+// 3. POST: Acciones (sync_sap, approve, reject, set_ws_discount_id, get_rules, save_rules)
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { action, ids, id, observaciones, aprobado_por, discount_id_ws } = body;
+        const { action, ids, id, observaciones, aprobado_por, discount_id_ws, rules, recalculatePending } = body;
 
         const supabase = getSupabase();
+
+        // ACCIÓN: OBTENER REGLAS DE DESCUENTO POR PUESTO
+        if (action === 'get_rules') {
+            const currentRules = await getCupoRules(supabase);
+            return NextResponse.json({ success: true, rules: currentRules });
+        }
+
+        // ACCIÓN: GUARDAR REGLAS DE DESCUENTO POR PUESTO
+        if (action === 'save_rules') {
+            if (!Array.isArray(rules)) {
+                return NextResponse.json({ success: false, error: 'Lista de reglas requerida' }, { status: 400 });
+            }
+
+            const savedRules = await saveCupoRules(supabase, rules, body.user_name || 'Talento Humano');
+
+            let recalculateCount = 0;
+            if (recalculatePending) {
+                // Actualizar automáticamente los colaboradores en estado PENDIENTE con las nuevas reglas
+                const { data: pendingEmployees, error: pErr } = await supabase
+                    .from('digi_employee_benefits_90d')
+                    .select('id, pernr, posicion, operacion, gerencia, grupo_personal, cupo_aprobado, cupo_sugerido')
+                    .eq('estado', 'PENDIENTE');
+
+                if (!pErr && pendingEmployees && pendingEmployees.length > 0) {
+                    for (const emp of pendingEmployees) {
+                        const { cupo, tipo } = calcularCupo(emp, savedRules);
+                        if (cupo > 0) {
+                            await supabase
+                                .from('digi_employee_benefits_90d')
+                                .update({
+                                    cupo_sugerido: cupo,
+                                    cupo_aprobado: cupo,
+                                    tipo_operacion: tipo,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', emp.id);
+                            recalculateCount++;
+                        }
+                    }
+                }
+            }
+
+            return NextResponse.json({
+                success: true,
+                message: recalculatePending 
+                    ? `Reglas guardadas exitosamente y se recalcularon ${recalculateCount} colaboradores pendientes.`
+                    : 'Reglas de descuento por puesto guardadas correctamente.',
+                rules: savedRules,
+                recalculateCount
+            });
+        }
 
         // ACCIÓN A: SINCRONIZAR DIRECTAMENTE DESDE SAP HANA
         if (action === 'sync_sap') {
@@ -497,6 +677,7 @@ export async function POST(req: NextRequest) {
             const rows = await executeSapQuery(SAP_QUERY_90_DAYS);
             console.log(`📊 Registros obtenidos de SAP: ${rows.length}`);
 
+            const customRules = await getCupoRules(supabase);
             const today = new Date();
             const eligibleMap = new Map<string, any>();
 
@@ -535,7 +716,7 @@ export async function POST(req: NextRequest) {
                 const diasLaborados = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                 if (diasLaborados < 90) continue;
 
-                const { aplica, tipo, cupo } = calcularCupo(row);
+                const { aplica, tipo, cupo } = calcularCupo(row, customRules);
                 if (!aplica) continue;
 
                 const existing = existingMap.get(pernr);

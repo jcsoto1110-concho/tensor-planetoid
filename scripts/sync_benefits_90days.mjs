@@ -352,7 +352,51 @@ ORDER BY PA0001.PERNR, PA0001.BEGDA DESC
  * - Gerencias: $6,000
  * - Pasantes: NO APLICA
  */
-function calcularCupo(row) {
+async function getCupoRules(supabase) {
+    try {
+        const { data: dedicatedRules, error: dedErr } = await supabase
+            .from('digi_cupo_rules')
+            .select('*')
+            .order('id', { ascending: true });
+
+        if (!dedErr && dedicatedRules && dedicatedRules.length > 0) {
+            return dedicatedRules.map(r => ({
+                id: String(r.id),
+                patron: String(r.patron || '').toUpperCase().trim(),
+                descripcion: r.descripcion || '',
+                cupo: Number(r.cupo) || 0,
+                activo: r.activo !== false
+            }));
+        }
+    } catch (_) {}
+
+    try {
+        const { data: auditLog, error: auditErr } = await supabase
+            .from('digi_audit_logs')
+            .select('description')
+            .eq('entity_type', 'CONFIG_CUPOS_RULES')
+            .order('timestamp', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (!auditErr && auditLog?.description) {
+            const parsed = JSON.parse(auditLog.description);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                return parsed.map((r, idx) => ({
+                    id: String(r.id || idx + 1),
+                    patron: String(r.patron || '').toUpperCase().trim(),
+                    descripcion: r.descripcion || '',
+                    cupo: Number(r.cupo) || 0,
+                    activo: r.activo !== false
+                }));
+            }
+        }
+    } catch (_) {}
+
+    return null;
+}
+
+function calcularCupo(row, customRules) {
     const posicion = String(row.posicion || row.Posicion || row.DESCRIPCION_POSICION || '').toUpperCase().trim();
     const gerencia = String(row.gerencia || row.Gerencia || '').toUpperCase().trim();
     const operacion = String(row.operacion || row.Descripcion_operacion || '').toUpperCase().trim();
@@ -366,7 +410,31 @@ function calcularCupo(row) {
         return { aplica: false, tipo: 'PASANTE', cupo: 0, motivo: 'Pasante no aplica al beneficio' };
     }
 
-    // 2. Tienda y Bodegas (CD): $1,000
+    // 2. Evaluar reglas dinámicas configuradas por el usuario
+    if (customRules && customRules.length > 0) {
+        for (const rule of customRules) {
+            if (rule.activo === false) continue;
+            const pat = (rule.patron || '').toUpperCase().trim();
+            if (!pat) continue;
+
+            if (
+                posicion.startsWith(pat) || 
+                posicion.includes(pat) || 
+                operacion.includes(pat) || 
+                gerencia.includes(pat) ||
+                unidadOrg.includes(pat)
+            ) {
+                return { 
+                    aplica: true, 
+                    tipo: pat, 
+                    cupo: Number(rule.cupo) || 0, 
+                    motivo: rule.descripcion ? `${rule.descripcion} (${pat})` : `Puesto configurado: ${pat}` 
+                };
+            }
+        }
+    }
+
+    // 3. Tienda y Bodegas (CD): $1,000
     // Asesores de venta, bodegueros, bodega, cajero
     const isTiendaBodega = 
         posicion.startsWith('ASVENT') || // ASVENTAR... Asesor de Ventas
@@ -507,6 +575,10 @@ async function runSync() {
         }
 
         const today = new Date();
+        const customRules = await getCupoRules(supabase);
+        if (customRules && customRules.length > 0) {
+            console.log(`⚙️ Se aplicarán ${customRules.length} reglas personalizadas de descuentos por puesto.`);
+        }
         const eligibleMap = new Map();
         let skippedPasantes = 0;
         let skippedLessThan90 = 0;
@@ -549,7 +621,7 @@ async function runSync() {
             }
 
             // Clasificar cupo y verificar exclusiones
-            const { aplica, tipo, cupo, motivo } = calcularCupo(row);
+            const { aplica, tipo, cupo, motivo } = calcularCupo(row, customRules);
             if (!aplica) {
                 skippedPasantes++;
                 continue;

@@ -7,7 +7,8 @@ import QRCode from 'qrcode';
 import { 
     Search, FileText, User as UserIcon, ChevronRight, Briefcase, Calendar, 
     Trash2, X, Upload, UserPlus, Sparkles, Gift, CheckCircle, AlertCircle, 
-    RefreshCw, QrCode, Mail, Edit3, DollarSign, Check, Eye, Download, ShieldCheck, Building2
+    RefreshCw, QrCode, Mail, Edit3, DollarSign, Check, Eye, Download, ShieldCheck, Building2,
+    Sliders, Settings, Plus, RotateCcw
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -42,6 +43,16 @@ export default function EmployeesListPage() {
     const [qrModal, setQrModal] = useState<{ item: any; qrDataUrl: string } | null>(null);
     const [isSyncingSap, setIsSyncingSap] = useState(false);
     const [isProcessingOracle, setIsProcessingOracle] = useState(false);
+
+    // === CONFIGURACIÓN DE DESCUENTOS POR PUESTO ===
+    const [rulesModalOpen, setRulesModalOpen] = useState(false);
+    const [cupoRules, setCupoRules] = useState<Array<{ id?: string; patron: string; descripcion?: string; cupo: number; activo?: boolean }>>([]);
+    const [isLoadingRules, setIsLoadingRules] = useState(false);
+    const [isSavingRules, setIsSavingRules] = useState(false);
+    const [newRulePatron, setNewRulePatron] = useState('');
+    const [newRuleDesc, setNewRuleDesc] = useState('');
+    const [newRuleCupo, setNewRuleCupo] = useState('1000');
+    const [rulesSearchFilter, setRulesSearchFilter] = useState('');
 
     const handleSyncSapBenefits = async () => {
         setIsSyncingSap(true);
@@ -110,6 +121,123 @@ export default function EmployeesListPage() {
             fetchBenefits();
         }
     }, [mainTab, benefitsFilter, benefitsEmpresaFilter]);
+
+    // === GESTIÓN DE REGLAS DE DESCUENTOS POR PUESTO ===
+    const handleOpenRulesModal = async () => {
+        setRulesModalOpen(true);
+        setIsLoadingRules(true);
+        try {
+            const res = await fetch('/api/benefits-90-days?rules=true');
+            const data = await res.json();
+            if (data.success && Array.isArray(data.rules)) {
+                setCupoRules(data.rules);
+            }
+        } catch (e: any) {
+            console.error('Error al cargar reglas de descuentos:', e);
+        } finally {
+            setIsLoadingRules(false);
+        }
+    };
+
+    const handleAddRule = () => {
+        const cleanPatron = newRulePatron.trim().toUpperCase();
+        if (!cleanPatron) {
+            alert('⚠️ Ingresa el código o nombre del puesto (ej: ASVENT, CAJERO, AUBODE)');
+            return;
+        }
+        const val = parseFloat(newRuleCupo);
+        if (isNaN(val) || val < 0) {
+            alert('⚠️ Ingresa un valor de descuento numérico válido');
+            return;
+        }
+
+        const existingIdx = cupoRules.findIndex(r => r.patron.toUpperCase() === cleanPatron);
+        if (existingIdx >= 0) {
+            const updated = [...cupoRules];
+            updated[existingIdx] = {
+                ...updated[existingIdx],
+                cupo: val,
+                descripcion: newRuleDesc.trim() || updated[existingIdx].descripcion,
+                activo: true
+            };
+            setCupoRules(updated);
+        } else {
+            setCupoRules([
+                ...cupoRules,
+                {
+                    id: String(Date.now()),
+                    patron: cleanPatron,
+                    descripcion: newRuleDesc.trim(),
+                    cupo: val,
+                    activo: true
+                }
+            ]);
+        }
+
+        setNewRulePatron('');
+        setNewRuleDesc('');
+        setNewRuleCupo('1000');
+    };
+
+    const handleDeleteRule = (patronToDelete: string) => {
+        setCupoRules(prev => prev.filter(r => r.patron.toUpperCase() !== patronToDelete.toUpperCase()));
+    };
+
+    const handleUpdateRuleCupo = (patron: string, newCupo: number) => {
+        setCupoRules(prev => prev.map(r => r.patron.toUpperCase() === patron.toUpperCase() ? { ...r, cupo: newCupo } : r));
+    };
+
+    const handleToggleRuleActive = (patron: string) => {
+        setCupoRules(prev => prev.map(r => r.patron.toUpperCase() === patron.toUpperCase() ? { ...r, activo: !r.activo } : r));
+    };
+
+    const handleResetDefaultRules = () => {
+        if (!confirm('¿Restablecer las reglas de descuento a los valores predeterminados corporativos?')) return;
+        setCupoRules([
+            { patron: 'ASVENT', descripcion: 'Asesor de Ventas', cupo: 1000, activo: true },
+            { patron: 'AUBODE', descripcion: 'Auxiliar de Bodega', cupo: 1000, activo: true },
+            { patron: 'CAJERO', descripcion: 'Cajero / Facturación', cupo: 1000, activo: true },
+            { patron: 'BODEG', descripcion: 'Bodegueros / Operadores de Bodega', cupo: 1000, activo: true },
+            { patron: 'ANALIS', descripcion: 'Analistas Administrativos / BI', cupo: 1500, activo: true },
+            { patron: 'ASIST', descripcion: 'Asistentes Administrativos', cupo: 1500, activo: true },
+            { patron: 'MAYORISTA', descripcion: 'Canal Mayoristas', cupo: 1500, activo: true },
+            { patron: 'JEALMA', descripcion: 'Jefes de Almacén', cupo: 2500, activo: true },
+            { patron: 'SUALMA', descripcion: 'Supervisores de Almacén', cupo: 2500, activo: true },
+            { patron: 'SUTIEN', descripcion: 'Supervisores de Tienda', cupo: 2500, activo: true },
+            { patron: 'COORD', descripcion: 'Coordinadores / Líderes', cupo: 2500, activo: true },
+            { patron: 'GEREN', descripcion: 'Gerencias y Directores', cupo: 6000, activo: true },
+        ]);
+    };
+
+    const handleSaveRules = async (recalculatePending: boolean = false) => {
+        setIsSavingRules(true);
+        try {
+            const res = await fetch('/api/benefits-90-days', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'save_rules',
+                    rules: cupoRules,
+                    recalculatePending,
+                    user_name: 'Talento Humano'
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ ${data.message || 'Configuración guardada exitosamente.'}`);
+                setRulesModalOpen(false);
+                if (recalculatePending) {
+                    await fetchBenefits();
+                }
+            } else {
+                alert(`❌ Error al guardar reglas: ${data.error}`);
+            }
+        } catch (e: any) {
+            alert(`❌ Error al guardar configuración: ${e.message}`);
+        } finally {
+            setIsSavingRules(false);
+        }
+    };
 
     // Cambiar empresa para un colaborador (E200, E100, E101)
     const handleToggleEmpresa = async (benefitId: string, currentEmpresas: string[] | undefined, codeToToggle: string) => {
@@ -850,6 +978,26 @@ export default function EmployeesListPage() {
                             </div>
 
                             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                <button
+                                    onClick={handleOpenRulesModal}
+                                    title="Configura los descuentos automáticos por puesto (ej. ASVENT, CAJERO, AUBODE)"
+                                    style={{
+                                        padding: '12px 18px',
+                                        borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.25)',
+                                        background: 'rgba(255,255,255,0.12)',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontWeight: 700,
+                                        fontSize: '13px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <Sliders size={15} /> Configurar Descuentos por Puesto
+                                </button>
                                 <button
                                     onClick={handleSyncSapBenefits}
                                     disabled={isSyncingSap}
@@ -1640,6 +1788,425 @@ export default function EmployeesListPage() {
                             <button onClick={handleRejectBenefit} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#dc2626', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
                                 Confirmar Rechazo
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* MODAL CONFIGURACIÓN DE DESCUENTOS POR PUESTO */}
+            {rulesModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(15, 23, 42, 0.65)',
+                    backdropFilter: 'blur(4px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 2100,
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '24px',
+                        width: '100%',
+                        maxWidth: '780px',
+                        maxHeight: '90vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Cabecera del Modal */}
+                        <div style={{
+                            padding: '24px 28px 20px',
+                            borderBottom: '1px solid #f1f5f9',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            background: 'linear-gradient(to right, #ffffff, #f8fafc)'
+                        }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                                    <div style={{
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '10px',
+                                        background: '#eff6ff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#2563eb'
+                                    }}>
+                                        <Sliders size={20} />
+                                    </div>
+                                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                                        Configuración de Descuentos por Puesto
+                                    </h3>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
+                                    Ingresa el código o nombre del puesto (ej: <strong>ASVENT</strong>, <strong>CAJERO</strong>, <strong>AUBODE</strong>) y a su lado define el valor del descuento ($).
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setRulesModalOpen(false)}
+                                style={{
+                                    border: 'none',
+                                    background: '#f1f5f9',
+                                    borderRadius: '50%',
+                                    width: '32px',
+                                    height: '32px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#64748b'
+                                }}
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Cuerpo del Modal */}
+                        <div style={{ padding: '20px 28px', overflowY: 'auto', flex: 1 }}>
+                            {/* Formulario rápido para agregar nuevo puesto */}
+                            <div style={{
+                                background: '#f8fafc',
+                                border: '1.5px dashed #cbd5e1',
+                                borderRadius: '16px',
+                                padding: '16px 20px',
+                                marginBottom: '22px'
+                            }}>
+                                <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Plus size={15} color="#2563eb" /> Agregar Nuevo Puesto y Valor de Descuento:
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                    <div style={{ flex: '1 1 180px' }}>
+                                        <input
+                                            type="text"
+                                            value={newRulePatron}
+                                            onChange={e => setNewRulePatron(e.target.value.toUpperCase())}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddRule()}
+                                            placeholder="Puesto (ej: ASVENT, CAJERO...)"
+                                            style={{
+                                                width: '100%',
+                                                padding: '9px 12px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '13px',
+                                                fontWeight: 700,
+                                                fontFamily: 'monospace',
+                                                outline: 'none',
+                                                textTransform: 'uppercase'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ width: '150px', position: 'relative' }}>
+                                        <span style={{ position: 'absolute', left: '10px', top: '9px', fontSize: '13px', fontWeight: 700, color: '#64748b' }}>$</span>
+                                        <input
+                                            type="number"
+                                            value={newRuleCupo}
+                                            onChange={e => setNewRuleCupo(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddRule()}
+                                            placeholder="1000.00"
+                                            step="50"
+                                            min="0"
+                                            style={{
+                                                width: '100%',
+                                                padding: '9px 12px 9px 24px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '13px',
+                                                fontWeight: 800,
+                                                color: '#0f172a',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ flex: '2 1 200px' }}>
+                                        <input
+                                            type="text"
+                                            value={newRuleDesc}
+                                            onChange={e => setNewRuleDesc(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddRule()}
+                                            placeholder="Descripción opcional (ej: Asesores de Ventas)"
+                                            style={{
+                                                width: '100%',
+                                                padding: '9px 12px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '13px',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleAddRule}
+                                        style={{
+                                            padding: '9px 18px',
+                                            borderRadius: '8px',
+                                            border: 'none',
+                                            background: '#2563eb',
+                                            color: 'white',
+                                            fontWeight: 700,
+                                            fontSize: '13px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            transition: 'background 0.2s'
+                                        }}
+                                    >
+                                        <Plus size={15} /> Agregar Puesto
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Barra de Búsqueda y Conteo de Reglas */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
+                                    📋 Puestos Configurados ({cupoRules.length})
+                                </div>
+                                <div style={{ width: '220px', position: 'relative' }}>
+                                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                                    <input
+                                        type="text"
+                                        value={rulesSearchFilter}
+                                        onChange={e => setRulesSearchFilter(e.target.value)}
+                                        placeholder="Filtrar puestos..."
+                                        style={{
+                                            width: '100%',
+                                            padding: '7px 10px 7px 30px',
+                                            borderRadius: '6px',
+                                            border: '1px solid #e2e8f0',
+                                            fontSize: '12px',
+                                            outline: 'none'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Tabla de Puestos y Descuentos */}
+                            {isLoadingRules ? (
+                                <div style={{ padding: '40px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                                    <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px', color: '#2563eb' }} />
+                                    Cargando reglas configuradas...
+                                </div>
+                            ) : cupoRules.length === 0 ? (
+                                <div style={{ padding: '30px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', color: '#64748b', fontSize: '13px' }}>
+                                    No hay puestos configurados todavía. Ingresa uno arriba o restablece los predeterminados.
+                                </div>
+                            ) : (
+                                <div style={{
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    overflow: 'hidden',
+                                    background: 'white'
+                                }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                                        <thead>
+                                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700 }}>Puesto / Código</th>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700 }}>Descripción</th>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '160px' }}>Valor Descuento ($)</th>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '90px', textAlign: 'center' }}>Estado</th>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '60px', textAlign: 'center' }}>Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {cupoRules
+                                                .filter(r => {
+                                                    if (!rulesSearchFilter.trim()) return true;
+                                                    const s = rulesSearchFilter.toLowerCase();
+                                                    return (r.patron || '').toLowerCase().includes(s) || (r.descripcion || '').toLowerCase().includes(s);
+                                                })
+                                                .map((r, idx) => (
+                                                    <tr key={r.patron + idx} style={{ borderBottom: '1px solid #f1f5f9', background: r.activo === false ? '#fafafa' : 'white' }}>
+                                                        <td style={{ padding: '10px 16px' }}>
+                                                            <span style={{
+                                                                background: '#eff6ff',
+                                                                color: '#1d4ed8',
+                                                                padding: '4px 8px',
+                                                                borderRadius: '6px',
+                                                                fontWeight: 800,
+                                                                fontFamily: 'monospace',
+                                                                fontSize: '12px'
+                                                            }}>
+                                                                {r.patron}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ padding: '10px 16px', color: '#475569' }}>
+                                                            {r.descripcion || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin descripción</span>}
+                                                        </td>
+                                                        <td style={{ padding: '10px 16px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <span style={{ fontWeight: 800, color: '#10b981', fontSize: '14px' }}>$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={r.cupo}
+                                                                    onChange={e => handleUpdateRuleCupo(r.patron, parseFloat(e.target.value) || 0)}
+                                                                    step="50"
+                                                                    min="0"
+                                                                    style={{
+                                                                        width: '100px',
+                                                                        padding: '6px 8px',
+                                                                        borderRadius: '6px',
+                                                                        border: '1px solid #cbd5e1',
+                                                                        fontSize: '13px',
+                                                                        fontWeight: 800,
+                                                                        color: '#0f172a',
+                                                                        outline: 'none'
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                            <button
+                                                                onClick={() => handleToggleRuleActive(r.patron)}
+                                                                style={{
+                                                                    border: 'none',
+                                                                    background: r.activo !== false ? '#dcfce7' : '#f1f5f9',
+                                                                    color: r.activo !== false ? '#15803d' : '#94a3b8',
+                                                                    padding: '3px 8px',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '11px',
+                                                                    fontWeight: 800,
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                            >
+                                                                {r.activo !== false ? 'ACTIVO' : 'PAUSADO'}
+                                                            </button>
+                                                        </td>
+                                                        <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                            <button
+                                                                onClick={() => handleDeleteRule(r.patron)}
+                                                                title="Eliminar regla"
+                                                                style={{
+                                                                    border: 'none',
+                                                                    background: 'transparent',
+                                                                    cursor: 'pointer',
+                                                                    color: '#ef4444',
+                                                                    padding: '4px',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    borderRadius: '4px'
+                                                                }}
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* Mensaje informativo */}
+                            <div style={{
+                                marginTop: '16px',
+                                padding: '12px 16px',
+                                borderRadius: '10px',
+                                background: '#eff6ff',
+                                border: '1px solid #bfdbfe',
+                                fontSize: '12px',
+                                color: '#1e40af',
+                                lineHeight: 1.5
+                            }}>
+                                💡 <strong>¿Cómo funciona?</strong> Al sincronizar con SAP HANA o pulsar <strong>"Guardar y Recalcular Pendientes"</strong>, el sistema verifica la posición del colaborador. Si contiene el código configurado (ej: <code>ASVENT</code> en <em>ASVENTAR1538</em>), le asigna automáticamente el valor de descuento indicado.
+                            </div>
+                        </div>
+
+                        {/* Pie del Modal con Acciones */}
+                        <div style={{
+                            padding: '16px 28px',
+                            borderTop: '1px solid #f1f5f9',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            background: '#f8fafc',
+                            flexWrap: 'wrap',
+                            gap: '12px'
+                        }}>
+                            <button
+                                onClick={handleResetDefaultRules}
+                                style={{
+                                    border: '1px solid #cbd5e1',
+                                    background: 'white',
+                                    color: '#475569',
+                                    padding: '8px 14px',
+                                    borderRadius: '8px',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                <RotateCcw size={13} /> Restablecer Predeterminados
+                            </button>
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={() => setRulesModalOpen(false)}
+                                    style={{
+                                        border: '1px solid #cbd5e1',
+                                        background: 'white',
+                                        color: '#475569',
+                                        padding: '9px 16px',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => handleSaveRules(false)}
+                                    disabled={isSavingRules}
+                                    style={{
+                                        border: 'none',
+                                        background: '#2563eb',
+                                        color: 'white',
+                                        padding: '9px 18px',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        fontWeight: 700,
+                                        cursor: isSavingRules ? 'not-allowed' : 'pointer',
+                                        opacity: isSavingRules ? 0.7 : 1
+                                    }}
+                                >
+                                    {isSavingRules ? 'Guardando...' : 'Guardar Configuración'}
+                                </button>
+                                <button
+                                    onClick={() => handleSaveRules(true)}
+                                    disabled={isSavingRules}
+                                    title="Guarda los descuentos y actualiza inmediatamente a todos los colaboradores en estado PENDIENTE"
+                                    style={{
+                                        border: 'none',
+                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                        color: 'white',
+                                        padding: '9px 20px',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        fontWeight: 800,
+                                        cursor: isSavingRules ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+                                        opacity: isSavingRules ? 0.7 : 1
+                                    }}
+                                >
+                                    <CheckCircle size={15} />
+                                    {isSavingRules ? 'Procesando...' : 'Guardar y Recalcular Pendientes'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
