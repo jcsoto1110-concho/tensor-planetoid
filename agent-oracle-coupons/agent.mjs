@@ -39,11 +39,30 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Silenciar warnings de deprecación de Node 18 en bibliotecas de terceros
+const originalWarn = console.warn;
+console.warn = (...args) => {
+    if (typeof args[0] === 'string' && args[0].includes('Node.js 18 and below are deprecated')) {
+        return;
+    }
+    originalWarn(...args);
+};
+
+process.on('uncaughtException', (err) => {
+    console.error('❌ Excepción no capturada en Agente Oracle:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('❌ Promesa rechazada no manejada:', reason);
+});
+
 const ORACLE_CONFIG = {
     user: process.env.ORACLE_RPRO_USER || envConfig.ORACLE_RPRO_USER || 'REPORTUSER',
     password: process.env.ORACLE_RPRO_PASSWORD || envConfig.ORACLE_RPRO_PASSWORD || 'report',
     connectString: process.env.ORACLE_RPRO_CONNECT_STRING || envConfig.ORACLE_RPRO_CONNECT_STRING || '192.168.91.14:1521/rproods'
 };
+
+const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || '';
 
 // Inicializar Oracle Client en modo Thick si la ruta existe
 try {
