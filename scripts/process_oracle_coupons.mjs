@@ -360,15 +360,17 @@ if (process.argv[1] && process.argv[1].endsWith('process_oracle_coupons.mjs')) {
     const isWatch = process.argv.includes('--watch');
 
     if (isWatch) {
-        console.log('👀 Modo Vigilante (Watch) activado. Verificando cada 60 segundos...');
+        const intervalSec = 30; // Consulta cada 30 segundos
+        console.log(`👀 Modo Agente / Vigilante (Watch) activado en segundo plano.`);
+        console.log(`⏱️ Verificando nuevas aprobaciones cada ${intervalSec} segundos...`);
         setInterval(async () => {
             try {
                 await processOracleCoupons();
             } catch (e) {
                 console.error('Error en ciclo watch:', e.message);
             }
-        }, 60000);
-        // Ejecución inmediata inicial
+        }, intervalSec * 1000);
+        // Ejecución inmediata al arrancar el agente
         processOracleCoupons().catch(e => console.error(e));
     } else {
         processOracleCoupons()
