@@ -125,7 +125,9 @@ export async function processOracleCoupons() {
     return processBatch(pendingEmployees || []);
 }
 
-async function getActivePEstilos() {
+async function getActiveOracleConfig() {
+    let pEstilos = P_ESTILOS;
+    let empresaDescuentos = { E200: 30, E100: 30, E101: 30 };
     try {
         const { data: auditLog, error: auditErr } = await supabase
             .from('digi_audit_logs')
@@ -137,12 +139,17 @@ async function getActivePEstilos() {
 
         if (!auditErr && auditLog?.description) {
             const parsed = JSON.parse(auditLog.description);
-            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.p_estilos) {
-                return parsed.p_estilos.trim();
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                if (typeof parsed.p_estilos === 'string' && parsed.p_estilos.trim()) {
+                    pEstilos = parsed.p_estilos.trim();
+                }
+                if (parsed.empresa_descuentos && typeof parsed.empresa_descuentos === 'object') {
+                    empresaDescuentos = { ...empresaDescuentos, ...parsed.empresa_descuentos };
+                }
             }
         }
     } catch (_) {}
-    return P_ESTILOS;
+    return { pEstilos, empresaDescuentos };
 }
 
 async function processBatch(employees) {
@@ -152,7 +159,7 @@ async function processBatch(employees) {
     }
 
     console.log(`📋 Se encontraron ${employees.length} colaborador(es) pendientes para generar certificados en Oracle.`);
-    const activePEstilos = await getActivePEstilos();
+    const { pEstilos: activePEstilos, empresaDescuentos: activeEmpresaDescuentos } = await getActiveOracleConfig();
 
     let oracleConn;
     try {
@@ -188,13 +195,11 @@ async function processBatch(employees) {
         let totalCertificadosGenerados = 0;
 
         for (const emp of employees) {
-            // El monto_maximo_descuento en Oracle corresponde al 30% del cupo asignado (ej: 1000 cupo -> 300 descuento)
             const cupoBase = Number(emp.cupo_aprobado) || 1000;
-            const montoMaximoDescuento = Math.round(cupoBase * 0.30 * 100) / 100;
 
             console.log(`\n---------------------------------------------------------------`);
             console.log(`👤 Procesando: ${emp.nombre_completo} (Cédula: ${emp.cedula}, PERNR: ${emp.pernr})`);
-            console.log(`   Cupo Base: $${cupoBase} | Descuento Máximo (30%): $${montoMaximoDescuento}`);
+            console.log(`   Cupo Base Asignado: $${cupoBase}`);
 
             // Empresas a generar para este empleado (soporta columna empresas o metadata en observaciones)
             let empresas = ['E200'];
@@ -220,6 +225,14 @@ async function processBatch(employees) {
                     console.warn(`   ⚠️ Código de empresa desconocido: ${empCode}, saltando...`);
                     continue;
                 }
+
+                // Descuento porcentaje configurable por empresa (default 30%)
+                const pctDescuento = (activeEmpresaDescuentos && activeEmpresaDescuentos[empCode] !== undefined)
+                    ? Number(activeEmpresaDescuentos[empCode])
+                    : 30;
+
+                // El monto_maximo_descuento se calcula con el % de descuento asignado a la empresa
+                const montoMaximoDescuento = Math.round(cupoBase * (pctDescuento / 100) * 100) / 100;
 
                 const motivo = `${motivoPrefix}${rule.motivoSuffix}`;
                 const subCode = rule.subCodePrefix;
@@ -259,7 +272,7 @@ async function processBatch(employees) {
                         1,
                         :subsidiaria,
                         1,
-                        30,
+                        :descuento_porcentaje,
                         'ALL',
                         :fecha_inicio,
                         :fecha_vencimiento,
@@ -284,6 +297,7 @@ async function processBatch(employees) {
                     lote: currentLote,
                     certificado: codigoCupon,
                     subsidiaria: rule.subsidiaria,
+                    descuento_porcentaje: pctDescuento,
                     fecha_inicio: p_validfrom,
                     fecha_vencimiento: p_validto,
                     estilos: activePEstilos,
@@ -292,7 +306,7 @@ async function processBatch(employees) {
                     motivo: motivo
                 });
 
-                console.log(`   ✅ [${empCode} - ${rule.name}] Certificado: ${codigoCupon} | Cupo Base: $${cupoBase} | Descuento 30%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
+                console.log(`   ✅ [${empCode} - ${rule.name}] Certificado: ${codigoCupon} | Cupo: $${cupoBase} | Descuento ${pctDescuento}%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
 
                 generatedCoupons.push({
                     empresa: empCode,
@@ -301,6 +315,7 @@ async function processBatch(employees) {
                     certificado: codigoCupon,
                     motivo: motivo,
                     subsidiaria: rule.subsidiaria,
+                    descuento_porcentaje: pctDescuento,
                     cupo_base: cupoBase,
                     monto_maximo: montoMaximoDescuento,
                     fecha_vencimiento: p_validto.toISOString().split('T')[0]

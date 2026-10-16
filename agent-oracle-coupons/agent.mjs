@@ -132,7 +132,9 @@ const COMPANY_RULES = {
     }
 };
 
-async function getActivePEstilos() {
+async function getActiveOracleConfig() {
+    let pEstilos = P_ESTILOS;
+    let empresaDescuentos = { E200: 30, E100: 30, E101: 30 };
     try {
         const { data: auditLog, error: auditErr } = await supabase
             .from('digi_audit_logs')
@@ -144,12 +146,17 @@ async function getActivePEstilos() {
 
         if (!auditErr && auditLog?.description) {
             const parsed = JSON.parse(auditLog.description);
-            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.p_estilos) {
-                return parsed.p_estilos.trim();
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                if (typeof parsed.p_estilos === 'string' && parsed.p_estilos.trim()) {
+                    pEstilos = parsed.p_estilos.trim();
+                }
+                if (parsed.empresa_descuentos && typeof parsed.empresa_descuentos === 'object') {
+                    empresaDescuentos = { ...empresaDescuentos, ...parsed.empresa_descuentos };
+                }
             }
         }
     } catch (_) {}
-    return P_ESTILOS;
+    return { pEstilos, empresaDescuentos };
 }
 
 // ==============================================================================
@@ -180,7 +187,7 @@ export async function processOracleCoupons() {
     console.log(`[${timeStr}] 📋 Encontrados ${pendingEmployees.length} colaborador(es) aprobados para emitir cupones en Oracle.`);
     console.log(`===============================================================`);
 
-    const activePEstilos = await getActivePEstilos();
+    const { pEstilos: activePEstilos, empresaDescuentos: activeEmpresaDescuentos } = await getActiveOracleConfig();
 
     let oracleConn;
     try {
@@ -216,11 +223,9 @@ export async function processOracleCoupons() {
         let totalCertificadosGenerados = 0;
 
         for (const emp of pendingEmployees) {
-            // El monto_maximo_descuento en Oracle corresponde al 30% del cupo asignado (ej: 1000 cupo -> 300 descuento)
             const cupoBase = Number(emp.cupo_aprobado) || 1000;
-            const montoMaximoDescuento = Math.round(cupoBase * 0.30 * 100) / 100;
 
-            console.log(`\n👤 Procesando: ${emp.nombre_completo} (Cédula: ${emp.cedula}, PERNR: ${emp.pernr}) | Cupo Base: $${cupoBase} | Descuento Máx (30%): $${montoMaximoDescuento}`);
+            console.log(`\n👤 Procesando: ${emp.nombre_completo} (Cédula: ${emp.cedula}, PERNR: ${emp.pernr}) | Cupo Base Asignado: $${cupoBase}`);
 
             // Extraer empresas autorizadas (desde campo empresas o metadata en observaciones)
             let empresas = ['E200'];
@@ -243,6 +248,14 @@ export async function processOracleCoupons() {
             for (const empCode of empresas) {
                 const rule = COMPANY_RULES[empCode];
                 if (!rule) continue;
+
+                // Descuento porcentaje configurable por empresa (default 30%)
+                const pctDescuento = (activeEmpresaDescuentos && activeEmpresaDescuentos[empCode] !== undefined)
+                    ? Number(activeEmpresaDescuentos[empCode])
+                    : 30;
+
+                // El monto_maximo_descuento se calcula con el % de descuento asignado a la empresa
+                const montoMaximoDescuento = Math.round(cupoBase * (pctDescuento / 100) * 100) / 100;
 
                 const motivo = `${motivoPrefix}${rule.motivoSuffix}`;
                 const subCode = rule.subCodePrefix;
@@ -281,7 +294,7 @@ export async function processOracleCoupons() {
                         1,
                         :subsidiaria,
                         1,
-                        30,
+                        :descuento_porcentaje,
                         'ALL',
                         :fecha_inicio,
                         :fecha_vencimiento,
@@ -306,6 +319,7 @@ export async function processOracleCoupons() {
                     lote: currentLote,
                     certificado: codigoCupon,
                     subsidiaria: rule.subsidiaria,
+                    descuento_porcentaje: pctDescuento,
                     fecha_inicio: p_validfrom,
                     fecha_vencimiento: p_validto,
                     estilos: activePEstilos,
@@ -314,7 +328,7 @@ export async function processOracleCoupons() {
                     motivo: motivo
                 });
 
-                console.log(`   ✅ [${empCode} - ${rule.name}] Emitido: ${codigoCupon} | Cupo Base: $${cupoBase} | Descuento 30%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
+                console.log(`   ✅ [${empCode} - ${rule.name}] Emitido: ${codigoCupon} | Cupo: $${cupoBase} | Descuento ${pctDescuento}%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
 
                 generatedCoupons.push({
                     empresa: empCode,
@@ -323,6 +337,7 @@ export async function processOracleCoupons() {
                     lote: currentLote,
                     motivo: motivo,
                     subsidiaria: rule.subsidiaria,
+                    descuento_porcentaje: pctDescuento,
                     cupo_base: cupoBase,
                     monto_maximo: montoMaximoDescuento,
                     fecha_vencimiento: p_validto.toISOString().split('T')[0]

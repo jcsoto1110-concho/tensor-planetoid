@@ -20,6 +20,12 @@ const EMPRESAS_DISPONIBLES = [
 
 const DEFAULT_P_ESTILOS = "-5009|-5010|-5111|-5222|-5305|-5476|-5492|-5617|-5618|-5760|-3450|-VA-AC|-VA-AZ|-VA-BG|-VA-NG|-VT-BG|-VT-NG|-107-02|-107-04|-107-05|-107-06|-108-01|-201-02|-201-04|-202-06|-203-08|-710-02|-715-01|-715-02|-720-03|-10-11287-600|-10-11287-601|-10-12043-304|-10-12043-309|-10-12043-313|-10-12485-366|-10-12485-368|-10-12485-372|-10-12485-373|-10-12485-374|-10-12485-375|-10-12486-0833|-10-12486-0835|-10-12486-0837|-10-12486-0907|-10-12486-384|-10-12486-391|-10-12486-392|-10-12486-407|-10-12486-428|-CM1|-EF1|-PBW1|-PC1|-PE1|-PE2|-PE5|-SFE1|-SPV2|-SWI14|-SWI15|-VP2|-VP3|-VP4|-WC2|-WC8|-WI10|-WI11|-WI4|-AB4WS|-BBB11|-BR3CWS|-BR6WS|-CPROC|-CPRON|-CPWSB|-JR601|-JR602|-JR603|-JR604|-JR605|-MAT4WS001|-MAT4WS002|-MAT4WS003|-MAT6WS001|-MAT6WS002|-MAT6WS003|-MAT6WS005|-RWS105|-RWS106|-SA401|-SA402|-SP401|-CH50GSD|-FR50GSD|-GC50GSD";
 
+const DEFAULT_EMPRESA_DESCUENTOS: Record<string, number> = {
+    E200: 30,
+    E100: 30,
+    E101: 30
+};
+
 export default function EmployeesListPage() {
     const { employees } = useDoc();
     const [mainTab, setMainTab] = useState<'directory' | 'benefits90'>('directory');
@@ -50,6 +56,7 @@ export default function EmployeesListPage() {
     const [rulesModalOpen, setRulesModalOpen] = useState(false);
     const [cupoRules, setCupoRules] = useState<Array<{ id?: string; patron: string; descripcion?: string; cupo: number; activo?: boolean }>>([]);
     const [pEstilos, setPEstilos] = useState(DEFAULT_P_ESTILOS);
+    const [empresaDescuentos, setEmpresaDescuentos] = useState<Record<string, number>>(DEFAULT_EMPRESA_DESCUENTOS);
     const [isLoadingRules, setIsLoadingRules] = useState(false);
     const [isSavingRules, setIsSavingRules] = useState(false);
     const [newRulePatron, setNewRulePatron] = useState('');
@@ -135,6 +142,9 @@ export default function EmployeesListPage() {
             if (data.success) {
                 if (Array.isArray(data.rules)) setCupoRules(data.rules);
                 if (data.p_estilos) setPEstilos(data.p_estilos);
+                if (data.empresa_descuentos && typeof data.empresa_descuentos === 'object') {
+                    setEmpresaDescuentos({ ...DEFAULT_EMPRESA_DESCUENTOS, ...data.empresa_descuentos });
+                }
             }
         } catch (e: any) {
             console.error('Error al cargar reglas de descuentos:', e);
@@ -195,8 +205,15 @@ export default function EmployeesListPage() {
         setCupoRules(prev => prev.map(r => r.patron.toUpperCase() === patron.toUpperCase() ? { ...r, activo: !r.activo } : r));
     };
 
+    const handleUpdateEmpresaDescuento = (code: string, pct: number) => {
+        setEmpresaDescuentos(prev => ({
+            ...prev,
+            [code]: isNaN(pct) ? 0 : Math.min(100, Math.max(0, pct))
+        }));
+    };
+
     const handleResetDefaultRules = () => {
-        if (!confirm('¿Restablecer las reglas de descuento y los estilos excluidos a los valores corporativos oficiales?')) return;
+        if (!confirm('¿Restablecer las reglas de descuento, porcentajes por empresa y estilos excluidos a los valores corporativos oficiales?')) return;
         setCupoRules([
             { patron: 'ASVENT', descripcion: 'Asesor de Ventas', cupo: 1000, activo: true },
             { patron: 'AUBODE', descripcion: 'Auxiliar de Bodega', cupo: 1000, activo: true },
@@ -212,6 +229,7 @@ export default function EmployeesListPage() {
             { patron: 'GEREN', descripcion: 'Gerencias y Directores', cupo: 6000, activo: true },
         ]);
         setPEstilos(DEFAULT_P_ESTILOS);
+        setEmpresaDescuentos(DEFAULT_EMPRESA_DESCUENTOS);
     };
 
     const handleSaveRules = async (recalculatePending: boolean = false) => {
@@ -224,6 +242,7 @@ export default function EmployeesListPage() {
                     action: 'save_rules',
                     rules: cupoRules,
                     p_estilos: pEstilos,
+                    empresa_descuentos: empresaDescuentos,
                     recalculatePending,
                     user_name: 'Talento Humano'
                 })
@@ -2017,7 +2036,7 @@ export default function EmployeesListPage() {
                                                 <th style={{ padding: '10px 16px', fontWeight: 700 }}>Puesto / Código</th>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700 }}>Descripción</th>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700, width: '150px' }}>Cupo Base ($)</th>
-                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '170px' }}>Desc. Máx Oracle (30%)</th>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '180px' }}>Desc. Máx Oracle</th>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700, width: '90px', textAlign: 'center' }}>Estado</th>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700, width: '60px', textAlign: 'center' }}>Acción</th>
                                             </tr>
@@ -2030,7 +2049,12 @@ export default function EmployeesListPage() {
                                                     return (r.patron || '').toLowerCase().includes(s) || (r.descripcion || '').toLowerCase().includes(s);
                                                 })
                                                 .map((r, idx) => {
-                                                    const desc30 = Math.round((Number(r.cupo) || 0) * 0.30 * 100) / 100;
+                                                    const baseCupo = Number(r.cupo) || 0;
+                                                    const uniquePcts = Array.from(new Set(Object.values(empresaDescuentos)));
+                                                    const isUniform = uniquePcts.length <= 1;
+                                                    const defaultPct = empresaDescuentos['E200'] ?? 30;
+                                                    const descVal = Math.round(baseCupo * (defaultPct / 100) * 100) / 100;
+
                                                     return (
                                                         <tr key={r.patron + idx} style={{ borderBottom: '1px solid #f1f5f9', background: r.activo === false ? '#fafafa' : 'white' }}>
                                                             <td style={{ padding: '10px 16px' }}>
@@ -2072,20 +2096,30 @@ export default function EmployeesListPage() {
                                                                 </div>
                                                             </td>
                                                             <td style={{ padding: '10px 16px' }}>
-                                                                <span style={{
-                                                                    background: '#dcfce7',
-                                                                    color: '#15803d',
-                                                                    padding: '4px 8px',
-                                                                    borderRadius: '6px',
-                                                                    fontWeight: 800,
-                                                                    fontSize: '13px',
-                                                                    display: 'inline-flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '4px'
-                                                                }}>
-                                                                    ${desc30.toFixed(2)}
-                                                                    <span style={{ fontSize: '10px', opacity: 0.8, fontWeight: 700 }}>(30%)</span>
-                                                                </span>
+                                                                {isUniform ? (
+                                                                    <span style={{
+                                                                        background: '#dcfce7',
+                                                                        color: '#15803d',
+                                                                        padding: '4px 8px',
+                                                                        borderRadius: '6px',
+                                                                        fontWeight: 800,
+                                                                        fontSize: '13px',
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '4px'
+                                                                    }}>
+                                                                        ${descVal.toFixed(2)}
+                                                                        <span style={{ fontSize: '10px', opacity: 0.8, fontWeight: 700 }}>({defaultPct}%)</span>
+                                                                    </span>
+                                                                ) : (
+                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                                        {Object.entries(empresaDescuentos).map(([code, pct]) => (
+                                                                            <span key={code} style={{ fontSize: '11px', fontWeight: 700, color: '#15803d' }}>
+                                                                                <strong>{code}:</strong> ${(baseCupo * (pct / 100)).toFixed(2)} ({pct}%)
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
                                                             </td>
                                                             <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                                                                 <button
@@ -2130,6 +2164,87 @@ export default function EmployeesListPage() {
                                     </table>
                                 </div>
                             )}
+
+                            {/* Configuración de Porcentaje de Descuento por Empresa (descuento_porcentaje) */}
+                            <div style={{
+                                marginTop: '20px',
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '14px',
+                                padding: '16px 20px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Building2 size={16} color="#2563eb" /> Porcentaje de Descuento por Empresa (<code>descuento_porcentaje</code>)
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEmpresaDescuentos(DEFAULT_EMPRESA_DESCUENTOS)}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            color: '#2563eb',
+                                            fontSize: '11.5px',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            textDecoration: 'underline'
+                                        }}
+                                    >
+                                        Restablecer porcentajes (30%)
+                                    </button>
+                                </div>
+                                <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                                    Define el porcentaje que se registrará en el campo <code>descuento_porcentaje</code> de Oracle y con el cual se calculará el <code>monto_maximo_descuento</code> (Cupo &times; %) para cada empresa autorizada.
+                                </p>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                                    {EMPRESAS_DISPONIBLES.map(emp => {
+                                        const currentPct = empresaDescuentos[emp.code] !== undefined ? empresaDescuentos[emp.code] : 30;
+                                        return (
+                                            <div key={emp.code} style={{
+                                                background: 'white',
+                                                border: '1.5px solid #e2e8f0',
+                                                borderRadius: '10px',
+                                                padding: '12px 14px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '6px'
+                                            }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f172a' }}>{emp.code}</span>
+                                                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{emp.short}</span>
+                                                </div>
+                                                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '2px' }}>{emp.name}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto' }}>
+                                                    <div style={{ position: 'relative', width: '100%' }}>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            max="100"
+                                                            step="1"
+                                                            value={currentPct}
+                                                            onChange={e => handleUpdateEmpresaDescuento(emp.code, parseFloat(e.target.value))}
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '7px 28px 7px 10px',
+                                                                borderRadius: '6px',
+                                                                border: '1px solid #cbd5e1',
+                                                                fontSize: '13px',
+                                                                fontWeight: 800,
+                                                                color: '#0f172a',
+                                                                outline: 'none'
+                                                            }}
+                                                        />
+                                                        <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '13px', fontWeight: 800, color: '#64748b' }}>%</span>
+                                                    </div>
+                                                </div>
+                                                <div style={{ fontSize: '10.5px', color: '#15803d', fontWeight: 700, marginTop: '2px' }}>
+                                                    Ej: Cupo $1,000 ➔ ${(1000 * (currentPct / 100)).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
                             {/* Configuración de Estilos Excluidos Oracle (p_estilos) */}
                             <div style={{
@@ -2196,7 +2311,7 @@ export default function EmployeesListPage() {
                                 color: '#1e40af',
                                 lineHeight: 1.5
                             }}>
-                                💡 <strong>Regla de negocio:</strong> El valor que ingresas aquí es el <strong>Cupo Asignado</strong> al colaborador. En Oracle Retail Pro, el campo <code>monto_maximo_descuento</code> se registra automáticamente al <strong>30%</strong> (ej: Cupo $1,000 ➔ Descuento Máximo $300 en caja).
+                                💡 <strong>Reglas de negocio:</strong> El valor en la tabla es el <strong>Cupo Asignado</strong> al colaborador. En Oracle Retail Pro, el campo <code>descuento_porcentaje</code> se registra según el porcentaje configurado por empresa y <code>monto_maximo_descuento</code> se calcula automáticamente (Cupo &times; %).
                             </div>
                         </div>
 

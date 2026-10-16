@@ -296,9 +296,16 @@ const DEFAULT_CUPO_RULES: CupoRule[] = [
 
 export const DEFAULT_P_ESTILOS = "-5009|-5010|-5111|-5222|-5305|-5476|-5492|-5617|-5618|-5760|-3450|-VA-AC|-VA-AZ|-VA-BG|-VA-NG|-VT-BG|-VT-NG|-107-02|-107-04|-107-05|-107-06|-108-01|-201-02|-201-04|-202-06|-203-08|-710-02|-715-01|-715-02|-720-03|-10-11287-600|-10-11287-601|-10-12043-304|-10-12043-309|-10-12043-313|-10-12485-366|-10-12485-368|-10-12485-372|-10-12485-373|-10-12485-374|-10-12485-375|-10-12486-0833|-10-12486-0835|-10-12486-0837|-10-12486-0907|-10-12486-384|-10-12486-391|-10-12486-392|-10-12486-407|-10-12486-428|-CM1|-EF1|-PBW1|-PC1|-PE1|-PE2|-PE5|-SFE1|-SPV2|-SWI14|-SWI15|-VP2|-VP3|-VP4|-WC2|-WC8|-WI10|-WI11|-WI4|-AB4WS|-BBB11|-BR3CWS|-BR6WS|-CPROC|-CPRON|-CPWSB|-JR601|-JR602|-JR603|-JR604|-JR605|-MAT4WS001|-MAT4WS002|-MAT4WS003|-MAT6WS001|-MAT6WS002|-MAT6WS003|-MAT6WS005|-RWS105|-RWS106|-SA401|-SA402|-SP401|-CH50GSD|-FR50GSD|-GC50GSD";
 
-async function getCupoConfig(supabase: any): Promise<{ rules: CupoRule[]; p_estilos: string }> {
+export const DEFAULT_EMPRESA_DESCUENTOS: Record<string, number> = {
+    E200: 30,
+    E100: 30,
+    E101: 30
+};
+
+async function getCupoConfig(supabase: any): Promise<{ rules: CupoRule[]; p_estilos: string; empresa_descuentos: Record<string, number> }> {
     let rules = DEFAULT_CUPO_RULES;
     let p_estilos = DEFAULT_P_ESTILOS;
+    let empresa_descuentos = { ...DEFAULT_EMPRESA_DESCUENTOS };
 
     try {
         const { data: dedicatedRules, error: dedErr } = await supabase
@@ -349,13 +356,19 @@ async function getCupoConfig(supabase: any): Promise<{ rules: CupoRule[]; p_esti
                 if (typeof parsed.p_estilos === 'string' && parsed.p_estilos.trim()) {
                     p_estilos = parsed.p_estilos.trim();
                 }
+                if (parsed.empresa_descuentos && typeof parsed.empresa_descuentos === 'object') {
+                    empresa_descuentos = {
+                        ...DEFAULT_EMPRESA_DESCUENTOS,
+                        ...parsed.empresa_descuentos
+                    };
+                }
             }
         }
     } catch (e) {
         console.warn('No se pudieron cargar reglas personalizadas desde digi_audit_logs:', e);
     }
 
-    return { rules, p_estilos };
+    return { rules, p_estilos, empresa_descuentos };
 }
 
 async function getCupoRules(supabase: any): Promise<CupoRule[]> {
@@ -363,7 +376,13 @@ async function getCupoRules(supabase: any): Promise<CupoRule[]> {
     return config.rules;
 }
 
-async function saveCupoConfig(supabase: any, rules: CupoRule[], p_estilos?: string, userName?: string) {
+async function saveCupoConfig(
+    supabase: any,
+    rules: CupoRule[],
+    p_estilos?: string,
+    empresa_descuentos?: Record<string, number>,
+    userName?: string
+) {
     const cleanRules = rules.map((r, i) => ({
         id: String(r.id || i + 1),
         patron: String(r.patron || '').toUpperCase().trim(),
@@ -374,9 +393,20 @@ async function saveCupoConfig(supabase: any, rules: CupoRule[], p_estilos?: stri
 
     const cleanPEstilos = typeof p_estilos === 'string' && p_estilos.trim() ? p_estilos.trim() : DEFAULT_P_ESTILOS;
 
+    const cleanEmpresaDescuentos = { ...DEFAULT_EMPRESA_DESCUENTOS };
+    if (empresa_descuentos && typeof empresa_descuentos === 'object') {
+        for (const [k, v] of Object.entries(empresa_descuentos)) {
+            const num = Number(v);
+            if (!isNaN(num) && num >= 0 && num <= 100) {
+                cleanEmpresaDescuentos[k.toUpperCase()] = num;
+            }
+        }
+    }
+
     const payloadToSave = {
         rules: cleanRules,
         p_estilos: cleanPEstilos,
+        empresa_descuentos: cleanEmpresaDescuentos,
         updated_at: new Date().toISOString()
     };
 
@@ -399,11 +429,11 @@ async function saveCupoConfig(supabase: any, rules: CupoRule[], p_estilos?: stri
         await supabase.from('digi_cupo_rules').upsert(cleanRules, { onConflict: 'patron' });
     } catch (_) {}
 
-    return { rules: cleanRules, p_estilos: cleanPEstilos };
+    return { rules: cleanRules, p_estilos: cleanPEstilos, empresa_descuentos: cleanEmpresaDescuentos };
 }
 
 async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string) {
-    const res = await saveCupoConfig(supabase, rules, undefined, userName);
+    const res = await saveCupoConfig(supabase, rules, undefined, undefined, userName);
     return res.rules;
 }
 
@@ -545,7 +575,7 @@ export async function GET(req: NextRequest) {
 
         if (rulesOnly === 'true') {
             const config = await getCupoConfig(supabase);
-            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos });
+            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos, empresa_descuentos: config.empresa_descuentos });
         }
 
         const status = searchParams.get('status') || 'ALL';
@@ -659,7 +689,7 @@ export async function POST(req: NextRequest) {
         // ACCIÓN: OBTENER REGLAS DE DESCUENTO POR PUESTO Y ESTILOS
         if (action === 'get_rules') {
             const config = await getCupoConfig(supabase);
-            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos });
+            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos, empresa_descuentos: config.empresa_descuentos });
         }
 
         // ACCIÓN: GUARDAR REGLAS DE DESCUENTO POR PUESTO Y ESTILOS
@@ -668,7 +698,13 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ success: false, error: 'Lista de reglas requerida' }, { status: 400 });
             }
 
-            const savedConfig = await saveCupoConfig(supabase, rules, p_estilos, body.user_name || 'Talento Humano');
+            const savedConfig = await saveCupoConfig(
+                supabase,
+                rules,
+                p_estilos,
+                body.empresa_descuentos,
+                body.user_name || 'Talento Humano'
+            );
 
             let recalculateCount = 0;
             if (recalculatePending) {
@@ -700,10 +736,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 success: true,
                 message: recalculatePending 
-                    ? `Reglas y estilos guardados exitosamente y se recalcularon ${recalculateCount} colaboradores pendientes.`
-                    : 'Reglas de descuento y estilos excluidos guardados correctamente.',
+                    ? `Reglas, estilos y porcentajes por empresa guardados exitosamente y se recalcularon ${recalculateCount} colaboradores pendientes.`
+                    : 'Reglas de descuento, estilos y porcentajes por empresa guardados correctamente.',
                 rules: savedConfig.rules,
                 p_estilos: savedConfig.p_estilos,
+                empresa_descuentos: savedConfig.empresa_descuentos,
                 recalculateCount
             });
         }
