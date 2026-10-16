@@ -291,10 +291,15 @@ const DEFAULT_CUPO_RULES: CupoRule[] = [
     { patron: 'SUALMA', descripcion: 'Supervisores de Almacén', cupo: 2500.00, activo: true },
     { patron: 'SUTIEN', descripcion: 'Supervisores de Tienda', cupo: 2500.00, activo: true },
     { patron: 'COORD', descripcion: 'Coordinadores / Líderes', cupo: 2500.00, activo: true },
-    { patron: 'GEREN', descripcion: 'Gerencias y Directores', cupo: 6000.00, activo: true },
+    { patron: 'GEREN', descripcion: 'Gerencias y Directores', cupo: 6000.00, activo: true }
 ];
 
-async function getCupoRules(supabase: any): Promise<CupoRule[]> {
+export const DEFAULT_P_ESTILOS = "-5009|-5010|-5111|-5222|-5305|-5476|-5492|-5617|-5618|-5760|-3450|-VA-AC|-VA-AZ|-VA-BG|-VA-NG|-VT-BG|-VT-NG|-107-02|-107-04|-107-05|-107-06|-108-01|-201-02|-201-04|-202-06|-203-08|-710-02|-715-01|-715-02|-720-03|-10-11287-600|-10-11287-601|-10-12043-304|-10-12043-309|-10-12043-313|-10-12485-366|-10-12485-368|-10-12485-372|-10-12485-373|-10-12485-374|-10-12485-375|-10-12486-0833|-10-12486-0835|-10-12486-0837|-10-12486-0907|-10-12486-384|-10-12486-391|-10-12486-392|-10-12486-407|-10-12486-428|-CM1|-EF1|-PBW1|-PC1|-PE1|-PE2|-PE5|-SFE1|-SPV2|-SWI14|-SWI15|-VP2|-VP3|-VP4|-WC2|-WC8|-WI10|-WI11|-WI4|-AB4WS|-BBB11|-BR3CWS|-BR6WS|-CPROC|-CPRON|-CPWSB|-JR601|-JR602|-JR603|-JR604|-JR605|-MAT4WS001|-MAT4WS002|-MAT4WS003|-MAT6WS001|-MAT6WS002|-MAT6WS003|-MAT6WS005|-RWS105|-RWS106|-SA401|-SA402|-SP401|-CH50GSD|-FR50GSD|-GC50GSD";
+
+async function getCupoConfig(supabase: any): Promise<{ rules: CupoRule[]; p_estilos: string }> {
+    let rules = DEFAULT_CUPO_RULES;
+    let p_estilos = DEFAULT_P_ESTILOS;
+
     try {
         const { data: dedicatedRules, error: dedErr } = await supabase
             .from('digi_cupo_rules')
@@ -302,7 +307,7 @@ async function getCupoRules(supabase: any): Promise<CupoRule[]> {
             .order('id', { ascending: true });
 
         if (!dedErr && dedicatedRules && dedicatedRules.length > 0) {
-            return dedicatedRules.map((r: any) => ({
+            rules = dedicatedRules.map((r: any) => ({
                 id: String(r.id),
                 patron: String(r.patron || '').toUpperCase().trim(),
                 descripcion: r.descripcion || '',
@@ -324,23 +329,41 @@ async function getCupoRules(supabase: any): Promise<CupoRule[]> {
         if (!auditErr && auditLog?.description) {
             const parsed = JSON.parse(auditLog.description);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                return parsed.map((r: any, idx: number) => ({
+                rules = parsed.map((r: any, idx: number) => ({
                     id: String(r.id || idx + 1),
                     patron: String(r.patron || '').toUpperCase().trim(),
                     descripcion: r.descripcion || '',
                     cupo: Number(r.cupo) || 0,
                     activo: r.activo !== false
                 }));
+            } else if (parsed && typeof parsed === 'object') {
+                if (Array.isArray(parsed.rules)) {
+                    rules = parsed.rules.map((r: any, idx: number) => ({
+                        id: String(r.id || idx + 1),
+                        patron: String(r.patron || '').toUpperCase().trim(),
+                        descripcion: r.descripcion || '',
+                        cupo: Number(r.cupo) || 0,
+                        activo: r.activo !== false
+                    }));
+                }
+                if (typeof parsed.p_estilos === 'string' && parsed.p_estilos.trim()) {
+                    p_estilos = parsed.p_estilos.trim();
+                }
             }
         }
     } catch (e) {
         console.warn('No se pudieron cargar reglas personalizadas desde digi_audit_logs:', e);
     }
 
-    return DEFAULT_CUPO_RULES;
+    return { rules, p_estilos };
 }
 
-async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string) {
+async function getCupoRules(supabase: any): Promise<CupoRule[]> {
+    const config = await getCupoConfig(supabase);
+    return config.rules;
+}
+
+async function saveCupoConfig(supabase: any, rules: CupoRule[], p_estilos?: string, userName?: string) {
     const cleanRules = rules.map((r, i) => ({
         id: String(r.id || i + 1),
         patron: String(r.patron || '').toUpperCase().trim(),
@@ -349,6 +372,14 @@ async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string
         activo: r.activo !== false
     })).filter(r => r.patron.length > 0);
 
+    const cleanPEstilos = typeof p_estilos === 'string' && p_estilos.trim() ? p_estilos.trim() : DEFAULT_P_ESTILOS;
+
+    const payloadToSave = {
+        rules: cleanRules,
+        p_estilos: cleanPEstilos,
+        updated_at: new Date().toISOString()
+    };
+
     const { error: logErr } = await supabase
         .from('digi_audit_logs')
         .insert({
@@ -356,7 +387,7 @@ async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string
             entity_type: 'CONFIG_CUPOS_RULES',
             entity_id: 'GLOBAL',
             user_name: userName || 'Talento Humano',
-            description: JSON.stringify(cleanRules),
+            description: JSON.stringify(payloadToSave),
             timestamp: new Date().toISOString()
         });
 
@@ -368,7 +399,12 @@ async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string
         await supabase.from('digi_cupo_rules').upsert(cleanRules, { onConflict: 'patron' });
     } catch (_) {}
 
-    return cleanRules;
+    return { rules: cleanRules, p_estilos: cleanPEstilos };
+}
+
+async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string) {
+    const res = await saveCupoConfig(supabase, rules, undefined, userName);
+    return res.rules;
 }
 
 function calcularCupo(row: any, customRules?: CupoRule[]) {
@@ -508,8 +544,8 @@ export async function GET(req: NextRequest) {
         const supabase = getSupabase();
 
         if (rulesOnly === 'true') {
-            const rules = await getCupoRules(supabase);
-            return NextResponse.json({ success: true, rules });
+            const config = await getCupoConfig(supabase);
+            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos });
         }
 
         const status = searchParams.get('status') || 'ALL';
@@ -616,23 +652,23 @@ export async function PUT(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { action, ids, id, observaciones, aprobado_por, discount_id_ws, rules, recalculatePending } = body;
+        const { action, ids, id, observaciones, aprobado_por, discount_id_ws, rules, p_estilos, recalculatePending } = body;
 
         const supabase = getSupabase();
 
-        // ACCIÓN: OBTENER REGLAS DE DESCUENTO POR PUESTO
+        // ACCIÓN: OBTENER REGLAS DE DESCUENTO POR PUESTO Y ESTILOS
         if (action === 'get_rules') {
-            const currentRules = await getCupoRules(supabase);
-            return NextResponse.json({ success: true, rules: currentRules });
+            const config = await getCupoConfig(supabase);
+            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos });
         }
 
-        // ACCIÓN: GUARDAR REGLAS DE DESCUENTO POR PUESTO
+        // ACCIÓN: GUARDAR REGLAS DE DESCUENTO POR PUESTO Y ESTILOS
         if (action === 'save_rules') {
             if (!Array.isArray(rules)) {
                 return NextResponse.json({ success: false, error: 'Lista de reglas requerida' }, { status: 400 });
             }
 
-            const savedRules = await saveCupoRules(supabase, rules, body.user_name || 'Talento Humano');
+            const savedConfig = await saveCupoConfig(supabase, rules, p_estilos, body.user_name || 'Talento Humano');
 
             let recalculateCount = 0;
             if (recalculatePending) {
@@ -644,7 +680,7 @@ export async function POST(req: NextRequest) {
 
                 if (!pErr && pendingEmployees && pendingEmployees.length > 0) {
                     for (const emp of pendingEmployees) {
-                        const { cupo, tipo } = calcularCupo(emp, savedRules);
+                        const { cupo, tipo } = calcularCupo(emp, savedConfig.rules);
                         if (cupo > 0) {
                             await supabase
                                 .from('digi_employee_benefits_90d')
@@ -664,9 +700,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 success: true,
                 message: recalculatePending 
-                    ? `Reglas guardadas exitosamente y se recalcularon ${recalculateCount} colaboradores pendientes.`
-                    : 'Reglas de descuento por puesto guardadas correctamente.',
-                rules: savedRules,
+                    ? `Reglas y estilos guardados exitosamente y se recalcularon ${recalculateCount} colaboradores pendientes.`
+                    : 'Reglas de descuento y estilos excluidos guardados correctamente.',
+                rules: savedConfig.rules,
+                p_estilos: savedConfig.p_estilos,
                 recalculateCount
             });
         }

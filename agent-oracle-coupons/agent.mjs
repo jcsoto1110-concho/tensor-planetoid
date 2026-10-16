@@ -132,6 +132,26 @@ const COMPANY_RULES = {
     }
 };
 
+async function getActivePEstilos() {
+    try {
+        const { data: auditLog, error: auditErr } = await supabase
+            .from('digi_audit_logs')
+            .select('description')
+            .eq('entity_type', 'CONFIG_CUPOS_RULES')
+            .order('timestamp', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (!auditErr && auditLog?.description) {
+            const parsed = JSON.parse(auditLog.description);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.p_estilos) {
+                return parsed.p_estilos.trim();
+            }
+        }
+    } catch (_) {}
+    return P_ESTILOS;
+}
+
 // ==============================================================================
 // 3. PROCESAMIENTO PRINCIPAL DE EMISIÓN DE CUPONES
 // ==============================================================================
@@ -159,6 +179,8 @@ export async function processOracleCoupons() {
     console.log(`\n===============================================================`);
     console.log(`[${timeStr}] 📋 Encontrados ${pendingEmployees.length} colaborador(es) aprobados para emitir cupones en Oracle.`);
     console.log(`===============================================================`);
+
+    const activePEstilos = await getActivePEstilos();
 
     let oracleConn;
     try {
@@ -194,7 +216,11 @@ export async function processOracleCoupons() {
         let totalCertificadosGenerados = 0;
 
         for (const emp of pendingEmployees) {
-            console.log(`\n👤 Procesando: ${emp.nombre_completo} (Cédula: ${emp.cedula}, PERNR: ${emp.pernr}) | Cupo: $${emp.cupo_aprobado}`);
+            // El monto_maximo_descuento en Oracle corresponde al 30% del cupo asignado (ej: 1000 cupo -> 300 descuento)
+            const cupoBase = Number(emp.cupo_aprobado) || 1000;
+            const montoMaximoDescuento = Math.round(cupoBase * 0.30 * 100) / 100;
+
+            console.log(`\n👤 Procesando: ${emp.nombre_completo} (Cédula: ${emp.cedula}, PERNR: ${emp.pernr}) | Cupo Base: $${cupoBase} | Descuento Máx (30%): $${montoMaximoDescuento}`);
 
             // Extraer empresas autorizadas (desde campo empresas o metadata en observaciones)
             let empresas = ['E200'];
@@ -282,13 +308,13 @@ export async function processOracleCoupons() {
                     subsidiaria: rule.subsidiaria,
                     fecha_inicio: p_validfrom,
                     fecha_vencimiento: p_validto,
-                    estilos: P_ESTILOS,
-                    monto_maximo: Number(emp.cupo_aprobado),
+                    estilos: activePEstilos,
+                    monto_maximo: montoMaximoDescuento,
                     rut: String(emp.cedula).trim(),
                     motivo: motivo
                 });
 
-                console.log(`   ✅ [${empCode} - ${rule.name}] Emitido: ${codigoCupon} | Lote: ${currentLote} | Motivo: ${motivo}`);
+                console.log(`   ✅ [${empCode} - ${rule.name}] Emitido: ${codigoCupon} | Cupo Base: $${cupoBase} | Descuento 30%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
 
                 generatedCoupons.push({
                     empresa: empCode,
@@ -297,7 +323,8 @@ export async function processOracleCoupons() {
                     lote: currentLote,
                     motivo: motivo,
                     subsidiaria: rule.subsidiaria,
-                    monto_maximo: Number(emp.cupo_aprobado),
+                    cupo_base: cupoBase,
+                    monto_maximo: montoMaximoDescuento,
                     fecha_vencimiento: p_validto.toISOString().split('T')[0]
                 });
 

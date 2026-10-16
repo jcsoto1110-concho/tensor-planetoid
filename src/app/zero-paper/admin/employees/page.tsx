@@ -18,6 +18,8 @@ const EMPRESAS_DISPONIBLES = [
     { code: 'E101', name: 'Mundo Dep', short: 'Mundo Dep' }
 ];
 
+const DEFAULT_P_ESTILOS = "-5009|-5010|-5111|-5222|-5305|-5476|-5492|-5617|-5618|-5760|-3450|-VA-AC|-VA-AZ|-VA-BG|-VA-NG|-VT-BG|-VT-NG|-107-02|-107-04|-107-05|-107-06|-108-01|-201-02|-201-04|-202-06|-203-08|-710-02|-715-01|-715-02|-720-03|-10-11287-600|-10-11287-601|-10-12043-304|-10-12043-309|-10-12043-313|-10-12485-366|-10-12485-368|-10-12485-372|-10-12485-373|-10-12485-374|-10-12485-375|-10-12486-0833|-10-12486-0835|-10-12486-0837|-10-12486-0907|-10-12486-384|-10-12486-391|-10-12486-392|-10-12486-407|-10-12486-428|-CM1|-EF1|-PBW1|-PC1|-PE1|-PE2|-PE5|-SFE1|-SPV2|-SWI14|-SWI15|-VP2|-VP3|-VP4|-WC2|-WC8|-WI10|-WI11|-WI4|-AB4WS|-BBB11|-BR3CWS|-BR6WS|-CPROC|-CPRON|-CPWSB|-JR601|-JR602|-JR603|-JR604|-JR605|-MAT4WS001|-MAT4WS002|-MAT4WS003|-MAT6WS001|-MAT6WS002|-MAT6WS003|-MAT6WS005|-RWS105|-RWS106|-SA401|-SA402|-SP401|-CH50GSD|-FR50GSD|-GC50GSD";
+
 export default function EmployeesListPage() {
     const { employees } = useDoc();
     const [mainTab, setMainTab] = useState<'directory' | 'benefits90'>('directory');
@@ -44,9 +46,10 @@ export default function EmployeesListPage() {
     const [isSyncingSap, setIsSyncingSap] = useState(false);
     const [isProcessingOracle, setIsProcessingOracle] = useState(false);
 
-    // === CONFIGURACIÓN DE DESCUENTOS POR PUESTO ===
+    // === CONFIGURACIÓN DE DESCUENTOS POR PUESTO Y ESTILOS ORACLE ===
     const [rulesModalOpen, setRulesModalOpen] = useState(false);
     const [cupoRules, setCupoRules] = useState<Array<{ id?: string; patron: string; descripcion?: string; cupo: number; activo?: boolean }>>([]);
+    const [pEstilos, setPEstilos] = useState(DEFAULT_P_ESTILOS);
     const [isLoadingRules, setIsLoadingRules] = useState(false);
     const [isSavingRules, setIsSavingRules] = useState(false);
     const [newRulePatron, setNewRulePatron] = useState('');
@@ -129,8 +132,9 @@ export default function EmployeesListPage() {
         try {
             const res = await fetch('/api/benefits-90-days?rules=true');
             const data = await res.json();
-            if (data.success && Array.isArray(data.rules)) {
-                setCupoRules(data.rules);
+            if (data.success) {
+                if (Array.isArray(data.rules)) setCupoRules(data.rules);
+                if (data.p_estilos) setPEstilos(data.p_estilos);
             }
         } catch (e: any) {
             console.error('Error al cargar reglas de descuentos:', e);
@@ -192,7 +196,7 @@ export default function EmployeesListPage() {
     };
 
     const handleResetDefaultRules = () => {
-        if (!confirm('¿Restablecer las reglas de descuento a los valores predeterminados corporativos?')) return;
+        if (!confirm('¿Restablecer las reglas de descuento y los estilos excluidos a los valores corporativos oficiales?')) return;
         setCupoRules([
             { patron: 'ASVENT', descripcion: 'Asesor de Ventas', cupo: 1000, activo: true },
             { patron: 'AUBODE', descripcion: 'Auxiliar de Bodega', cupo: 1000, activo: true },
@@ -207,6 +211,7 @@ export default function EmployeesListPage() {
             { patron: 'COORD', descripcion: 'Coordinadores / Líderes', cupo: 2500, activo: true },
             { patron: 'GEREN', descripcion: 'Gerencias y Directores', cupo: 6000, activo: true },
         ]);
+        setPEstilos(DEFAULT_P_ESTILOS);
     };
 
     const handleSaveRules = async (recalculatePending: boolean = false) => {
@@ -218,6 +223,7 @@ export default function EmployeesListPage() {
                 body: JSON.stringify({
                     action: 'save_rules',
                     rules: cupoRules,
+                    p_estilos: pEstilos,
                     recalculatePending,
                     user_name: 'Talento Humano'
                 })
@@ -2010,7 +2016,8 @@ export default function EmployeesListPage() {
                                             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700 }}>Puesto / Código</th>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700 }}>Descripción</th>
-                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '160px' }}>Valor Descuento ($)</th>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '150px' }}>Cupo Base ($)</th>
+                                                <th style={{ padding: '10px 16px', fontWeight: 700, width: '170px' }}>Desc. Máx Oracle (30%)</th>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700, width: '90px', textAlign: 'center' }}>Estado</th>
                                                 <th style={{ padding: '10px 16px', fontWeight: 700, width: '60px', textAlign: 'center' }}>Acción</th>
                                             </tr>
@@ -2022,88 +2029,161 @@ export default function EmployeesListPage() {
                                                     const s = rulesSearchFilter.toLowerCase();
                                                     return (r.patron || '').toLowerCase().includes(s) || (r.descripcion || '').toLowerCase().includes(s);
                                                 })
-                                                .map((r, idx) => (
-                                                    <tr key={r.patron + idx} style={{ borderBottom: '1px solid #f1f5f9', background: r.activo === false ? '#fafafa' : 'white' }}>
-                                                        <td style={{ padding: '10px 16px' }}>
-                                                            <span style={{
-                                                                background: '#eff6ff',
-                                                                color: '#1d4ed8',
-                                                                padding: '4px 8px',
-                                                                borderRadius: '6px',
-                                                                fontWeight: 800,
-                                                                fontFamily: 'monospace',
-                                                                fontSize: '12px'
-                                                            }}>
-                                                                {r.patron}
-                                                            </span>
-                                                        </td>
-                                                        <td style={{ padding: '10px 16px', color: '#475569' }}>
-                                                            {r.descripcion || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin descripción</span>}
-                                                        </td>
-                                                        <td style={{ padding: '10px 16px' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                                <span style={{ fontWeight: 800, color: '#10b981', fontSize: '14px' }}>$</span>
-                                                                <input
-                                                                    type="number"
-                                                                    value={r.cupo}
-                                                                    onChange={e => handleUpdateRuleCupo(r.patron, parseFloat(e.target.value) || 0)}
-                                                                    step="50"
-                                                                    min="0"
-                                                                    style={{
-                                                                        width: '100px',
-                                                                        padding: '6px 8px',
-                                                                        borderRadius: '6px',
-                                                                        border: '1px solid #cbd5e1',
-                                                                        fontSize: '13px',
-                                                                        fontWeight: 800,
-                                                                        color: '#0f172a',
-                                                                        outline: 'none'
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                                                            <button
-                                                                onClick={() => handleToggleRuleActive(r.patron)}
-                                                                style={{
-                                                                    border: 'none',
-                                                                    background: r.activo !== false ? '#dcfce7' : '#f1f5f9',
-                                                                    color: r.activo !== false ? '#15803d' : '#94a3b8',
-                                                                    padding: '3px 8px',
+                                                .map((r, idx) => {
+                                                    const desc30 = Math.round((Number(r.cupo) || 0) * 0.30 * 100) / 100;
+                                                    return (
+                                                        <tr key={r.patron + idx} style={{ borderBottom: '1px solid #f1f5f9', background: r.activo === false ? '#fafafa' : 'white' }}>
+                                                            <td style={{ padding: '10px 16px' }}>
+                                                                <span style={{
+                                                                    background: '#eff6ff',
+                                                                    color: '#1d4ed8',
+                                                                    padding: '4px 8px',
                                                                     borderRadius: '6px',
-                                                                    fontSize: '11px',
                                                                     fontWeight: 800,
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                {r.activo !== false ? 'ACTIVO' : 'PAUSADO'}
-                                                            </button>
-                                                        </td>
-                                                        <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                                                            <button
-                                                                onClick={() => handleDeleteRule(r.patron)}
-                                                                title="Eliminar regla"
-                                                                style={{
-                                                                    border: 'none',
-                                                                    background: 'transparent',
-                                                                    cursor: 'pointer',
-                                                                    color: '#ef4444',
-                                                                    padding: '4px',
+                                                                    fontFamily: 'monospace',
+                                                                    fontSize: '12px'
+                                                                }}>
+                                                                    {r.patron}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '10px 16px', color: '#475569' }}>
+                                                                {r.descripcion || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin descripción</span>}
+                                                            </td>
+                                                            <td style={{ padding: '10px 16px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <span style={{ fontWeight: 800, color: '#3b82f6', fontSize: '13px' }}>$</span>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={r.cupo}
+                                                                        onChange={e => handleUpdateRuleCupo(r.patron, parseFloat(e.target.value) || 0)}
+                                                                        step="50"
+                                                                        min="0"
+                                                                        style={{
+                                                                            width: '95px',
+                                                                            padding: '6px 8px',
+                                                                            borderRadius: '6px',
+                                                                            border: '1px solid #cbd5e1',
+                                                                            fontSize: '13px',
+                                                                            fontWeight: 800,
+                                                                            color: '#0f172a',
+                                                                            outline: 'none'
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                            <td style={{ padding: '10px 16px' }}>
+                                                                <span style={{
+                                                                    background: '#dcfce7',
+                                                                    color: '#15803d',
+                                                                    padding: '4px 8px',
+                                                                    borderRadius: '6px',
+                                                                    fontWeight: 800,
+                                                                    fontSize: '13px',
                                                                     display: 'inline-flex',
                                                                     alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    borderRadius: '4px'
-                                                                }}
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                                    gap: '4px'
+                                                                }}>
+                                                                    ${desc30.toFixed(2)}
+                                                                    <span style={{ fontSize: '10px', opacity: 0.8, fontWeight: 700 }}>(30%)</span>
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                                <button
+                                                                    onClick={() => handleToggleRuleActive(r.patron)}
+                                                                    style={{
+                                                                        border: 'none',
+                                                                        background: r.activo !== false ? '#dcfce7' : '#f1f5f9',
+                                                                        color: r.activo !== false ? '#15803d' : '#94a3b8',
+                                                                        padding: '3px 8px',
+                                                                        borderRadius: '6px',
+                                                                        fontSize: '11px',
+                                                                        fontWeight: 800,
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    {r.activo !== false ? 'ACTIVO' : 'PAUSADO'}
+                                                                </button>
+                                                            </td>
+                                                            <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                                <button
+                                                                    onClick={() => handleDeleteRule(r.patron)}
+                                                                    title="Eliminar regla"
+                                                                    style={{
+                                                                        border: 'none',
+                                                                        background: 'transparent',
+                                                                        cursor: 'pointer',
+                                                                        color: '#ef4444',
+                                                                        padding: '4px',
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        borderRadius: '4px'
+                                                                    }}
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
                                         </tbody>
                                     </table>
                                 </div>
                             )}
+
+                            {/* Configuración de Estilos Excluidos Oracle (p_estilos) */}
+                            <div style={{
+                                marginTop: '20px',
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '14px',
+                                padding: '16px 20px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        🏷️ Estilos Excluidos en Oracle Retail Pro (<code>p_estilos</code>)
+                                        <span style={{ background: '#e2e8f0', color: '#475569', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
+                                            {pEstilos.split('|').filter(Boolean).length} estilos
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPEstilos(DEFAULT_P_ESTILOS)}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            color: '#2563eb',
+                                            fontSize: '11.5px',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            textDecoration: 'underline'
+                                        }}
+                                    >
+                                        Restablecer estilos oficiales
+                                    </button>
+                                </div>
+                                <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                                    Lista de estilos excluidos que se registran en el campo <code>estilos</code> del certificado en Oracle Retail Pro. Separados por pleca (<code>|</code>).
+                                </p>
+                                <textarea
+                                    value={pEstilos}
+                                    onChange={e => setPEstilos(e.target.value)}
+                                    rows={3}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #cbd5e1',
+                                        fontSize: '11.5px',
+                                        fontFamily: 'monospace',
+                                        color: '#334155',
+                                        background: 'white',
+                                        outline: 'none',
+                                        resize: 'vertical',
+                                        lineHeight: 1.4
+                                    }}
+                                />
+                            </div>
 
                             {/* Mensaje informativo */}
                             <div style={{
@@ -2116,7 +2196,7 @@ export default function EmployeesListPage() {
                                 color: '#1e40af',
                                 lineHeight: 1.5
                             }}>
-                                💡 <strong>¿Cómo funciona?</strong> Al sincronizar con SAP HANA o pulsar <strong>"Guardar y Recalcular Pendientes"</strong>, el sistema verifica la posición del colaborador. Si contiene el código configurado (ej: <code>ASVENT</code> en <em>ASVENTAR1538</em>), le asigna automáticamente el valor de descuento indicado.
+                                💡 <strong>Regla de negocio:</strong> El valor que ingresas aquí es el <strong>Cupo Asignado</strong> al colaborador. En Oracle Retail Pro, el campo <code>monto_maximo_descuento</code> se registra automáticamente al <strong>30%</strong> (ej: Cupo $1,000 ➔ Descuento Máximo $300 en caja).
                             </div>
                         </div>
 

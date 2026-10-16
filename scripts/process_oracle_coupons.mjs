@@ -125,6 +125,26 @@ export async function processOracleCoupons() {
     return processBatch(pendingEmployees || []);
 }
 
+async function getActivePEstilos() {
+    try {
+        const { data: auditLog, error: auditErr } = await supabase
+            .from('digi_audit_logs')
+            .select('description')
+            .eq('entity_type', 'CONFIG_CUPOS_RULES')
+            .order('timestamp', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (!auditErr && auditLog?.description) {
+            const parsed = JSON.parse(auditLog.description);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.p_estilos) {
+                return parsed.p_estilos.trim();
+            }
+        }
+    } catch (_) {}
+    return P_ESTILOS;
+}
+
 async function processBatch(employees) {
     if (!employees || employees.length === 0) {
         console.log(`ℹ️ No hay colaboradores con certificados pendientes por generar.`);
@@ -132,6 +152,7 @@ async function processBatch(employees) {
     }
 
     console.log(`📋 Se encontraron ${employees.length} colaborador(es) pendientes para generar certificados en Oracle.`);
+    const activePEstilos = await getActivePEstilos();
 
     let oracleConn;
     try {
@@ -167,9 +188,13 @@ async function processBatch(employees) {
         let totalCertificadosGenerados = 0;
 
         for (const emp of employees) {
+            // El monto_maximo_descuento en Oracle corresponde al 30% del cupo asignado (ej: 1000 cupo -> 300 descuento)
+            const cupoBase = Number(emp.cupo_aprobado) || 1000;
+            const montoMaximoDescuento = Math.round(cupoBase * 0.30 * 100) / 100;
+
             console.log(`\n---------------------------------------------------------------`);
             console.log(`👤 Procesando: ${emp.nombre_completo} (Cédula: ${emp.cedula}, PERNR: ${emp.pernr})`);
-            console.log(`   Monto Descuento: $${emp.cupo_aprobado}`);
+            console.log(`   Cupo Base: $${cupoBase} | Descuento Máximo (30%): $${montoMaximoDescuento}`);
 
             // Empresas a generar para este empleado (soporta columna empresas o metadata en observaciones)
             let empresas = ['E200'];
@@ -261,13 +286,13 @@ async function processBatch(employees) {
                     subsidiaria: rule.subsidiaria,
                     fecha_inicio: p_validfrom,
                     fecha_vencimiento: p_validto,
-                    estilos: P_ESTILOS,
-                    monto_maximo: Number(emp.cupo_aprobado),
+                    estilos: activePEstilos,
+                    monto_maximo: montoMaximoDescuento,
                     rut: String(emp.cedula).trim(),
                     motivo: motivo
                 });
 
-                console.log(`   ✅ [${empCode} - ${rule.name}] Certificado: ${codigoCupon} | Lote: ${currentLote} | Motivo: ${motivo}`);
+                console.log(`   ✅ [${empCode} - ${rule.name}] Certificado: ${codigoCupon} | Cupo Base: $${cupoBase} | Descuento 30%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
 
                 generatedCoupons.push({
                     empresa: empCode,
@@ -276,7 +301,8 @@ async function processBatch(employees) {
                     certificado: codigoCupon,
                     motivo: motivo,
                     subsidiaria: rule.subsidiaria,
-                    monto_maximo: Number(emp.cupo_aprobado),
+                    cupo_base: cupoBase,
+                    monto_maximo: montoMaximoDescuento,
                     fecha_vencimiento: p_validto.toISOString().split('T')[0]
                 });
 
