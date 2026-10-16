@@ -164,9 +164,11 @@ export default function EmployeesListPage() {
                 body: JSON.stringify({ action: 'approve', ids: [id], aprobado_por: 'Talento Humano' })
             });
             const data = await res.json();
-            if (data.success) {
+            if (data.success && data.count > 0) {
                 alert(`✅ Colaborador aprobado exitosamente. Se ha emitido su código QR y enviado la notificación a su correo.`);
                 await fetchBenefits();
+            } else if (data.success && data.count === 0) {
+                alert(`⚠️ La aprobación no pudo actualizar el registro en la base de datos.`);
             } else {
                 alert('❌ Error al aprobar: ' + (data.error || 'Desconocido'));
             }
@@ -196,10 +198,12 @@ export default function EmployeesListPage() {
                 body: JSON.stringify({ action: 'approve', ids: idsArray, aprobado_por: 'Talento Humano' })
             });
             const data = await res.json();
-            if (data.success) {
+            if (data.success && data.count > 0) {
                 alert(`✅ Se aprobaron ${data.count} colaboradores exitosamente y se enviaron sus correos con QR.`);
                 setSelectedBenefitIds(new Set());
                 await fetchBenefits();
+            } else if (data.success && data.count === 0) {
+                alert(`⚠️ La aprobación no pudo actualizar los registros en la base de datos.`);
             } else {
                 alert('❌ Error al aprobar en lote: ' + (data.error || 'Desconocido'));
             }

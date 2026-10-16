@@ -951,9 +951,8 @@ export async function POST(req: NextRequest) {
                 }
 
                 // Actualizar registro en Supabase incluyendo empresas asignadas
-                const updateData: any = {
+                const baseUpdate: any = {
                     estado: 'APROBADO',
-                    empresas: selectedEmpresas,
                     qr_token: qrToken,
                     email_sent: emailSent,
                     email_sent_at: emailSent ? now.toISOString() : null,
@@ -962,18 +961,44 @@ export async function POST(req: NextRequest) {
                     updated_at: now.toISOString()
                 };
 
+                // Guardar empresas en observaciones como respaldo JSON si la columna empresas no existe en DB
+                try {
+                    const prevObs = emp.observaciones ? JSON.parse(emp.observaciones) : {};
+                    baseUpdate.observaciones = JSON.stringify({ ...prevObs, empresas: selectedEmpresas });
+                } catch {
+                    baseUpdate.observaciones = JSON.stringify({ empresas: selectedEmpresas });
+                }
+
+                // 1. Intentar con todas las columnas extendidas
                 let { error: updErr } = await supabase
                     .from('digi_employee_benefits_90d')
-                    .update({ ...updateData, cupon_oracle_estado: 'PENDIENTE' })
+                    .update({
+                        ...baseUpdate,
+                        empresas: selectedEmpresas,
+                        cupon_oracle_estado: 'PENDIENTE'
+                    })
                     .eq('id', emp.id);
 
+                // 2. Si falla por cupon_oracle_estado o empresas, intentar con empresas solamente
                 if (updErr) {
-                    // Fallback defensivo si la columna cupon_oracle_estado aún no fue creada en Supabase
-                    const retry = await supabase
+                    const retry1 = await supabase
                         .from('digi_employee_benefits_90d')
-                        .update(updateData)
+                        .update({
+                            ...baseUpdate,
+                            empresas: selectedEmpresas
+                        })
                         .eq('id', emp.id);
-                    updErr = retry.error;
+                    updErr = retry1.error;
+                }
+
+                // 3. Si la columna empresas aún no existe en Supabase, usar baseUpdate (garantizado de existir)
+                if (updErr) {
+                    console.warn(`⚠️ Usando fallback baseUpdate sin columna empresas para empleado ${emp.id}:`, updErr.message);
+                    const retry2 = await supabase
+                        .from('digi_employee_benefits_90d')
+                        .update(baseUpdate)
+                        .eq('id', emp.id);
+                    updErr = retry2.error;
                 }
 
                 if (!updErr) {
@@ -985,6 +1010,8 @@ export async function POST(req: NextRequest) {
                         cupo_aprobado: emp.cupo_aprobado,
                         empresas: selectedEmpresas
                     });
+                } else {
+                    console.error(`❌ Error actualizando estado de aprobación para empleado ${emp.id}:`, updErr);
                 }
             }
 

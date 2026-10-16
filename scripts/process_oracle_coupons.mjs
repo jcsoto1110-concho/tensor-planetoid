@@ -109,27 +109,17 @@ export async function processOracleCoupons() {
     console.log(`🔍 [ORACLE CUPONES 90D] Buscando aprobaciones pendientes...`);
     console.log(`===============================================================`);
 
-    // Consultar colaboradores aprobados sin código de descuento o en estado pendiente
+    // Consultar colaboradores aprobados sin código de descuento asignado en discount_id_ws
     const { data: pendingEmployees, error: fetchErr } = await supabase
         .from('digi_employee_benefits_90d')
         .select('*')
         .eq('estado', 'APROBADO')
-        .or('discount_id_ws.is.null,discount_id_ws.eq."",cupon_oracle_estado.eq.PENDIENTE')
+        .or('discount_id_ws.is.null,discount_id_ws.eq.""')
         .order('aprobado_at', { ascending: true });
 
     if (fetchErr) {
-        // En caso de que cupon_oracle_estado aún no esté en el schema cache, consultar solo por discount_id_ws
-        const { data: fallbackList, error: fallbackErr } = await supabase
-            .from('digi_employee_benefits_90d')
-            .select('*')
-            .eq('estado', 'APROBADO')
-            .is('discount_id_ws', null);
-
-        if (fallbackErr) {
-            console.error('❌ Error consultando Supabase:', fallbackErr);
-            return { count: 0, error: fallbackErr.message };
-        }
-        return processBatch(fallbackList || []);
+        console.error('❌ Error consultando Supabase:', fetchErr);
+        return { count: 0, error: fetchErr.message };
     }
 
     return processBatch(pendingEmployees || []);
@@ -181,10 +171,18 @@ async function processBatch(employees) {
             console.log(`👤 Procesando: ${emp.nombre_completo} (Cédula: ${emp.cedula}, PERNR: ${emp.pernr})`);
             console.log(`   Monto Descuento: $${emp.cupo_aprobado}`);
 
-            // Empresas a generar para este empleado
-            const empresas = Array.isArray(emp.empresas) && emp.empresas.length > 0 
-                ? emp.empresas 
-                : ['E200'];
+            // Empresas a generar para este empleado (soporta columna empresas o metadata en observaciones)
+            let empresas = ['E200'];
+            if (Array.isArray(emp.empresas) && emp.empresas.length > 0) {
+                empresas = emp.empresas;
+            } else if (emp.observaciones) {
+                try {
+                    const parsed = JSON.parse(emp.observaciones);
+                    if (Array.isArray(parsed.empresas) && parsed.empresas.length > 0) {
+                        empresas = parsed.empresas;
+                    }
+                } catch {}
+            }
 
             console.log(`   Empresas seleccionadas: [${empresas.join(', ')}]`);
 
@@ -304,21 +302,24 @@ async function processBatch(employees) {
             };
 
             // Intentar actualizar campos adicionales si existen en la tabla
-            try {
-                await supabase
-                    .from('digi_employee_benefits_90d')
-                    .update({
-                        ...updatePayload,
-                        cupon_oracle_estado: 'CREADO',
-                        oracle_cupones: generatedCoupons
-                    })
-                    .eq('id', emp.id);
-            } catch (errSup) {
-                // Fallback a solo discount_id_ws
-                await supabase
+            const { error: errExt } = await supabase
+                .from('digi_employee_benefits_90d')
+                .update({
+                    ...updatePayload,
+                    cupon_oracle_estado: 'CREADO',
+                    oracle_cupones: generatedCoupons
+                })
+                .eq('id', emp.id);
+
+            if (errExt) {
+                // Fallback defensivo a solo discount_id_ws
+                const { error: errBase } = await supabase
                     .from('digi_employee_benefits_90d')
                     .update(updatePayload)
                     .eq('id', emp.id);
+                if (errBase) {
+                    console.error('❌ Error actualizando discount_id_ws en Supabase:', errBase);
+                }
             }
 
             console.log(`   ☁️ Supabase actualizado con ID(s): ${primaryDiscountId}`);
