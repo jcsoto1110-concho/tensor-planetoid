@@ -81,23 +81,51 @@ const ORACLE_CONFIG = {
 
 const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || '';
 
-// Inicializar Oracle Client en modo Thick si la ruta existe
-try {
-    if (ORACLE_CLIENT_LIB && fs.existsSync(ORACLE_CLIENT_LIB)) {
-        oracledb.initOracleClient({ libDir: ORACLE_CLIENT_LIB });
-        console.log(`🔌 Oracle Instant Client cargado desde: ${ORACLE_CLIENT_LIB}`);
-    } else if (process.platform === 'win32' && fs.existsSync('C:\\SAP_Monitor\\instantclient_19_22')) {
-        oracledb.initOracleClient({ libDir: 'C:\\SAP_Monitor\\instantclient_19_22' });
-        console.log('🔌 Oracle Instant Client cargado desde C:\\SAP_Monitor\\instantclient_19_22');
-    } else if (process.platform === 'linux' && fs.existsSync('/opt/oracle/instantclient')) {
-        oracledb.initOracleClient({ libDir: '/opt/oracle/instantclient' });
-        console.log('🔌 Oracle Instant Client cargado desde /opt/oracle/instantclient');
-    } else {
-        console.log('ℹ️ Operando en modo directo/Thin o librerías por defecto del sistema.');
+// Inicializar Oracle Client en modo Thick (requerido para servidores Oracle 11g como Retail Pro)
+const clientCandidates = [
+    ORACLE_CLIENT_LIB,
+    path.join(__dirname, 'instantclient'),
+    'C:\\SAP_Monitor\\instantclient_19_22',
+    'C:\\instantclient_19_22',
+    'C:\\instantclient',
+    'C:\\oracle\\instantclient_19_22',
+    'C:\\oracle\\instantclient',
+    'C:\\oracle\\product\\11.2.0\\client_1',
+    'C:\\app\\client\\product\\11.2.0\\client_1',
+    'D:\\instantclient_19_22',
+    '/opt/oracle/instantclient'
+];
+
+let thickModeLoaded = false;
+for (const cand of clientCandidates) {
+    if (cand && fs.existsSync(cand)) {
+        try {
+            oracledb.initOracleClient({ libDir: cand });
+            console.log(`🔌 Oracle Instant Client cargado exitosamente en Modo Thick desde: ${cand}`);
+            thickModeLoaded = true;
+            break;
+        } catch (e) {
+            if (e.message.includes('already been called')) {
+                thickModeLoaded = true;
+                break;
+            }
+        }
     }
-} catch (e) {
-    if (!e.message.includes('already been called')) {
-        console.warn('⚠️ Nota sobre initOracleClient (continuando):', e.message);
+}
+
+if (!thickModeLoaded) {
+    // Intentar sin libDir (usando el PATH del sistema operativo)
+    try {
+        oracledb.initOracleClient();
+        console.log('🔌 Oracle Instant Client cargado exitosamente en Modo Thick desde el PATH del sistema.');
+        thickModeLoaded = true;
+    } catch (e) {
+        if (e.message.includes('already been called')) {
+            thickModeLoaded = true;
+        } else {
+            console.warn('⚠️ No se detectó Oracle Instant Client en rutas conocidas ni en PATH:', e.message);
+            console.warn('ℹ️ La versión de Oracle 11g de Retail Pro (192.168.91.14) requiere Modo Thick con Oracle Instant Client.');
+        }
     }
 }
 

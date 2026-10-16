@@ -70,15 +70,45 @@ const ORACLE_CONFIG = {
     connectString: process.env.ORACLE_RPRO_CONNECT_STRING || envConfig.ORACLE_RPRO_CONNECT_STRING || '192.168.91.14:1521/rproods'
 };
 
-const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || 'C:\\SAP_Monitor\\instantclient_19_22';
+const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || '';
 
-// Inicializar Oracle Client en modo Thick
-try {
-    oracledb.initOracleClient({ libDir: ORACLE_CLIENT_LIB });
-} catch (e) {
-    // Si ya está inicializado, ignorar
-    if (!e.message.includes('already been called')) {
-        console.warn('⚠️ Nota sobre initOracleClient:', e.message);
+// Inicializar Oracle Client en modo Thick (requerido para Oracle 11g)
+const clientCandidates = [
+    ORACLE_CLIENT_LIB,
+    path.join(__dirname, '../agent-oracle-coupons/instantclient'),
+    'C:\\SAP_Monitor\\instantclient_19_22',
+    'C:\\instantclient_19_22',
+    'C:\\instantclient',
+    'C:\\oracle\\instantclient_19_22',
+    'C:\\oracle\\instantclient',
+    '/opt/oracle/instantclient'
+];
+
+let thickModeLoaded = false;
+for (const cand of clientCandidates) {
+    if (cand && fs.existsSync(cand)) {
+        try {
+            oracledb.initOracleClient({ libDir: cand });
+            console.log(`🔌 Oracle Instant Client cargado en Modo Thick desde: ${cand}`);
+            thickModeLoaded = true;
+            break;
+        } catch (e) {
+            if (e.message.includes('already been called')) {
+                thickModeLoaded = true;
+                break;
+            }
+        }
+    }
+}
+
+if (!thickModeLoaded) {
+    try {
+        oracledb.initOracleClient();
+        console.log('🔌 Oracle Instant Client cargado en Modo Thick desde PATH del sistema.');
+    } catch (e) {
+        if (!e.message.includes('already been called')) {
+            console.warn('⚠️ No se detectó Oracle Instant Client en rutas ni en PATH:', e.message);
+        }
     }
 }
 
