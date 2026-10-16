@@ -128,6 +128,11 @@ export async function processOracleCoupons() {
 async function getActiveOracleConfig() {
     let pEstilos = P_ESTILOS;
     let empresaDescuentos = { E200: 30, E100: 30, E101: 30 };
+    let empresaSubsidiarias = {
+        E200: '101|102|103|122|127|118|116',
+        E100: '121|126',
+        E101: '303|304'
+    };
     try {
         const { data: auditLog, error: auditErr } = await supabase
             .from('digi_audit_logs')
@@ -146,10 +151,13 @@ async function getActiveOracleConfig() {
                 if (parsed.empresa_descuentos && typeof parsed.empresa_descuentos === 'object') {
                     empresaDescuentos = { ...empresaDescuentos, ...parsed.empresa_descuentos };
                 }
+                if (parsed.empresa_subsidiarias && typeof parsed.empresa_subsidiarias === 'object') {
+                    empresaSubsidiarias = { ...empresaSubsidiarias, ...parsed.empresa_subsidiarias };
+                }
             }
         }
     } catch (_) {}
-    return { pEstilos, empresaDescuentos };
+    return { pEstilos, empresaDescuentos, empresaSubsidiarias };
 }
 
 async function processBatch(employees) {
@@ -159,7 +167,11 @@ async function processBatch(employees) {
     }
 
     console.log(`📋 Se encontraron ${employees.length} colaborador(es) pendientes para generar certificados en Oracle.`);
-    const { pEstilos: activePEstilos, empresaDescuentos: activeEmpresaDescuentos } = await getActiveOracleConfig();
+    const {
+        pEstilos: activePEstilos,
+        empresaDescuentos: activeEmpresaDescuentos,
+        empresaSubsidiarias: activeEmpresaSubsidiarias
+    } = await getActiveOracleConfig();
 
     let oracleConn;
     try {
@@ -231,6 +243,11 @@ async function processBatch(employees) {
                     ? Number(activeEmpresaDescuentos[empCode])
                     : 30;
 
+                // Subsidiaria configurable por empresa
+                const activeSubsidiaria = (activeEmpresaSubsidiarias && activeEmpresaSubsidiarias[empCode]?.trim())
+                    ? activeEmpresaSubsidiarias[empCode].trim()
+                    : rule.subsidiaria;
+
                 // El monto_maximo_descuento se calcula con el % de descuento asignado a la empresa
                 const montoMaximoDescuento = Math.round(cupoBase * (pctDescuento / 100) * 100) / 100;
 
@@ -296,7 +313,7 @@ async function processBatch(employees) {
                 await oracleConn.execute(insertSql, {
                     lote: currentLote,
                     certificado: codigoCupon,
-                    subsidiaria: rule.subsidiaria,
+                    subsidiaria: activeSubsidiaria,
                     descuento_porcentaje: pctDescuento,
                     fecha_inicio: p_validfrom,
                     fecha_vencimiento: p_validto,
@@ -306,7 +323,7 @@ async function processBatch(employees) {
                     motivo: motivo
                 });
 
-                console.log(`   ✅ [${empCode} - ${rule.name}] Certificado: ${codigoCupon} | Cupo: $${cupoBase} | Descuento ${pctDescuento}%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
+                console.log(`   ✅ [${empCode} - ${rule.name}] Certificado: ${codigoCupon} | Sub: ${activeSubsidiaria} | Cupo: $${cupoBase} | Descuento ${pctDescuento}%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
 
                 generatedCoupons.push({
                     empresa: empCode,
@@ -314,7 +331,7 @@ async function processBatch(employees) {
                     lote: currentLote,
                     certificado: codigoCupon,
                     motivo: motivo,
-                    subsidiaria: rule.subsidiaria,
+                    subsidiaria: activeSubsidiaria,
                     descuento_porcentaje: pctDescuento,
                     cupo_base: cupoBase,
                     monto_maximo: montoMaximoDescuento,

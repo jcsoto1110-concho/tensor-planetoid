@@ -26,6 +26,12 @@ const DEFAULT_EMPRESA_DESCUENTOS: Record<string, number> = {
     E101: 30
 };
 
+const DEFAULT_EMPRESA_SUBSIDIARIAS: Record<string, string> = {
+    E200: '101|102|103|122|127|118|116',
+    E100: '121|126',
+    E101: '303|304'
+};
+
 export default function EmployeesListPage() {
     const { employees } = useDoc();
     const [mainTab, setMainTab] = useState<'directory' | 'benefits90'>('directory');
@@ -57,6 +63,7 @@ export default function EmployeesListPage() {
     const [cupoRules, setCupoRules] = useState<Array<{ id?: string; patron: string; descripcion?: string; cupo: number; activo?: boolean }>>([]);
     const [pEstilos, setPEstilos] = useState(DEFAULT_P_ESTILOS);
     const [empresaDescuentos, setEmpresaDescuentos] = useState<Record<string, number>>(DEFAULT_EMPRESA_DESCUENTOS);
+    const [empresaSubsidiarias, setEmpresaSubsidiarias] = useState<Record<string, string>>(DEFAULT_EMPRESA_SUBSIDIARIAS);
     const [isLoadingRules, setIsLoadingRules] = useState(false);
     const [isSavingRules, setIsSavingRules] = useState(false);
     const [newRulePatron, setNewRulePatron] = useState('');
@@ -145,6 +152,9 @@ export default function EmployeesListPage() {
                 if (data.empresa_descuentos && typeof data.empresa_descuentos === 'object') {
                     setEmpresaDescuentos({ ...DEFAULT_EMPRESA_DESCUENTOS, ...data.empresa_descuentos });
                 }
+                if (data.empresa_subsidiarias && typeof data.empresa_subsidiarias === 'object') {
+                    setEmpresaSubsidiarias({ ...DEFAULT_EMPRESA_SUBSIDIARIAS, ...data.empresa_subsidiarias });
+                }
             }
         } catch (e: any) {
             console.error('Error al cargar reglas de descuentos:', e);
@@ -212,8 +222,15 @@ export default function EmployeesListPage() {
         }));
     };
 
+    const handleUpdateEmpresaSubsidiaria = (code: string, value: string) => {
+        setEmpresaSubsidiarias(prev => ({
+            ...prev,
+            [code]: value
+        }));
+    };
+
     const handleResetDefaultRules = () => {
-        if (!confirm('¿Restablecer las reglas de descuento, porcentajes por empresa y estilos excluidos a los valores corporativos oficiales?')) return;
+        if (!confirm('¿Restablecer las reglas de descuento, porcentajes, subsidiarias y estilos excluidos a los valores corporativos oficiales?')) return;
         setCupoRules([
             { patron: 'ASVENT', descripcion: 'Asesor de Ventas', cupo: 1000, activo: true },
             { patron: 'AUBODE', descripcion: 'Auxiliar de Bodega', cupo: 1000, activo: true },
@@ -230,6 +247,7 @@ export default function EmployeesListPage() {
         ]);
         setPEstilos(DEFAULT_P_ESTILOS);
         setEmpresaDescuentos(DEFAULT_EMPRESA_DESCUENTOS);
+        setEmpresaSubsidiarias(DEFAULT_EMPRESA_SUBSIDIARIAS);
     };
 
     const handleSaveRules = async (recalculatePending: boolean = false) => {
@@ -243,6 +261,7 @@ export default function EmployeesListPage() {
                     rules: cupoRules,
                     p_estilos: pEstilos,
                     empresa_descuentos: empresaDescuentos,
+                    empresa_subsidiarias: empresaSubsidiarias,
                     recalculatePending,
                     user_name: 'Talento Humano'
                 })
@@ -2165,7 +2184,7 @@ export default function EmployeesListPage() {
                                 </div>
                             )}
 
-                            {/* Configuración de Porcentaje de Descuento por Empresa (descuento_porcentaje) */}
+                            {/* Configuración de Porcentaje de Descuento y Subsidiarias por Empresa */}
                             <div style={{
                                 marginTop: '20px',
                                 background: '#f8fafc',
@@ -2175,11 +2194,14 @@ export default function EmployeesListPage() {
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                                     <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <Building2 size={16} color="#2563eb" /> Porcentaje de Descuento por Empresa (<code>descuento_porcentaje</code>)
+                                        <Building2 size={16} color="#2563eb" /> Parámetros por Empresa (<code>descuento_porcentaje</code> y <code>subsidiaria</code>)
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => setEmpresaDescuentos(DEFAULT_EMPRESA_DESCUENTOS)}
+                                        onClick={() => {
+                                            setEmpresaDescuentos(DEFAULT_EMPRESA_DESCUENTOS);
+                                            setEmpresaSubsidiarias(DEFAULT_EMPRESA_SUBSIDIARIAS);
+                                        }}
                                         style={{
                                             border: 'none',
                                             background: 'transparent',
@@ -2190,31 +2212,37 @@ export default function EmployeesListPage() {
                                             textDecoration: 'underline'
                                         }}
                                     >
-                                        Restablecer porcentajes (30%)
+                                        Restablecer valores oficiales
                                     </button>
                                 </div>
                                 <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
-                                    Define el porcentaje que se registrará en el campo <code>descuento_porcentaje</code> de Oracle y con el cual se calculará el <code>monto_maximo_descuento</code> (Cupo &times; %) para cada empresa autorizada.
+                                    Define el porcentaje de descuento y las subsidiarias que se registrarán en la tabla <code>certificados</code> de Oracle Retail Pro para cada empresa autorizada.
                                 </p>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                                     {EMPRESAS_DISPONIBLES.map(emp => {
                                         const currentPct = empresaDescuentos[emp.code] !== undefined ? empresaDescuentos[emp.code] : 30;
+                                        const currentSub = empresaSubsidiarias[emp.code] !== undefined ? empresaSubsidiarias[emp.code] : (DEFAULT_EMPRESA_SUBSIDIARIAS[emp.code] || '');
                                         return (
                                             <div key={emp.code} style={{
                                                 background: 'white',
                                                 border: '1.5px solid #e2e8f0',
-                                                borderRadius: '10px',
-                                                padding: '12px 14px',
+                                                borderRadius: '12px',
+                                                padding: '14px 16px',
                                                 display: 'flex',
                                                 flexDirection: 'column',
-                                                gap: '6px'
+                                                gap: '10px'
                                             }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f172a' }}>{emp.code}</span>
+                                                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{emp.code}</span>
                                                     <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{emp.short}</span>
                                                 </div>
-                                                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '2px' }}>{emp.name}</div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto' }}>
+                                                <div style={{ fontSize: '11px', color: '#64748b' }}>{emp.name}</div>
+
+                                                {/* Input Descuento Porcentaje */}
+                                                <div>
+                                                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                                                        % Descuento:
+                                                    </label>
                                                     <div style={{ position: 'relative', width: '100%' }}>
                                                         <input
                                                             type="number"
@@ -2236,9 +2264,33 @@ export default function EmployeesListPage() {
                                                         />
                                                         <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '13px', fontWeight: 800, color: '#64748b' }}>%</span>
                                                     </div>
+                                                    <div style={{ fontSize: '10.5px', color: '#15803d', fontWeight: 700, marginTop: '3px' }}>
+                                                        Ej: Cupo $1,000 ➔ ${(1000 * (currentPct / 100)).toFixed(2)}
+                                                    </div>
                                                 </div>
-                                                <div style={{ fontSize: '10.5px', color: '#15803d', fontWeight: 700, marginTop: '2px' }}>
-                                                    Ej: Cupo $1,000 ➔ ${(1000 * (currentPct / 100)).toFixed(2)}
+
+                                                {/* Input Subsidiaria(s) */}
+                                                <div>
+                                                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                                                        Subsidiaria(s) Oracle:
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={currentSub}
+                                                        onChange={e => handleUpdateEmpresaSubsidiaria(emp.code, e.target.value)}
+                                                        placeholder="ej: 101|102|103..."
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '6px 10px',
+                                                            borderRadius: '6px',
+                                                            border: '1px solid #cbd5e1',
+                                                            fontSize: '11.5px',
+                                                            fontFamily: 'monospace',
+                                                            color: '#334155',
+                                                            background: '#f8fafc',
+                                                            outline: 'none'
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
                                         );

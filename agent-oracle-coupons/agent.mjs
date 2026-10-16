@@ -135,6 +135,11 @@ const COMPANY_RULES = {
 async function getActiveOracleConfig() {
     let pEstilos = P_ESTILOS;
     let empresaDescuentos = { E200: 30, E100: 30, E101: 30 };
+    let empresaSubsidiarias = {
+        E200: '101|102|103|122|127|118|116',
+        E100: '121|126',
+        E101: '303|304'
+    };
     try {
         const { data: auditLog, error: auditErr } = await supabase
             .from('digi_audit_logs')
@@ -153,10 +158,13 @@ async function getActiveOracleConfig() {
                 if (parsed.empresa_descuentos && typeof parsed.empresa_descuentos === 'object') {
                     empresaDescuentos = { ...empresaDescuentos, ...parsed.empresa_descuentos };
                 }
+                if (parsed.empresa_subsidiarias && typeof parsed.empresa_subsidiarias === 'object') {
+                    empresaSubsidiarias = { ...empresaSubsidiarias, ...parsed.empresa_subsidiarias };
+                }
             }
         }
     } catch (_) {}
-    return { pEstilos, empresaDescuentos };
+    return { pEstilos, empresaDescuentos, empresaSubsidiarias };
 }
 
 // ==============================================================================
@@ -187,7 +195,11 @@ export async function processOracleCoupons() {
     console.log(`[${timeStr}] 📋 Encontrados ${pendingEmployees.length} colaborador(es) aprobados para emitir cupones en Oracle.`);
     console.log(`===============================================================`);
 
-    const { pEstilos: activePEstilos, empresaDescuentos: activeEmpresaDescuentos } = await getActiveOracleConfig();
+    const {
+        pEstilos: activePEstilos,
+        empresaDescuentos: activeEmpresaDescuentos,
+        empresaSubsidiarias: activeEmpresaSubsidiarias
+    } = await getActiveOracleConfig();
 
     let oracleConn;
     try {
@@ -254,6 +266,11 @@ export async function processOracleCoupons() {
                     ? Number(activeEmpresaDescuentos[empCode])
                     : 30;
 
+                // Subsidiaria configurable por empresa
+                const activeSubsidiaria = (activeEmpresaSubsidiarias && activeEmpresaSubsidiarias[empCode]?.trim())
+                    ? activeEmpresaSubsidiarias[empCode].trim()
+                    : rule.subsidiaria;
+
                 // El monto_maximo_descuento se calcula con el % de descuento asignado a la empresa
                 const montoMaximoDescuento = Math.round(cupoBase * (pctDescuento / 100) * 100) / 100;
 
@@ -318,7 +335,7 @@ export async function processOracleCoupons() {
                 await oracleConn.execute(insertSql, {
                     lote: currentLote,
                     certificado: codigoCupon,
-                    subsidiaria: rule.subsidiaria,
+                    subsidiaria: activeSubsidiaria,
                     descuento_porcentaje: pctDescuento,
                     fecha_inicio: p_validfrom,
                     fecha_vencimiento: p_validto,
@@ -328,7 +345,7 @@ export async function processOracleCoupons() {
                     motivo: motivo
                 });
 
-                console.log(`   ✅ [${empCode} - ${rule.name}] Emitido: ${codigoCupon} | Cupo: $${cupoBase} | Descuento ${pctDescuento}%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
+                console.log(`   ✅ [${empCode} - ${rule.name}] Emitido: ${codigoCupon} | Sub: ${activeSubsidiaria} | Cupo: $${cupoBase} | Descuento ${pctDescuento}%: $${montoMaximoDescuento} | Lote: ${currentLote} | Motivo: ${motivo}`);
 
                 generatedCoupons.push({
                     empresa: empCode,
@@ -336,7 +353,7 @@ export async function processOracleCoupons() {
                     certificado: codigoCupon,
                     lote: currentLote,
                     motivo: motivo,
-                    subsidiaria: rule.subsidiaria,
+                    subsidiaria: activeSubsidiaria,
                     descuento_porcentaje: pctDescuento,
                     cupo_base: cupoBase,
                     monto_maximo: montoMaximoDescuento,

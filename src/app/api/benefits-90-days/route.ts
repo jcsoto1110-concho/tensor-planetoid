@@ -302,10 +302,22 @@ export const DEFAULT_EMPRESA_DESCUENTOS: Record<string, number> = {
     E101: 30
 };
 
-async function getCupoConfig(supabase: any): Promise<{ rules: CupoRule[]; p_estilos: string; empresa_descuentos: Record<string, number> }> {
+export const DEFAULT_EMPRESA_SUBSIDIARIAS: Record<string, string> = {
+    E200: '101|102|103|122|127|118|116',
+    E100: '121|126',
+    E101: '303|304'
+};
+
+async function getCupoConfig(supabase: any): Promise<{
+    rules: CupoRule[];
+    p_estilos: string;
+    empresa_descuentos: Record<string, number>;
+    empresa_subsidiarias: Record<string, string>;
+}> {
     let rules = DEFAULT_CUPO_RULES;
     let p_estilos = DEFAULT_P_ESTILOS;
     let empresa_descuentos = { ...DEFAULT_EMPRESA_DESCUENTOS };
+    let empresa_subsidiarias = { ...DEFAULT_EMPRESA_SUBSIDIARIAS };
 
     try {
         const { data: dedicatedRules, error: dedErr } = await supabase
@@ -362,13 +374,19 @@ async function getCupoConfig(supabase: any): Promise<{ rules: CupoRule[]; p_esti
                         ...parsed.empresa_descuentos
                     };
                 }
+                if (parsed.empresa_subsidiarias && typeof parsed.empresa_subsidiarias === 'object') {
+                    empresa_subsidiarias = {
+                        ...DEFAULT_EMPRESA_SUBSIDIARIAS,
+                        ...parsed.empresa_subsidiarias
+                    };
+                }
             }
         }
     } catch (e) {
         console.warn('No se pudieron cargar reglas personalizadas desde digi_audit_logs:', e);
     }
 
-    return { rules, p_estilos, empresa_descuentos };
+    return { rules, p_estilos, empresa_descuentos, empresa_subsidiarias };
 }
 
 async function getCupoRules(supabase: any): Promise<CupoRule[]> {
@@ -381,6 +399,7 @@ async function saveCupoConfig(
     rules: CupoRule[],
     p_estilos?: string,
     empresa_descuentos?: Record<string, number>,
+    empresa_subsidiarias?: Record<string, string>,
     userName?: string
 ) {
     const cleanRules = rules.map((r, i) => ({
@@ -403,10 +422,20 @@ async function saveCupoConfig(
         }
     }
 
+    const cleanEmpresaSubsidiarias = { ...DEFAULT_EMPRESA_SUBSIDIARIAS };
+    if (empresa_subsidiarias && typeof empresa_subsidiarias === 'object') {
+        for (const [k, v] of Object.entries(empresa_subsidiarias)) {
+            if (typeof v === 'string' && v.trim()) {
+                cleanEmpresaSubsidiarias[k.toUpperCase()] = v.trim();
+            }
+        }
+    }
+
     const payloadToSave = {
         rules: cleanRules,
         p_estilos: cleanPEstilos,
         empresa_descuentos: cleanEmpresaDescuentos,
+        empresa_subsidiarias: cleanEmpresaSubsidiarias,
         updated_at: new Date().toISOString()
     };
 
@@ -429,11 +458,16 @@ async function saveCupoConfig(
         await supabase.from('digi_cupo_rules').upsert(cleanRules, { onConflict: 'patron' });
     } catch (_) {}
 
-    return { rules: cleanRules, p_estilos: cleanPEstilos, empresa_descuentos: cleanEmpresaDescuentos };
+    return {
+        rules: cleanRules,
+        p_estilos: cleanPEstilos,
+        empresa_descuentos: cleanEmpresaDescuentos,
+        empresa_subsidiarias: cleanEmpresaSubsidiarias
+    };
 }
 
 async function saveCupoRules(supabase: any, rules: CupoRule[], userName?: string) {
-    const res = await saveCupoConfig(supabase, rules, undefined, undefined, userName);
+    const res = await saveCupoConfig(supabase, rules, undefined, undefined, undefined, userName);
     return res.rules;
 }
 
@@ -575,7 +609,13 @@ export async function GET(req: NextRequest) {
 
         if (rulesOnly === 'true') {
             const config = await getCupoConfig(supabase);
-            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos, empresa_descuentos: config.empresa_descuentos });
+            return NextResponse.json({
+                success: true,
+                rules: config.rules,
+                p_estilos: config.p_estilos,
+                empresa_descuentos: config.empresa_descuentos,
+                empresa_subsidiarias: config.empresa_subsidiarias
+            });
         }
 
         const status = searchParams.get('status') || 'ALL';
@@ -689,7 +729,13 @@ export async function POST(req: NextRequest) {
         // ACCIÓN: OBTENER REGLAS DE DESCUENTO POR PUESTO Y ESTILOS
         if (action === 'get_rules') {
             const config = await getCupoConfig(supabase);
-            return NextResponse.json({ success: true, rules: config.rules, p_estilos: config.p_estilos, empresa_descuentos: config.empresa_descuentos });
+            return NextResponse.json({
+                success: true,
+                rules: config.rules,
+                p_estilos: config.p_estilos,
+                empresa_descuentos: config.empresa_descuentos,
+                empresa_subsidiarias: config.empresa_subsidiarias
+            });
         }
 
         // ACCIÓN: GUARDAR REGLAS DE DESCUENTO POR PUESTO Y ESTILOS
@@ -703,6 +749,7 @@ export async function POST(req: NextRequest) {
                 rules,
                 p_estilos,
                 body.empresa_descuentos,
+                body.empresa_subsidiarias,
                 body.user_name || 'Talento Humano'
             );
 
@@ -736,11 +783,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 success: true,
                 message: recalculatePending 
-                    ? `Reglas, estilos y porcentajes por empresa guardados exitosamente y se recalcularon ${recalculateCount} colaboradores pendientes.`
-                    : 'Reglas de descuento, estilos y porcentajes por empresa guardados correctamente.',
+                    ? `Reglas, estilos, porcentajes y subsidiarias guardados exitosamente y se recalcularon ${recalculateCount} colaboradores pendientes.`
+                    : 'Reglas de descuento, estilos, porcentajes y subsidiarias guardados correctamente.',
                 rules: savedConfig.rules,
                 p_estilos: savedConfig.p_estilos,
                 empresa_descuentos: savedConfig.empresa_descuentos,
+                empresa_subsidiarias: savedConfig.empresa_subsidiarias,
                 recalculateCount
             });
         }
