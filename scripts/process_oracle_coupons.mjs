@@ -70,11 +70,13 @@ const ORACLE_CONFIG = {
     connectString: process.env.ORACLE_RPRO_CONNECT_STRING || envConfig.ORACLE_RPRO_CONNECT_STRING || '192.168.91.14:1521/rproods'
 };
 
-const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || '';
+const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_DIR || envConfig.ORACLE_CLIENT_DIR || process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || '';
 
 // Inicializar Oracle Client en modo Thick (requerido para Oracle 11g)
-const clientCandidates = [
+const baseCandidates = [
     ORACLE_CLIENT_LIB,
+    'C:\\app\\Oracle Client for Microsoft Tools',
+    'C:\\app\\Oracle Client for Microsoft Tools\\bin',
     path.join(__dirname, '../agent-oracle-coupons/instantclient'),
     'C:\\SAP_Monitor\\instantclient_19_22',
     'C:\\instantclient_19_22',
@@ -84,11 +86,42 @@ const clientCandidates = [
     '/opt/oracle/instantclient'
 ];
 
+const clientCandidates = [];
+for (const cand of baseCandidates) {
+    if (!cand) continue;
+    const binSub = path.join(cand, 'bin');
+    if (fs.existsSync(binSub) && fs.existsSync(path.join(binSub, 'oci.dll'))) {
+        clientCandidates.push(binSub);
+    }
+    clientCandidates.push(cand);
+    if (!cand.endsWith('\\bin') && !cand.endsWith('/bin')) {
+        clientCandidates.push(binSub);
+    }
+}
+
+const adminDir = path.join(__dirname, 'network', 'admin');
+try {
+    if (!fs.existsSync(adminDir)) {
+        fs.mkdirSync(adminDir, { recursive: true });
+    }
+    const sqlnetContent = 'SQLNET.AUTHENTICATION_SERVICES = (NONE)\nNAMES.DIRECTORY_PATH = (TNSNAMES, EZCONNECT)\n';
+    fs.writeFileSync(path.join(adminDir, 'sqlnet.ora'), sqlnetContent, 'utf8');
+    process.env.TNS_ADMIN = adminDir;
+} catch (e) {
+    console.warn('Nota creando sqlnet.ora:', e.message);
+}
+
 let thickModeLoaded = false;
 for (const cand of clientCandidates) {
     if (cand && fs.existsSync(cand)) {
         try {
-            oracledb.initOracleClient({ libDir: cand });
+            const candAdmin = path.join(cand, 'network', 'admin');
+            if (!fs.existsSync(candAdmin)) fs.mkdirSync(candAdmin, { recursive: true });
+            fs.writeFileSync(path.join(candAdmin, 'sqlnet.ora'), 'SQLNET.AUTHENTICATION_SERVICES = (NONE)\n', 'utf8');
+        } catch {}
+
+        try {
+            oracledb.initOracleClient({ libDir: cand, configDir: adminDir });
             console.log(`🔌 Oracle Instant Client cargado en Modo Thick desde: ${cand}`);
             thickModeLoaded = true;
             break;

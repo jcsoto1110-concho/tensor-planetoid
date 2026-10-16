@@ -79,11 +79,13 @@ const ORACLE_CONFIG = {
     connectString: process.env.ORACLE_RPRO_CONNECT_STRING || envConfig.ORACLE_RPRO_CONNECT_STRING || '192.168.91.14:1521/rproods'
 };
 
-const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || '';
+const ORACLE_CLIENT_LIB = process.env.ORACLE_CLIENT_DIR || envConfig.ORACLE_CLIENT_DIR || process.env.ORACLE_CLIENT_LIB || envConfig.ORACLE_CLIENT_LIB || '';
 
 // Inicializar Oracle Client en modo Thick (requerido para servidores Oracle 11g como Retail Pro)
-const clientCandidates = [
+const baseCandidates = [
     ORACLE_CLIENT_LIB,
+    'C:\\app\\Oracle Client for Microsoft Tools',
+    'C:\\app\\Oracle Client for Microsoft Tools\\bin',
     path.join(__dirname, 'instantclient'),
     'C:\\SAP_Monitor\\instantclient_19_22',
     'C:\\instantclient_19_22',
@@ -91,16 +93,53 @@ const clientCandidates = [
     'C:\\oracle\\instantclient_19_22',
     'C:\\oracle\\instantclient',
     'C:\\oracle\\product\\11.2.0\\client_1',
+    'C:\\oracle\\product\\11.2.0\\client_1\\bin',
     'C:\\app\\client\\product\\11.2.0\\client_1',
+    'C:\\app\\client\\product\\11.2.0\\client_1\\bin',
     'D:\\instantclient_19_22',
     '/opt/oracle/instantclient'
 ];
 
+// Expandir para revisar tanto la carpeta como su subcarpeta 'bin' donde se ubica oci.dll
+const clientCandidates = [];
+for (const cand of baseCandidates) {
+    if (!cand) continue;
+    // Si la carpeta tiene bin/oci.dll, preferir bin
+    const binSub = path.join(cand, 'bin');
+    if (fs.existsSync(binSub) && fs.existsSync(path.join(binSub, 'oci.dll'))) {
+        clientCandidates.push(binSub);
+    }
+    clientCandidates.push(cand);
+    if (!cand.endsWith('\\bin') && !cand.endsWith('/bin')) {
+        clientCandidates.push(binSub);
+    }
+}
+
+// Configurar sqlnet.ora con SQLNET.AUTHENTICATION_SERVICES = (NONE) para evitar ORA-12638 en Windows
+const adminDir = path.join(__dirname, 'network', 'admin');
+try {
+    if (!fs.existsSync(adminDir)) {
+        fs.mkdirSync(adminDir, { recursive: true });
+    }
+    const sqlnetContent = 'SQLNET.AUTHENTICATION_SERVICES = (NONE)\nNAMES.DIRECTORY_PATH = (TNSNAMES, EZCONNECT)\n';
+    fs.writeFileSync(path.join(adminDir, 'sqlnet.ora'), sqlnetContent, 'utf8');
+    process.env.TNS_ADMIN = adminDir;
+} catch (e) {
+    console.warn('Nota creando sqlnet.ora:', e.message);
+}
+
 let thickModeLoaded = false;
 for (const cand of clientCandidates) {
     if (cand && fs.existsSync(cand)) {
+        // También asegurar sqlnet.ora dentro del propio directorio de Oracle Client si es posible
         try {
-            oracledb.initOracleClient({ libDir: cand });
+            const candAdmin = path.join(cand, 'network', 'admin');
+            if (!fs.existsSync(candAdmin)) fs.mkdirSync(candAdmin, { recursive: true });
+            fs.writeFileSync(path.join(candAdmin, 'sqlnet.ora'), 'SQLNET.AUTHENTICATION_SERVICES = (NONE)\n', 'utf8');
+        } catch {}
+
+        try {
+            oracledb.initOracleClient({ libDir: cand, configDir: adminDir });
             console.log(`🔌 Oracle Instant Client cargado exitosamente en Modo Thick desde: ${cand}`);
             thickModeLoaded = true;
             break;
@@ -263,19 +302,17 @@ export async function processOracleCoupons() {
             p_validto = new Date(currentYear, 11, 31, 23, 59, 59); // 31 de Diciembre
         }
 
-        // Obtener correlativos actuales de SECUENCIALES
+        // Obtener correlativos actuales de SECUENCIALES con bloqueo de fila
         const secRes = await oracleConn.execute(
-            `SELECT SEC_LOTE, SEC_CERTIFICADO FROM SECUENCIALES WHERE NOMBRE_SECUENCIAL = 'CERTIFICADOS'`,
-            [],
-            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+            `SELECT SEC_LOTE, SEC_CERTIFICADO FROM SECUENCIALES FOR UPDATE`
         );
 
         if (!secRes.rows || secRes.rows.length === 0) {
-            throw new Error("No se encontró el registro 'CERTIFICADOS' en la tabla SECUENCIALES.");
+            throw new Error("No se encontró ningún registro en la tabla SECUENCIALES.");
         }
 
-        let currentLote = Number(secRes.rows[0].SEC_LOTE || 0);
-        let currentSecCert = Number(secRes.rows[0].SEC_CERTIFICADO || 0);
+        let currentLote = Number(secRes.rows[0][0] || 0);
+        let currentSecCert = Number(secRes.rows[0][1] || 0);
 
         let totalCertificadosGenerados = 0;
 
@@ -411,7 +448,7 @@ export async function processOracleCoupons() {
 
             // Actualizar SECUENCIALES en Oracle
             await oracleConn.execute(
-                `UPDATE SECUENCIALES SET SEC_LOTE = :lote, SEC_CERTIFICADO = :sec WHERE NOMBRE_SECUENCIAL = 'CERTIFICADOS'`,
+                `UPDATE SECUENCIALES SET SEC_LOTE = :lote, SEC_CERTIFICADO = :sec`,
                 { lote: currentLote, sec: currentSecCert }
             );
 
